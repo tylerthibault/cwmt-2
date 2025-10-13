@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- bootstrap css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrapcss/bootstrap.min.css') }}">
+
+    <!-- custom css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    {% block custom_css %}
+
+    {% endblock custom_css %}
+
+    <title>CWMT</title>
+</head>
+
+<body>
+    {% include 'components/flash_messages.html' %}
+
+    {% block page_wrapper %}
+    <div class="d-flex flex-column min-vh-100">
+
+        <header>
+            {% block header %}
+            
+            {% endblock header %}
+        </header>
+        
+        <main class="flex-grow-1">
+            {% block content %}
+            
+            {% endblock content %}
+        </main>
+        
+        <footer class="mt-auto">
+            {% block footer %}
+            
+            {% endblock footer %}
+        </footer>
+        
+    </div>
+    {% endblock page_wrapper %}
+    <!-- bootstrap js -->
+    <script src="{{ url_for('static', filename='js/bootstrapjs/bootstrap.bundle.min.js') }}"></script>
+
+
+    {% block custom_js %}
+
+    {% endblock custom_js %}
+</body>
+
+</html>
