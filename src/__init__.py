@@ -1,6 +1,7 @@
 from flask import Flask
 from src.utils.looger import Logger, LogLevel
 from config import config
+from flask_bcrypt import Bcrypt
 
 
 def create_app(config_name='development'):
@@ -13,6 +14,9 @@ def create_app(config_name='development'):
     # Initialize logger
     init_logger(app)
     app.looger.info("------------------- Application starting up -------------------")
+    
+    # Initialize Bcrypt
+    app.bcrypt = Bcrypt(app)
     
     # Initialize database
     init_database(app)
@@ -45,13 +49,14 @@ def init_blueprints(app):
     try:
         # Register main routes blueprint
         from src.controllers.routes import main_bp
-        app.register_blueprint(main_bp)
-        app.looger.info("Main blueprint registered successfully")
+        app.register_blueprint(main_bp)\
         
-        # Add additional blueprints here as your app grows
-        # Example:
-        # from src.controllers.auth_routes import auth_blueprint
-        # app.register_blueprint(auth_blueprint, url_prefix='/auth')
+        from src.controllers.auth_controller import auth_bp
+        app.register_blueprint(auth_bp)
+                
+        from src.controllers.user_controller import user_bp
+        app.register_blueprint(user_bp)
+
         
     except ImportError as e:
         app.looger.warning("Failed to import routes", error=str(e))

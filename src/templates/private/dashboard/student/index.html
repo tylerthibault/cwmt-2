@@ -1,0 +1,48 @@
+{% extends 'bases/private.html' %}
+
+{% block header %}
+    {% include 'private/dashboard/student/header.html' %}
+{% endblock header %}
+
+{% block content %}
+<div>
+    <div class="container mt-4">
+        <h1 class="mb-4">Student Dashboard</h1>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Welcome back!</h2>
+                    <a href="{{ url_for('user.settings') }}" class="btn btn-secondary">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">My Schedule</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Schedule feature coming soon...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">My Courses</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Course enrollment feature coming soon...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

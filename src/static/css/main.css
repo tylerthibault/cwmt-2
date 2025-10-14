@@ -1,6 +1,7 @@
 @import url('bootstrap_addons/fonts.css');
 @import url('bootstrap_addons/sizing.css');
 @import url('bootstrap_addons/buttons.css');
+@import url('bootstrap_addons/basic.css');
 
 /* Light mode (default) */
 :root {

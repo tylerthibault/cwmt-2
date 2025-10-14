@@ -1,0 +1,15 @@
+{% extends 'bases/public.html' %}
+
+
+{% block page_wrapper %}
+<div>
+    {% block header %}
+        <p>private header</p>
+    {% endblock header %}
+
+    {% block content %}
+        <p>Private Content</p>
+    {% endblock content %}
+    
+</div>
+{% endblock page_wrapper %}

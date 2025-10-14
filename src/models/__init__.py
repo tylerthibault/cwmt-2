@@ -20,14 +20,17 @@ def init_db(app):
     with app.app_context():
         # Import all models here to ensure they're registered with SQLAlchemy
         from src.models.user import User
-        # Add more model imports as they are created
-        # from src.models.course import Course
-        # from src.models.enrollment import Enrollment
+        from src.models.roles import Role, UserHasRoles
+        from src.models.logbook import Logbook
         
         # Create all tables if they don't exist
         db.create_all()
         
         app.looger.info("Database tables created successfully")
+        
+        # Seed default roles on first database creation
+        from src.utils.seed_roles import seed_default_roles
+        seed_default_roles(app)
 
 
 # Export db instance for use in models and logic layers

@@ -29,6 +29,12 @@ class User(BaseModel):
     last_name = db.Column(db.String(50), nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    email_confirmed = db.Column(db.Boolean, default=False, nullable=False)
+    email_confirmed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan')
+    logbooks = db.relationship('Logbook', back_populates='user', cascade='all, delete-orphan')
     
     def to_dict(self, include_sensitive=False):
         """
@@ -48,7 +54,9 @@ class User(BaseModel):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'is_active': self.is_active,
-            'is_admin': self.is_admin
+            'is_admin': self.is_admin,
+            'email_confirmed': self.email_confirmed,
+            'email_confirmed_at': self.email_confirmed_at
         })
         
         # Never include password hash unless explicitly requested (for migrations, etc.)
@@ -60,3 +68,94 @@ class User(BaseModel):
     def __repr__(self):
         """String representation"""
         return f'<User {self.username} ({self.email})>'
+    
+
+    @classmethod
+    def create(cls, **kwargs):
+        """
+        Create and save a new user.
+        
+        Args:
+            kwargs: User fields
+
+        Returns:
+            User: The created user instance
+        """
+        user = cls(**kwargs)
+        db.session.add(user)
+        db.session.commit()
+        return user
+    
+    @classmethod
+    def get_by_id(cls, user_id):
+        """
+        Get user by ID.
+        
+        Args:
+            user_id (int): ID of the user
+            
+        Returns:
+            User: The user instance or None if not found
+        """
+        return cls.query.get(user_id)
+    
+    @classmethod
+    def get_by_email(cls, email):
+        """
+        Get user by email.
+        
+        Args:
+            email (str): Email of the user
+            
+        Returns:
+            User: The user instance or None if not found
+        """
+        return cls.query.filter_by(email=email).first()
+    
+    @classmethod
+    def get_all(cls):
+        """
+        Get all users.
+        
+        Returns:
+            list: List of all user instances
+        """
+        return cls.query.all()
+    
+    @classmethod
+    def update(cls, user_id, **kwargs):
+        """
+        Update user fields.
+        
+        Args:
+            user_id (int): ID of the user to update
+            kwargs: Fields to update
+            
+        Returns:
+            User: The updated user instance or None if not found
+        """
+        user = cls.query.get(user_id)
+        if user:
+            for key, value in kwargs.items():
+                setattr(user, key, value)
+            db.session.commit()
+            return user
+        return None
+    
+    @classmethod
+    def deactivate(cls, user_id):
+        """
+        Deactivate a user by setting is_active to False.
+        
+        Args:
+            user_id (int): ID of the user to deactivate
+            
+        Returns:
+            bool: True if deactivated, False if user not found
+        """
+        user = cls.query.get(user_id)
+        if user:
+            user.is_active = False
+            db.session.commit()
+            return True
+        return False

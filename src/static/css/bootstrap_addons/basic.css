@@ -1,0 +1,102 @@
+
+/* Bootstrap Utility Class Overrides */
+/* Link Bootstrap utility classes to custom CSS variables */
+
+/* Background utilities */
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bs-secondary) !important;
+}
+
+.bg-success {
+  background-color: var(--bs-success) !important;
+}
+
+.bg-info {
+  background-color: var(--bs-info) !important;
+}
+
+.bg-warning {
+  background-color: var(--bs-warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--bs-danger) !important;
+}
+
+.bg-light {
+  background-color: var(--bs-light) !important;
+}
+
+.bg-dark {
+  background-color: var(--bs-dark) !important;
+}
+
+/* Text utilities */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+.text-secondary {
+  color: var(--bs-secondary) !important;
+}
+
+.text-success {
+  color: var(--bs-success) !important;
+}
+
+.text-info {
+  color: var(--bs-info) !important;
+}
+
+.text-warning {
+  color: var(--bs-warning) !important;
+}
+
+.text-danger {
+  color: var(--bs-danger) !important;
+}
+
+.text-light {
+  color: var(--bs-light) !important;
+}
+
+.text-dark {
+  color: var(--bs-dark) !important;
+}
+
+/* Border utilities */
+.border-primary {
+  border-color: var(--bs-primary) !important;
+}
+
+.border-secondary {
+  border-color: var(--bs-secondary) !important;
+}
+
+.border-success {
+  border-color: var(--bs-success) !important;
+}
+
+.border-info {
+  border-color: var(--bs-info) !important;
+}
+
+.border-warning {
+  border-color: var(--bs-warning) !important;
+}
+
+.border-danger {
+  border-color: var(--bs-danger) !important;
+}
+
+.border-light {
+  border-color: var(--bs-light) !important;
+}
+
+.border-dark {
+  border-color: var(--bs-dark) !important;
+}
