@@ -1,0 +1,134 @@
+{% extends 'bases/private.html' %}
+
+{% block custom_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/instructor/index.css') }}">
+{% endblock custom_css %}
+
+{% block header %}
+<nav class="side-nav">
+    <div class="side-nav-header">
+        <h2>Instructor</h2>
+        <p class="text-muted">Dashboard</p>
+    </div>
+    
+    <ul class="side-nav-menu">
+        <li class="side-nav-item active">
+            <a href="{{ url_for('user.dashboard') }}" class="side-nav-link">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Overview</span>
+            </a>
+        </li>
+        <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+                <span class="nav-icon">💬</span>
+                <span class="nav-text">Messages</span>
+            </a>
+        </li>
+        <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </a>
+        </li>
+    </ul>
+    
+    <div class="side-nav-footer">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm w-100">
+            Logout
+        </a>
+    </div>
+</nav>
+{% endblock header %}
+
+{% block content %}
+<div class="dashboard-content">
+    <div class="content-header">
+        <h1>Welcome Back!</h1>
+        <p class="text-muted">Here's what's happening with your courses today.</p>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary-subtle">
+                    📚
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">5</h3>
+                    <p class="stat-label">Active Courses</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success-subtle">
+                    👥
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">142</h3>
+                    <p class="stat-label">Total Students</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning-subtle">
+                    📝
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">23</h3>
+                    <p class="stat-label">Pending Grades</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info-subtle">
+                    💬
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">8</h3>
+                    <p class="stat-label">New Messages</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Your recent course activities will appear here.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Links</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none">Create New Assignment</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none">Schedule Office Hours</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none">View Course Materials</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

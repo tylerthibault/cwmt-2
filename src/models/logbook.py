@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from flask import current_app as app
 
 # 1 MINUTES
-LOGOUT_TIMER = 600
+LOGOUT_TIMER = 6000
 
 class Logbook(BaseModel):
     """

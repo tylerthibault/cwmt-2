@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from src.controllers.auth_controller import login_required
+from src.logic.user_logic import UserLogic
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -8,8 +9,11 @@ user_bp = Blueprint('user', __name__, url_prefix='/user')
 @login_required
 def dashboard():
     """User dashboard page"""
-    context = {}
-    return render_template('private/dashboard/student/index.html', **context)
+    context = UserLogic.get_context()
+    if not context:
+        flash("Unable to load dashboard context.", "error")
+        return redirect(url_for('main.index'))
+    return render_template(context.get('dashboard_template', 'private/dashboard/student/index.html'), **context)
 
 
 @user_bp.route('/settings')

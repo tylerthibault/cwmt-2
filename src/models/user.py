@@ -34,6 +34,7 @@ class User(BaseModel):
     
     # Relationships
     roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan')
+    role_list = db.relationship('Role', secondary='user_has_roles', backref='users_list')
     logbooks = db.relationship('Logbook', back_populates='user', cascade='all, delete-orphan')
     
     def to_dict(self, include_sensitive=False):
