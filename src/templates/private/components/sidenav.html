@@ -1,0 +1,135 @@
+<div class="sidenav-container">
+    <nav class="sidenav collapsed preload" id="sidenav">
+        <button class="sidenav-toggle">
+            <span class="icon">&#9776;</span>
+        </button>
+
+
+        <div class="min-h-20">
+            {# Role Switcher - Only show if user has multiple roles #}
+            {% set user_roles = user.role_list | map(attribute='name') | list %}
+            {% if user_roles | length > 1 %}
+            <div class="role-switcher-container">
+                <select class="role-switcher" id="roleSwitcher" data-dashboard-url="{{ url_for('user.dashboard') }}">
+                    {% for role in user_roles %}
+                    <option value="{{ role }}" {% if role==current_role %}selected{% endif %}>{{ role | title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <ul id="sidenavMenu">
+                {% set user_roles = user.role_list | map(attribute='name') | list %}
+
+                {# Instructor Menu #}
+                {% if current_role == 'instructor' %}
+                <div class="role-menu" data-role="instructor">
+                    <p class="sidenav-title">Instructor</p>
+                    <li><a href="{{ url_for('user.dashboard') }}?view_as=instructor">
+                            <span class="icon">&#128200;</span>
+                            <span class="sidenav-btn-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128218;</span>
+                            <span class="sidenav-btn-text">My Courses</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128197;</span>
+                            <span class="sidenav-btn-text">Schedule</span>
+                        </a>
+                    </li>
+                </div>
+                {% endif %}
+
+                {# Admin Menu #}
+                {% if current_role == 'admin' %}
+                <div class="role-menu" data-role="admin">
+                    <p class="sidenav-title">Admin</p>
+                    <li><a href="{{ url_for('user.dashboard') }}?view_as=admin">
+                            <span class="icon">&#128200;</span>
+                            <span class="sidenav-btn-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128218;</span>
+                            <span class="sidenav-btn-text">Schedule Management</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128202;</span>
+                            <span class="sidenav-btn-text">Reports</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128276;</span>
+                            <span class="sidenav-btn-text">Announcements</span>
+                        </a>
+                    </li>
+                </div>
+                {% endif %}
+
+                {# Super User Menu #}
+                {% if current_role == 'super-user' %}
+                <div class="role-menu" data-role="super-user">
+                    <p class="sidenav-title">Super User</p>
+                    <li><a href="{{ url_for('user.dashboard') }}?view_as=super-user">
+                            <span class="icon">&#128200;</span>
+                            <span class="sidenav-btn-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('super_user.user_management') }}">
+                            <span class="icon">&#128101;</span>
+                            <span class="sidenav-btn-text">User Management</span>
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('super_user.course_management') }}">
+                            <span class="icon">&#128218;</span>
+                            <span class="sidenav-btn-text">Course Management</span>
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('super_user.system_settings') }}">
+                            <span class="icon">&#128295;</span>
+                            <span class="sidenav-btn-text">System Settings</span>
+                        </a>
+                    </li>
+                </div>
+                {% endif %}
+
+                {# Common Menu Items - Always visible #}
+                <div class="role-menu common-menu" data-role="common">
+                    <p class="sidenav-title">Account</p>
+                    <li><a href="{{ url_for('user.settings') }}">
+                            <span class="icon">&#9881;</span>
+                            <span class="sidenav-btn-text">Settings</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#9993;</span>
+                            <span class="sidenav-btn-text">Messages</span>
+                        </a>
+                    </li>
+                    <li><a href="#">
+                            <span class="icon">&#128276;</span>
+                            <span class="sidenav-btn-text">Notifications</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+        </div>
+        <div>
+            <ul>
+                <li>
+                    <a href="{{ url_for('auth.logout') }}">
+                        <span class="icon">&#10162;</span>
+                        <span class="sidenav-btn-text">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>

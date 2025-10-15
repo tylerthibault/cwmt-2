@@ -1,15 +1,31 @@
 {% extends 'bases/public.html' %}
 
+{% block custom_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/private/sidenav.css') }}">
+<script>
+(function() {
+    const isCollapsed = localStorage.getItem('sidenav-collapsed');
+    if (isCollapsed === 'false') {
+        document.documentElement.classList.add('sidenav-expanded');
+    }
+})();
+</script>
+{% endblock custom_head %}
 
 {% block page_wrapper %}
-<div>
+<div class="private-layout">
     {% block header %}
-        <p>private header</p>
+        {% include 'private/components/sidenav.html' %}
     {% endblock header %}
 
-    {% block content %}
-        <p>Private Content</p>
-    {% endblock content %}
-    
+    <div class="main-content">
+        {% block content %}
+            <p>Private Content</p>
+        {% endblock content %}
+    </div>
 </div>
 {% endblock page_wrapper %}
+
+{% block custom_js %}
+<script src="{{ url_for('static', filename='js/private/sidenav.js') }}"></script>
+{% endblock custom_js %}

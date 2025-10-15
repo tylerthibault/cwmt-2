@@ -11,7 +11,7 @@ class Role(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships to users_has_roles
-    users = db.relationship('UserHasRoles', back_populates='role', cascade='all, delete-orphan')
+    users = db.relationship('UserHasRoles', back_populates='role', cascade='all, delete-orphan', overlaps="role_list,users_list")
     
     def __repr__(self):
         return f'<Role {self.name}>'
@@ -56,8 +56,8 @@ class UserHasRoles(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), primary_key=True)
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user = db.relationship('User', back_populates='roles')
-    role = db.relationship('Role', back_populates='users')
+    user = db.relationship('User', back_populates='roles', overlaps="role_list,users_list")
+    role = db.relationship('Role', back_populates='users', overlaps="role_list,users_list")
     
     def __repr__(self):
         return f'<UserHasRoles UserID: {self.user_id} RoleID: {self.role_id}>'

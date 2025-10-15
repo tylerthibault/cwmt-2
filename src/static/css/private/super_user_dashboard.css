@@ -1,0 +1,221 @@
+/* ============================================
+   Super User Dashboard Styles
+   Styles specific to the super-user dashboard
+   ============================================ */
+
+/* Stat Cards */
+.stat-card {
+    border: none;
+    border-radius: 8px;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .opacity-50 {
+    opacity: 0.5;
+}
+
+.stat-card .card-subtitle {
+    opacity: 0.9;
+    
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stat-card .card-title {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Management Cards */
+.management-card {
+    border-radius: 8px;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.management-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.management-card .card-header {
+    border-radius: 8px 8px 0 0;
+
+    font-size: 1.125rem;
+}
+
+.management-card .card-text {
+    min-height: 60px;
+
+    font-size: 0.9rem;
+}
+
+.management-card .btn {
+    margin-bottom: 0.5rem;
+    
+    transition: all 0.2s ease;
+}
+
+.management-card .btn:last-child {
+    margin-bottom: 0;
+}
+
+.management-card .card-footer {
+    font-size: 0.8rem;
+}
+
+/* Log Container */
+.log-container {
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
+
+    padding: 1rem;
+}
+
+.log-entry {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+
+    transition: background-color 0.2s ease;
+}
+
+.log-entry:hover {
+    background-color: var(--bg-primary);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* Activity Chart Container */
+#activityChart {
+    width: 100%;
+    height: 200px;
+}
+
+/* Table Enhancements */
+.table-responsive {
+    border-radius: 4px;
+}
+
+.table thead th {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+.table tbody td {
+    vertical-align: middle;
+
+    font-size: 0.9rem;
+}
+
+/* Badge Variants */
+.badge {
+    padding: 0.35rem 0.65rem;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Advanced Tools Section */
+.border-danger {
+    border-width: 2px;
+}
+
+/* Buttons in d-grid */
+.d-grid .btn {
+    text-align: left;
+
+    transition: all 0.2s ease;
+}
+
+.d-grid .btn i {
+    margin-right: 0.5rem;
+
+    width: 1.25rem;
+    
+    text-align: center;
+}
+
+/* Refresh Button */
+#refreshStats {
+    transition: transform 0.3s ease;
+}
+
+#refreshStats:hover {
+    transform: rotate(90deg);
+}
+
+/* Modal Enhancements */
+.modal-header.bg-danger .btn-close-white {
+    filter: brightness(0) invert(1);
+}
+
+.modal-body ul {
+    padding-left: 1.5rem;
+}
+
+.modal-body ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .stat-card .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card .card-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .management-card .card-text {
+        min-height: auto;
+    }
+    
+    .table {
+        font-size: 0.8rem;
+    }
+}
+
+/* Dark Mode Specific Adjustments */
+[data-bs-theme="dark"] .log-container {
+    background-color: var(--bg-primary);
+}
+
+[data-bs-theme="dark"] .log-entry:hover {
+    background-color: var(--bg-secondary);
+}
+
+[data-bs-theme="dark"] .table thead th {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .table tbody tr:hover {
+    background-color: var(--bg-primary);
+}

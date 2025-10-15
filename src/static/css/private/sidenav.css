@@ -1,0 +1,218 @@
+/* Disable transitions on page load */
+.sidenav.preload,
+.sidenav.preload * {
+    transition: none !important;
+}
+
+/* Flex layout for private pages */
+.private-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Override collapsed state when html has sidenav-expanded class */
+html.sidenav-expanded .sidenav.collapsed {
+    width: 250px;
+}
+
+html.sidenav-expanded .sidenav.collapsed a {
+    padding: 15px 20px;
+    text-align: left;
+}
+
+html.sidenav-expanded .sidenav.collapsed .sidenav-title {
+    font-size: 0.9em;
+}
+
+html.sidenav-expanded .sidenav.collapsed .sidenav-btn-text {
+    display: inline;
+}
+
+.sidenav-profile {
+    text-align: center;
+    margin-top: 5em;
+}
+
+.sidenav-profile .profile-picture {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.sidenav-profile .profile-name {
+    display: block;
+    font-weight: bold;
+    color: #ecf0f1;
+}
+
+.sidenav.collapsed .sidenav-profile {
+    display: none;
+}
+
+
+.sidenav {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 250px;
+    height: 100vh;
+    flex-shrink: 0;
+    background-color: var(--bs-primary);
+    padding: 20px 0;
+}
+
+.sidenav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidenav li {
+    padding: 0;
+}
+
+.sidenav a {
+    display: block;
+    padding: 15px 20px;
+    color: var(--bs-text-primary);
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.sidenav a:hover {
+    background-color: var(--bs-secondary);
+    color: var(--bs-text-secondary);
+}
+
+.sidenav-title {
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--bs-text-primary);
+    border-bottom: 1px solid var(--bs-secondary);
+    margin-bottom: 1em;
+    padding-bottom: 10px;
+}
+
+.sidenav {
+    transition: width 0.5s;
+}
+
+.sidenav a {
+    transition: background-color 0.3s, padding 0.5s, text-align 0.5s;
+}
+
+.sidenav-title {
+    transition: font-size 0.5s;
+}
+
+.sidenav.collapsed {
+    width: 60px;
+}
+
+.sidenav.collapsed a {
+    padding: 15px 10px;
+    text-align: center;
+}
+
+.sidenav.collapsed .sidenav-title {
+    font-size: 0;
+}
+
+.sidenav.collapsed .sidenav-btn-text {
+    display: none;
+}
+
+.sidenav-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--bs-secondary);
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 10px;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.sidenav-toggle:hover {
+    transform: rotate(180deg);
+    color: var(--bs-dark);
+}
+
+.sidenav.collapsed .sidenav-toggle {
+    right: 5px;
+}
+
+/* Role Switcher Styles */
+.role-switcher-container {
+    /* padding: 10px 15px; */
+    margin: 3em 0.5em;
+}
+
+.role-switcher {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: var(--bs-secondary);
+    color: var(--bs-text-primary);
+    border: 1px solid var(--bs-dark);
+    border-radius: 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* Attempt to style native dropdown - limited browser support */
+    appearance: auto;
+}
+
+.role-switcher:hover {
+    background-color: var(--bs-success);
+    border-color: var(--bs-text-secondary);
+}
+
+.role-switcher:focus {
+    outline: none;
+    background-color: var(--bs-success);
+    border-color: var(--bs-text-secondary);
+    box-shadow: 0 0 5px rgba(236, 240, 241, 0.5);
+}
+
+/* Note: Native browser dropdowns have limited styling capabilities */
+/* border-radius on options is not supported in most browsers */
+.role-switcher option {
+    background-color: var(--bs-secondary);
+    color: var(--bs-text-primary);
+    padding: 8px;
+}
+
+/* Hide role switcher when sidenav is collapsed */
+.sidenav.collapsed .role-switcher-container {
+    display: none;
+}
+
+/* Role menu animations */
+.role-menu {
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.role-menu[style*="display: none"] {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.role-menu[style*="display: block"] {
+    opacity: 1;
+    max-height: 1000px;
+}

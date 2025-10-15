@@ -20,7 +20,15 @@ def login_required(f):
             session.pop('token', None)
             flash('Session expired. Please log in again.', 'error')
             return redirect(url_for('auth.login'))
-
+        
+        user = logbook_page.user
+        if not user:
+            flash('Authentication required', 'error')
+            return redirect(url_for('auth.login'))
+        
+        if not user.is_active:
+            flash('Account is deactivated. Please contact support.', 'error')
+            return redirect(url_for('auth.login'))
 
         return f(*args, **kwargs)
     return decorated_function

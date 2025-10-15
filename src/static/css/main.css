@@ -2,41 +2,49 @@
 @import url('bootstrap_addons/sizing.css');
 @import url('bootstrap_addons/buttons.css');
 @import url('bootstrap_addons/basic.css');
+@import url('bootstrap_addons/colors.css');
+@import url('components/cards.css');
+@import url('components/tables.css');
+@import url('private/super_user_dashboard.css');
 
 /* Light mode (default) */
 :root {
-    --bs-primary: #60b42f;
-    --bs-secondary: #6c757d;
-    --bs-success: #198754;
-    --bs-info: #0dcaf0;
-    --bs-warning: #ffc107;
-    --bs-danger: #dc3545;
-    --bs-light: #f8f9fa;
-    --bs-dark: #212529;
+    /* Subtle variations - barely perceptible */
+    --bs-primary: #464f58;
+    --bs-secondary: #d1d5db;
+    --bs-success: #2de988;
+    --bs-info: #dbeafe;
+    --bs-warning: #fef3c7;
+    --bs-danger: #fee2e2;
+    --bs-light: #f9fafb;
+    --bs-dark: #111827;
     
+    /* Backgrounds - Ultra clean */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --border-color: #dee2e6;
-    --link-color: #0d6efd;
+    --bg-secondary: #f9fafb;
+    --bs-text-primary: #111827;
+    --bs-text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --link-color: #4f46e5;
 }
 
-/* Dark mode */
+/* Dark mode - Muted & sophisticated */
 [data-bs-theme="dark"] {
-    --bs-primary: #6ea8fe;
-    --bs-secondary: #adb5bd;
-    --bs-success: #75b798;
-    --bs-info: #6edff6;
-    --bs-warning: #ffda6a;
-    --bs-danger: #ea868f;
-    --bs-light: #343a40;
-    --bs-dark: #f8f9fa;
+    /* Subtle dark variations */
+    --bs-primary: #1e293b;
+    --bs-secondary: #374151;
+    --bs-success: #064e3b;
+    --bs-info: #0c4a6e;
+    --bs-warning: #78350f;
+    --bs-danger: #7f1d1d;
+    --bs-light: #1f2937;
+    --bs-dark: #f3f4f6;
     
-    --bg-primary: #212529;
-    --bg-secondary: #343a40;
-    --text-primary: #f8f9fa;
-    --text-secondary: #adb5bd;
-    --border-color: #495057;
-    --link-color: #6ea8fe;
+    /* Dark backgrounds */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+    --link-color: #818cf8;
 }

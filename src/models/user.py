@@ -33,8 +33,8 @@ class User(BaseModel):
     email_confirmed_at = db.Column(db.DateTime, nullable=True)
     
     # Relationships
-    roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan')
-    role_list = db.relationship('Role', secondary='user_has_roles', backref='users_list')
+    roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan', overlaps="role_list,users_list")
+    role_list = db.relationship('Role', secondary='user_has_roles', backref='users_list', overlaps="roles")
     logbooks = db.relationship('Logbook', back_populates='user', cascade='all, delete-orphan')
     
     def to_dict(self, include_sensitive=False):
@@ -157,6 +157,25 @@ class User(BaseModel):
         user = cls.query.get(user_id)
         if user:
             user.is_active = False
+            db.session.commit()
+            return True
+        return False
+    
+
+    @classmethod
+    def activate(cls, user_id):
+        """
+        Activate a user by setting is_active to True.
+        
+        Args:
+            user_id (int): ID of the user to activate
+            
+        Returns:
+            bool: True if activated, False if user not found
+        """
+        user = cls.query.get(user_id)
+        if user:
+            user.is_active = True
             db.session.commit()
             return True
         return False

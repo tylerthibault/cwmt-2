@@ -1,10 +1,13 @@
-/* Bootstrap Button Overrides */
+/* ============================================
+   Bootstrap Button Overrides
+   Using theme color variables
+   ============================================ */
 
 /* Primary Buttons */
 .btn-primary {
   background-color: var(--bs-primary) !important;
   border-color: var(--bs-primary) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -13,7 +16,7 @@
 .btn-primary:focus {
   background-color: color-mix(in srgb, var(--bs-primary) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-primary) 85%, black) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-primary {
@@ -27,14 +30,14 @@
 .btn-outline-primary:focus {
   background-color: var(--bs-primary) !important;
   border-color: var(--bs-primary) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 /* Secondary Buttons */
 .btn-secondary {
   background-color: var(--bs-secondary) !important;
   border-color: var(--bs-secondary) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -43,7 +46,7 @@
 .btn-secondary:focus {
   background-color: color-mix(in srgb, var(--bs-secondary) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-secondary) 85%, black) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-secondary {
@@ -57,14 +60,14 @@
 .btn-outline-secondary:focus {
   background-color: var(--bs-secondary) !important;
   border-color: var(--bs-secondary) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 /* Success Buttons */
 .btn-success {
   background-color: var(--bs-success) !important;
   border-color: var(--bs-success) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -73,7 +76,7 @@
 .btn-success:focus {
   background-color: color-mix(in srgb, var(--bs-success) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-success) 85%, black) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-success {
@@ -87,14 +90,14 @@
 .btn-outline-success:focus {
   background-color: var(--bs-success) !important;
   border-color: var(--bs-success) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 /* Danger Buttons */
 .btn-danger {
   background-color: var(--bs-danger) !important;
   border-color: var(--bs-danger) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -103,7 +106,7 @@
 .btn-danger:focus {
   background-color: color-mix(in srgb, var(--bs-danger) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-danger) 85%, black) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-danger {
@@ -117,14 +120,14 @@
 .btn-outline-danger:focus {
   background-color: var(--bs-danger) !important;
   border-color: var(--bs-danger) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 /* Warning Buttons */
 .btn-warning {
   background-color: var(--bs-warning) !important;
   border-color: var(--bs-warning) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -133,7 +136,7 @@
 .btn-warning:focus {
   background-color: color-mix(in srgb, var(--bs-warning) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-warning) 85%, black) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-warning {
@@ -147,14 +150,14 @@
 .btn-outline-warning:focus {
   background-color: var(--bs-warning) !important;
   border-color: var(--bs-warning) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Info Buttons */
 .btn-info {
   background-color: var(--bs-info) !important;
   border-color: var(--bs-info) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -163,7 +166,7 @@
 .btn-info:focus {
   background-color: color-mix(in srgb, var(--bs-info) 85%, black) !important;
   border-color: color-mix(in srgb, var(--bs-info) 85%, black) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-outline-info {
@@ -177,14 +180,14 @@
 .btn-outline-info:focus {
   background-color: var(--bs-info) !important;
   border-color: var(--bs-info) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Light/Dark Buttons */
 .btn-light {
   background-color: var(--bs-light) !important;
   border-color: var(--bs-light) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -193,13 +196,13 @@
 .btn-light:focus {
   background-color: color-mix(in srgb, var(--bs-light) 90%, black) !important;
   border-color: color-mix(in srgb, var(--bs-light) 90%, black) !important;
-  color: var(--bs-dark) !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-dark {
   background-color: var(--bs-dark) !important;
   border-color: var(--bs-dark) !important;
-  color: var(--bs-light) !important;
+  color: var(--bg-primary) !important;
 
   transition: all 0.3s ease;
 }
@@ -208,7 +211,7 @@
 .btn-dark:focus {
   background-color: color-mix(in srgb, var(--bs-dark) 85%, white) !important;
   border-color: color-mix(in srgb, var(--bs-dark) 85%, white) !important;
-  color: var(--bs-light) !important;
+  color: var(--bg-primary) !important;
 }
 
 /* Link Buttons */

@@ -1,0 +1,179 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+<div>
+    <!-- Header with Title and Menu Icon -->
+    <div class="page-header">
+        <div>
+            <h1>User Management</h1>
+            <p>Manage user-related settings and configurations here.</p>
+        </div>
+        
+        <!-- Menu Icon (only shown when filtering by a specific role and has users to add) -->
+        {% if current_role_filter and users_not_in_role %}
+        <div class="menu-icon-container">
+            <button id="menuToggle" class="menu-icon-btn" aria-label="Add user menu">
+                <i class="fas fa-user-plus"></i>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div id="dropdownMenu" class="dropdown-menu" style="display: none;">
+                <div class="dropdown-header">
+                    <h4>Add User to {{ current_role_filter|title }}</h4>
+                    <button id="closeMenu" class="close-menu-btn" aria-label="Close menu">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="dropdown-content">
+                    <form method="POST" action="{{ url_for('super_user.add_user_to_role') }}">
+                        <input type="hidden" name="role_name" value="{{ current_role_filter }}">
+                        <select id="userSelect" name="user_id" class="user-select" required>
+                            <option value="">Select a user to add...</option>
+                            {% for user in users_not_in_role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" id="addUserBtn" class="table-btn table-btn--primary" disabled>Add to Role</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Role Filter Buttons -->
+        <div class="filter-container col-6">
+            <h3>Filter by Role:</h3>
+            <div class="filter-buttons">
+                <a href="{{ url_for('super_user.user_management', status=current_status_filter) }}"
+                   class="filter-btn {% if not current_role_filter %}filter-btn--active{% endif %}">
+                    All Users
+                </a>
+                {% for role in all_roles %}
+                <a href="{{ url_for('super_user.user_management', role=role.name, status=current_status_filter) }}"
+                   class="filter-btn {% if current_role_filter == role.name %}filter-btn--active{% endif %}">
+                    {{ role.name|title }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Status Filter Buttons -->
+        <div class="filter-container col-6">
+            <h3>Filter by Status:</h3>
+            <div class="filter-buttons">
+                <a href="{{ url_for('super_user.user_management', role=current_role_filter, status='active') }}"
+                   class="filter-btn {% if current_status_filter == 'active' %}filter-btn--active{% endif %}">
+                    Active Users
+                </a>
+                <a href="{{ url_for('super_user.user_management', role=current_role_filter, status='inactive') }}"
+                   class="filter-btn {% if current_status_filter == 'inactive' %}filter-btn--active{% endif %}">
+                    Inactive Users
+                </a>
+                <a href="{{ url_for('super_user.user_management', role=current_role_filter, status='all') }}"
+                   class="filter-btn {% if current_status_filter == 'all' %}filter-btn--active{% endif %}">
+                    All
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_active %}
+                        <span class="badge badge--success">Active</span>
+                        {% else %}
+                        <span class="badge badge--secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="d-flex gap-1">
+                        <form method="POST" action="{{ url_for('super_user.remove_user_from_role') }}">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <input type="hidden" name="role_name" value="{{ current_role_filter }}">
+                            <button type="submit" class="table-btn table-btn--primary">Remove</button>
+                        </form>
+                        {% if user.is_active %}
+                        <form method="POST" action="{{ url_for('super_user.deactivate_user') }}">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" class="table-btn table-btn--delete">Deactivate</button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('super_user.reactivate_user') }}">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" class="table-btn table-btn--success text-primary">Reactivate</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+{% block custom_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menuToggle');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    const closeMenu = document.getElementById('closeMenu');
+    const userSelect = document.getElementById('userSelect');
+    const addUserBtn = document.getElementById('addUserBtn');
+    
+    // Toggle dropdown menu
+    if (menuToggle && dropdownMenu) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isVisible = dropdownMenu.style.display === 'block';
+            dropdownMenu.style.display = isVisible ? 'none' : 'block';
+        });
+        
+        // Close menu button
+        if (closeMenu) {
+            closeMenu.addEventListener('click', function() {
+                dropdownMenu.style.display = 'none';
+            });
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdownMenu.contains(e.target) && e.target !== menuToggle) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+        
+        // Close menu on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && dropdownMenu.style.display === 'block') {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+    }
+    
+    // Enable/disable button based on selection
+    if (userSelect && addUserBtn) {
+        userSelect.addEventListener('change', function() {
+            addUserBtn.disabled = !this.value;
+        });
+    }
+});
+</script>
+{% endblock custom_js %}

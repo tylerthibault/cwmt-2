@@ -1,0 +1,67 @@
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sidenav script loaded');
+    
+    // Load saved state and sync with html class
+    loadSidenavState();
+    
+    // Remove preload class and html override class to enable transitions
+    const sidenav = document.querySelector('.sidenav');
+    if (sidenav) {
+        setTimeout(() => {
+            sidenav.classList.remove('preload');
+            document.documentElement.classList.remove('sidenav-expanded');
+        }, 100);
+    }
+    
+    const toggleButton = document.querySelector('.sidenav-toggle');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', () => {
+            console.log('Toggle button clicked');
+            toggleSidenav();
+        });
+    }
+
+    // Role Switcher functionality
+    const roleSwitcher = document.getElementById('roleSwitcher');
+    if (roleSwitcher) {
+        // Listen for role changes - reload dashboard with view_as parameter
+        roleSwitcher.addEventListener('change', function() {
+            const selectedRole = this.value;
+            const dashboardUrl = new URL(window.location.origin + roleSwitcher.dataset.dashboardUrl);
+            dashboardUrl.searchParams.set('view_as', selectedRole);
+            window.location.href = dashboardUrl.toString();
+        });
+    }
+
+    function toggleSidenav() {
+        const sidenav = document.querySelector('.sidenav');
+        sidenav.classList.toggle('collapsed');
+        saveSidenavState();
+    }
+
+    function closeSidenav() {
+        document.querySelector('.sidenav').classList.add('collapsed');
+        saveSidenavState();
+    }
+
+    function openSidenav() {
+        document.querySelector('.sidenav').classList.remove('collapsed');
+        saveSidenavState();
+    }
+
+    function saveSidenavState() {
+        const sidenav = document.querySelector('.sidenav');
+        const isCollapsed = sidenav.classList.contains('collapsed');
+        localStorage.setItem('sidenav-collapsed', isCollapsed);
+    }
+
+    function loadSidenavState() {
+        const isCollapsed = localStorage.getItem('sidenav-collapsed') === 'true';
+        const sidenav = document.querySelector('.sidenav');
+        if (isCollapsed) {
+            sidenav.classList.add('collapsed');
+        } else {
+            sidenav.classList.remove('collapsed');
+        }
+    }
+});

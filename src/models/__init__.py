@@ -22,6 +22,7 @@ def init_db(app):
         from src.models.user import User
         from src.models.roles import Role, UserHasRoles
         from src.models.logbook import Logbook
+        from src.models.courses_model import CourseTemplate, Course
         
         # Create all tables if they don't exist
         db.create_all()
@@ -31,6 +32,10 @@ def init_db(app):
         # Seed default roles on first database creation
         from src.utils.seed_roles import seed_default_roles
         seed_default_roles(app)
+        
+        # Seed default course templates
+        from src.utils.seed_courses import seed_default_course_templates
+        seed_default_course_templates(app)
 
 
 # Export db instance for use in models and logic layers

@@ -49,3 +49,45 @@ class BaseModel(db.Model):
     def __repr__(self):
         """String representation of model instance"""
         return f'<{self.__class__.__name__} {self.id}>'
+    
+    @classmethod
+    def get_all(cls):
+        """
+        Class method to get all instances of the model.
+        
+        Returns:
+            list: List of all model instances
+        """
+        return cls.query.all()
+    
+    @classmethod
+    def get_by_id(cls, record_id):
+        """
+        Class method to get a model instance by its ID.
+        
+        Args:
+            record_id (int): ID of the record to retrieve
+            
+        Returns:
+            instance or None: Model instance if found, else None
+        """
+        return cls.query.get(record_id)
+    
+    @classmethod
+    def delete_by_id(cls, record_id):
+        """
+        Class method to delete a model instance by its ID.
+        
+        Args:
+            record_id (int): ID of the record to delete
+            
+        Returns:
+            bool: True if deleted, False if not found
+        """
+        instance = cls.get_by_id(record_id)
+        if instance:
+            db.session.delete(instance)
+            db.session.commit()
+            return True
+        return False
+    
