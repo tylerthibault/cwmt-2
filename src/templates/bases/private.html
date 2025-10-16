@@ -1,6 +1,9 @@
 {% extends 'bases/public.html' %}
 
 {% block custom_head %}
+{% endblock custom_head %}
+
+{% block page_wrapper %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/private/sidenav.css') }}">
 <script>
 (function() {
@@ -10,9 +13,6 @@
     }
 })();
 </script>
-{% endblock custom_head %}
-
-{% block page_wrapper %}
 <div class="private-layout">
     {% block header %}
         {% include 'private/components/sidenav.html' %}
@@ -24,8 +24,9 @@
         {% endblock content %}
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/private/sidenav.js') }}"></script>
 {% endblock page_wrapper %}
 
 {% block custom_js %}
-<script src="{{ url_for('static', filename='js/private/sidenav.js') }}"></script>
+
 {% endblock custom_js %}

@@ -222,10 +222,19 @@ class CourseLogic:
         if course_date < date.today():
             raise CourseBusinessError("Course date must be in the future")
         
-        # Validate and assign users
-        student_id = data.get('student_id')
-        instructor1_id = data.get('instructor1_id')
-        instructor2_id = data.get('instructor2_id')
+        # Validate and assign users (convert empty strings to None)
+        student_id = data.get('student_id') or None
+        instructor1_id = data.get('instructor1_id') or None
+        instructor2_id = data.get('instructor2_id') or None
+        location = data.get('location') or None
+        
+        # Convert empty strings to None for integer fields
+        if student_id == '':
+            student_id = None
+        if instructor1_id == '':
+            instructor1_id = None
+        if instructor2_id == '':
+            instructor2_id = None
         
         if student_id:
             CourseLogic._validate_student(student_id)
@@ -246,6 +255,7 @@ class CourseLogic:
             course_date=course_date,
             course_time=course_time,
             status=data.get('status', 'scheduled'),
+            location=location,
             student_id=student_id,
             instructor1_id=instructor1_id,
             instructor2_id=instructor2_id
@@ -420,3 +430,135 @@ class CourseLogic:
                 Course.instructor2_id == instructor_id
             )
         ).order_by(Course.course_date, Course.course_time).all()
+    
+    @staticmethod
+    def create_course_instance(data):
+        """
+        Alias for create_course for admin controller compatibility.
+        Create a new course instance on the schedule.
+        
+        Args:
+            data (dict): Course data from admin form
+            
+        Returns:
+            Course: Created course instance
+        """
+        return CourseLogic.create_course(data)
+    
+    @staticmethod
+    def update_course_instance(course_id, data):
+        """
+        Update an existing course instance.
+        
+        Args:
+            course_id (int): ID of course to update
+            data (dict): Updated course data
+            
+        Returns:
+            Course: Updated course instance
+        """
+        course = Course.query.get(course_id)
+        if not course:
+            raise CourseBusinessError(f"Course with ID {course_id} not found")
+        
+        # Validate template if changing
+        if 'course_template_id' in data:
+            template = CourseTemplate.query.get(data['course_template_id'])
+            if not template:
+                raise CourseBusinessError(f"Course template with ID {data['course_template_id']} not found")
+            if not template.is_active:
+                raise CourseBusinessError("Cannot assign inactive template")
+            course.course_template_id = data['course_template_id']
+        
+        # Update date if provided
+        if 'course_date' in data:
+            course_date = data['course_date']
+            if isinstance(course_date, str):
+                try:
+                    course_date = datetime.strptime(course_date, '%Y-%m-%d').date()
+                except ValueError:
+                    raise CourseValidationError("Invalid date format. Use YYYY-MM-DD")
+            
+            # Business rule: Course date must be in the future (only for upcoming courses)
+            if course.status == 'scheduled' and course_date < date.today():
+                raise CourseBusinessError("Course date must be in the future")
+            
+            course.course_date = course_date
+        
+        # Update time if provided
+        if 'course_time' in data:
+            course_time = data['course_time']
+            if isinstance(course_time, str):
+                try:
+                    course_time = datetime.strptime(course_time, '%H:%M').time()
+                except ValueError:
+                    raise CourseValidationError("Invalid time format. Use HH:MM")
+            course.course_time = course_time
+        
+        # Update location if provided
+        if 'location' in data:
+            course.location = data['location'] or None
+        
+        # Update status if provided
+        if 'status' in data:
+            if data['status'] not in CourseLogic.VALID_STATUSES:
+                raise CourseValidationError(
+                    f"Status must be one of: {', '.join(CourseLogic.VALID_STATUSES)}"
+                )
+            # Apply status transition business rules
+            if course.status == 'completed' and data['status'] != 'completed':
+                raise CourseBusinessError("Cannot change status of completed course")
+            if course.status == 'cancelled' and data['status'] != 'cancelled':
+                raise CourseBusinessError("Cannot change status of cancelled course")
+            course.status = data['status']
+        
+        # Update student if provided
+        if 'student_id' in data:
+            student_id = data['student_id'] if data['student_id'] not in ['', None] else None
+            if student_id:
+                CourseLogic._validate_student(student_id)
+            course.student_id = student_id
+        
+        # Update instructors if provided
+        if 'instructor1_id' in data:
+            instructor1_id = data['instructor1_id'] if data['instructor1_id'] not in ['', None] else None
+            if instructor1_id:
+                CourseLogic._validate_instructor(instructor1_id)
+                # Check not same as instructor 2
+                if course.instructor2_id and instructor1_id == course.instructor2_id:
+                    raise CourseBusinessError("Cannot assign the same instructor twice")
+            course.instructor1_id = instructor1_id
+        
+        if 'instructor2_id' in data:
+            instructor2_id = data['instructor2_id'] if data['instructor2_id'] not in ['', None] else None
+            if instructor2_id:
+                CourseLogic._validate_instructor(instructor2_id)
+                # Check not same as instructor 1
+                if course.instructor1_id and instructor2_id == course.instructor1_id:
+                    raise CourseBusinessError("Cannot assign the same instructor twice")
+            course.instructor2_id = instructor2_id
+        
+        db.session.commit()
+        return course
+    
+    @staticmethod
+    def delete_course_instance(course_id):
+        """
+        Delete a course instance from the schedule.
+        
+        Args:
+            course_id (int): ID of course to delete
+            
+        Raises:
+            CourseBusinessError: If course not found or cannot be deleted
+        """
+        course = Course.query.get(course_id)
+        if not course:
+            raise CourseBusinessError(f"Course with ID {course_id} not found")
+        
+        # Business rule: Can only delete scheduled courses (not in progress or completed)
+        if course.status in ['in_progress', 'completed']:
+            raise CourseBusinessError(f"Cannot delete {course.status} course. Cancel it instead.")
+        
+        db.session.delete(course)
+        db.session.commit()

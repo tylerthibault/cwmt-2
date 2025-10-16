@@ -1,0 +1,231 @@
+/**
+ * Schedule Management Styles
+ */
+
+.schedule-management-container {
+    padding: 2rem;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color, #dee2e6);
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: var(--text-primary, #212529);
+}
+
+.page-header p {
+    margin: 0.5rem 0 0 0;
+    color: var(--text-secondary, #6c757d);
+}
+
+/* Course Templates List */
+.course-templates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.template-card {
+    padding: 1rem;
+    border: 2px solid var(--border-color, #dee2e6);
+    border-radius: 8px;
+    background-color: var(--bg-primary, #ffffff);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.template-card:hover {
+    border-color: var(--primary-color, #0d6efd);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.template-card.selected {
+    border-color: var(--primary-color, #0d6efd);
+    background-color: rgba(13, 110, 253, 0.05);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.template-info {
+    margin-bottom: 0.5rem;
+}
+
+.template-name {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #212529);
+}
+
+.template-description {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary, #6c757d);
+    line-height: 1.4;
+}
+
+.template-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Legend */
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Calendar Overrides */
+#calendar {
+    font-family: inherit;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-event:hover {
+    opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .schedule-management-container .row {
+        flex-direction: column;
+    }
+    
+    .schedule-management-container .col-3,
+    .schedule-management-container .col-9 {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .schedule-management-container .col-3 {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Modal customizations */
+.modal-lg {
+    max-width: 800px;
+}
+
+.alert-info {
+    background-color: #cfe2ff;
+    border-color: #b6d4fe;
+    color: #084298;
+}
+
+/* Form styling */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Badge variations */
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+}
+
+.badge--info {
+    background-color: #0dcaf0;
+    color: #000;
+}
+
+.badge--primary {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.badge--success {
+    background-color: #198754;
+    color: #fff;
+}
+
+.badge--warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge--danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.badge--secondary {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Card shadows and borders */
+.card-shadow {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-gradient-border {
+    border: 2px solid transparent;
+    background-image: linear-gradient(white, white), 
+                      linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: var(--primary-color, #0d6efd);
+    border-color: var(--primary-color, #0d6efd);
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5c636a;
+    border-color: #565e64;
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}

@@ -10,9 +10,9 @@
 /* Light mode (default) */
 :root {
     /* Subtle variations - barely perceptible */
-    --bs-primary: #464f58;
-    --bs-secondary: #d1d5db;
-    --bs-success: #2de988;
+    --bs-primary: #5587c0;
+    --bs-secondary: #478169;
+    --bs-success: #d1fae5;
     --bs-info: #dbeafe;
     --bs-warning: #fef3c7;
     --bs-danger: #fee2e2;
@@ -22,10 +22,14 @@
     /* Backgrounds - Ultra clean */
     --bg-primary: #ffffff;
     --bg-secondary: #f9fafb;
-    --bs-text-primary: #111827;
-    --bs-text-secondary: #6b7280;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
     --border-color: #e5e7eb;
     --link-color: #4f46e5;
+    
+    /* Gradients - Soft & Sophisticated */
+    --primary-gradient: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+    --secondary-gradient: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
 }
 
 /* Dark mode - Muted & sophisticated */
@@ -47,4 +51,8 @@
     --text-secondary: #9ca3af;
     --border-color: #374151;
     --link-color: #818cf8;
+    
+    /* Dark Gradients - Deep & Rich */
+    --primary-gradient: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+    --secondary-gradient: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
 }

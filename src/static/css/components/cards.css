@@ -41,6 +41,8 @@
 
     padding: 1.5rem;
 
+    border-radius: 0 0 8px 8px;
+
     color: var(--text-primary);
 }
 
@@ -149,6 +151,97 @@
 .card-danger {
     border-color: var(--bs-danger);
     background-color: var(--bs-danger);
+}
+
+/* Gradient Card Variants */
+.card-gradient-primary {
+    background: var(--primary-gradient);
+    border: none;
+    color: var(--text-primary);
+}
+
+.card-gradient-primary .card-header,
+.card-gradient-primary .card-footer {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-gradient-secondary {
+    background: var(--secondary-gradient);
+    border: none;
+    color: var(--text-primary);
+}
+
+.card-gradient-secondary .card-header,
+.card-gradient-secondary .card-footer {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Subtle Gradient Overlay Cards */
+.card-gradient-overlay {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-gradient-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--primary-gradient);
+    opacity: 0.05;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.card-gradient-overlay:hover::before {
+    opacity: 0.1;
+}
+
+/* Gradient Border Cards */
+.card-gradient-border {
+    position: relative;
+    background-color: var(--bg-primary);
+    border: none;
+    padding: 2px;
+}
+
+.card-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    padding: 2px;
+    background: var(--primary-gradient);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.card-gradient-border .card-header,
+.card-gradient-border .card-body,
+.card-gradient-border .card-footer {
+    background-color: var(--bg-primary);
+    position: relative;
+    z-index: 1;
+}
+
+/* Gradient Header Cards */
+.card-gradient-header .card-header {
+    background: var(--primary-gradient);
+    color: var(--text-primary);
+    border-bottom: none;
+}
+
+.card-gradient-header-secondary .card-header {
+    background: var(--secondary-gradient);
+    color: var(--text-primary);
+    border-bottom: none;
 }
 
 /* Outlined Card Variants */

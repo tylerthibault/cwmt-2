@@ -1,3 +1,4 @@
+
 <div class="sidenav-container">
     <nav class="sidenav collapsed preload" id="sidenav">
         <button class="sidenav-toggle">
@@ -55,17 +56,17 @@
                             <span class="sidenav-btn-text">Dashboard</span>
                         </a>
                     </li>
-                    <li><a href="#">
+                    <li><a href="{{ url_for('user_admin.schedule_management') }}">
                             <span class="icon">&#128218;</span>
                             <span class="sidenav-btn-text">Schedule Management</span>
                         </a>
                     </li>
-                    <li><a href="#">
+                    <li><a href="{{ url_for('user_admin.reports') }}">
                             <span class="icon">&#128202;</span>
                             <span class="sidenav-btn-text">Reports</span>
                         </a>
                     </li>
-                    <li><a href="#">
+                    <li><a href="{{ url_for('user_admin.announcements') }}">
                             <span class="icon">&#128276;</span>
                             <span class="sidenav-btn-text">Announcements</span>
                         </a>

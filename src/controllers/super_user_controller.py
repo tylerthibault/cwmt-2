@@ -122,6 +122,37 @@ def add_user_to_role():
     
     return redirect(url_for('super_user.user_management', role=role_name))
 
+
+@super_user_bp.route('/user-management/create-user', methods=['POST'])
+@super_user_required
+def create_user():
+    """Create a new user"""
+    # Get form data
+    data = {
+        'username': request.form.get('username'),
+        'email': request.form.get('email'),
+        'first_name': request.form.get('first_name'),
+        'last_name': request.form.get('last_name'),
+        'password': request.form.get('password'),
+        'confirm_password': request.form.get('confirm_password'),
+        'role_name': request.form.get('role_name')
+    }
+    
+    try:
+        # Use UserLogic to create the user with full validation
+        user = UserLogic.create_user(data)
+        flash(f'Successfully created user: {user.username}', 'success')
+    except ValueError as e:
+        flash(f'Error creating user: {str(e)}', 'error')
+    except Exception as e:
+        flash(f'Unexpected error creating user: {str(e)}', 'error')
+    
+    # Preserve filters when redirecting
+    role_filter = request.args.get('role')
+    status_filter = request.args.get('status', 'active')
+    return redirect(url_for('super_user.user_management', role=role_filter, status=status_filter))
+
+
 @super_user_bp.route('/user-management/remove-from-role', methods=['POST'])
 @super_user_required
 def remove_user_from_role():

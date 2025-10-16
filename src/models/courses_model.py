@@ -81,6 +81,7 @@ class Course(BaseModel):
     course_date = db.Column(db.Date, nullable=False)
     course_time = db.Column(db.Time, nullable=False)
     status = db.Column(db.String(50), default='scheduled', nullable=False)  # e.g., 'scheduled', 'in_progress', 'completed', 'cancelled'
+    location = db.Column(db.String(255), nullable=True)  # Optional location field
     
     # Student and Instructor relationships (many-to-one with User)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)

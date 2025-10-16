@@ -1,9 +1,65 @@
 from src.models.user import User
 from src.models.logbook import Logbook
-from flask import session
+from flask import session, flash
 from flask import current_app as app
 
 class UserLogic:
+
+    @staticmethod
+    def create_user(data):
+        """
+        Create a new user with validation and business logic.
+        
+        Args:
+            data (dict): User data including username, email, password, etc.
+            
+        Returns:
+            User: The created user instance
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        # Validation
+        if not data.get('username'):
+            raise ValueError('Username is required')
+        
+        if not data.get('email'):
+            raise ValueError('Email is required')
+        
+        if not data.get('password') or len(data.get('password')) < 6:
+            raise ValueError('Password must be at least 6 characters')
+        
+        if data.get('password') != data.get('confirm_password'):
+            raise ValueError('Passwords do not match')
+        
+        # Business rules - check uniqueness
+        if User.query.filter_by(email=data.get('email')).first():
+            raise ValueError('Email already registered')
+        
+        if User.query.filter_by(username=data.get('username')).first():
+            raise ValueError('Username already registered')
+        
+        # Import auth logic for password hashing
+        from src.logic.auth_logic import AuthLogic
+        
+        # Create the user
+        user = User.create(
+            username=data.get('username'),
+            email=data.get('email'),
+            password_hash=AuthLogic.generate_password_hash(data.get('password')),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            is_active=True
+        )
+        
+        # Assign initial role if provided
+        if data.get('role_name'):
+            from src.models.roles import Role, UserHasRoles
+            role = Role.get_by_name(data.get('role_name'))
+            if role:
+                UserHasRoles.assign_role(user.id, role.id)
+        
+        return user
 
     @staticmethod
     def get_context(view_as=None):
@@ -155,3 +211,104 @@ class UserLogic:
             'last_config_change': 'N/A'
         }
         return context
+    
+    @staticmethod
+    def update_user_profile(user_id, data):
+        """
+        Update user profile information.
+        
+        Args:
+            user_id (int): ID of the user to update
+            data (dict): Profile data including username, email, first_name, last_name
+            
+        Returns:
+            User: The updated user instance
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        user = User.query.get(user_id)
+        if not user:
+            raise ValueError('User not found')
+        
+        # Validation
+        if not data.get('username'):
+            raise ValueError('Username is required')
+        
+        if not data.get('email'):
+            raise ValueError('Email is required')
+        
+        # Check if username is already taken by another user
+        existing_user = User.query.filter_by(username=data.get('username')).first()
+        if existing_user and existing_user.id != user_id:
+            raise ValueError('Username already taken')
+        
+        # Check if email is already taken by another user
+        existing_user = User.query.filter_by(email=data.get('email')).first()
+        if existing_user and existing_user.id != user_id:
+            raise ValueError('Email already registered')
+        
+        # Check if email has changed
+        email_changed = user.email != data.get('email')
+        
+        # Update user fields
+        user.username = data.get('username')
+        user.email = data.get('email')
+        user.first_name = data.get('first_name')
+        user.last_name = data.get('last_name')
+        
+        # If email changed, reset email confirmation
+        if email_changed:
+            user.email_confirmed = False
+            user.email_confirmed_at = None
+        
+        from src.models import db
+        db.session.commit()
+        
+        return user, email_changed
+    
+    @staticmethod
+    def update_user_password(user_id, data):
+        """
+        Update user password.
+        
+        Args:
+            user_id (int): ID of the user to update
+            data (dict): Password data including current_password, new_password, confirm_password
+            
+        Returns:
+            bool: True if password was updated
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        from src.logic.auth_logic import AuthLogic
+        
+        user = User.query.get(user_id)
+        if not user:
+            raise ValueError('User not found')
+        
+        # Validation
+        if not data.get('current_password'):
+            raise ValueError('Current password is required')
+        
+        if not data.get('new_password'):
+            raise ValueError('New password is required')
+        
+        if len(data.get('new_password', '')) < 6:
+            raise ValueError('New password must be at least 6 characters')
+        
+        if data.get('new_password') != data.get('confirm_password'):
+            raise ValueError('New passwords do not match')
+        
+        # Verify current password
+        if not AuthLogic.check_password_hash(user.password_hash, data.get('current_password')):
+            raise ValueError('Current password is incorrect')
+        
+        # Update password
+        user.password_hash = AuthLogic.generate_password_hash(data.get('new_password'))
+        
+        from src.models import db
+        db.session.commit()
+        
+        return True

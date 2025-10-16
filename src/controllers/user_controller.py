@@ -21,8 +21,83 @@ def dashboard():
 @login_required
 def settings():
     """User settings page"""
-    context = {}
-    return render_template('user/settings.html', **context)
+    # get the current user context
+    context = UserLogic.get_context()
+    return render_template('private/settings/index.html', **context)
+
+@user_bp.route('/settings/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile information"""
+    from src.models.logbook import Logbook
+    from flask import session
+    
+    # Get current user from session
+    token = session.get('token')
+    logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+    if not logbook_entry:
+        flash('Session expired. Please log in again.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    try:
+        user, email_changed = UserLogic.update_user_profile(
+            logbook_entry.user_id,
+            {
+                'username': request.form.get('username'),
+                'email': request.form.get('email'),
+                'first_name': request.form.get('first_name'),
+                'last_name': request.form.get('last_name')
+            }
+        )
+        
+        if email_changed:
+            flash('Profile updated successfully! Your email has been changed and needs to be verified.', 'success')
+        else:
+            flash('Profile updated successfully!', 'success')
+            
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash('An error occurred while updating your profile.', 'error')
+        from flask import current_app as app
+        app.looger.error(f"Error updating profile: {str(e)}")
+    
+    return redirect(url_for('user.settings'))
+
+@user_bp.route('/settings/update-password', methods=['POST'])
+@login_required
+def update_password():
+    """Update user password"""
+    from src.models.logbook import Logbook
+    from flask import session
+    
+    # Get current user from session
+    token = session.get('token')
+    logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+    if not logbook_entry:
+        flash('Session expired. Please log in again.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    try:
+        UserLogic.update_user_password(
+            logbook_entry.user_id,
+            {
+                'current_password': request.form.get('current_password'),
+                'new_password': request.form.get('new_password'),
+                'confirm_password': request.form.get('confirm_password')
+            }
+        )
+        
+        flash('Password changed successfully!', 'success')
+            
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash('An error occurred while changing your password.', 'error')
+        from flask import current_app as app
+        app.looger.error(f"Error updating password: {str(e)}")
+    
+    return redirect(url_for('user.settings'))
 
 @user_bp.route('/profile')
 @login_required

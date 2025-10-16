@@ -321,3 +321,13 @@
   background-color: var(--bs-dark);
   color: var(--text-primary);
 }
+
+/* gradient classes */
+.bg-primary-gradient {
+  background: var(--primary-gradient) !important;
+  color: var(--text-primary);
+}
+.bg-secondary-gradient {
+  background: var(--secondary-gradient) !important;
+  color: var(--text-primary);
+}
