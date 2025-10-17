@@ -38,7 +38,7 @@ class CourseTemplateLogic:
         Create a new course template with full validation.
         
         Args:
-            data (dict): Template data including name, description, duration_days, experience_level
+            data (dict): Template data including name, description, duration_days, experience_level, max_students
             
         Returns:
             CourseTemplate: Created template instance
@@ -59,6 +59,11 @@ class CourseTemplateLogic:
                 f"Experience level must be one of: {', '.join(CourseTemplateLogic.VALID_EXPERIENCE_LEVELS)}"
             )
         
+        # Validate max_students
+        max_students = data.get('max_students', 1)
+        if max_students < 1:
+            raise CourseValidationError("Maximum students must be at least 1")
+        
         # Business rule: Check for duplicate template names
         existing = CourseTemplate.query.filter_by(name=data['name']).first()
         if existing:
@@ -70,6 +75,7 @@ class CourseTemplateLogic:
             description=data.get('description', ''),
             duration_days=data['duration_days'],
             experience_level=data['experience_level'],
+            max_students=max_students,
             is_active=data.get('is_active', True)
         )
         
@@ -223,21 +229,16 @@ class CourseLogic:
             raise CourseBusinessError("Course date must be in the future")
         
         # Validate and assign users (convert empty strings to None)
-        student_id = data.get('student_id') or None
         instructor1_id = data.get('instructor1_id') or None
         instructor2_id = data.get('instructor2_id') or None
         location = data.get('location') or None
+        max_students_override = data.get('max_students') or None
         
         # Convert empty strings to None for integer fields
-        if student_id == '':
-            student_id = None
         if instructor1_id == '':
             instructor1_id = None
         if instructor2_id == '':
             instructor2_id = None
-        
-        if student_id:
-            CourseLogic._validate_student(student_id)
         
         if instructor1_id:
             CourseLogic._validate_instructor(instructor1_id)
@@ -249,19 +250,37 @@ class CourseLogic:
         if instructor1_id and instructor2_id and instructor1_id == instructor2_id:
             raise CourseBusinessError("Cannot assign the same instructor twice")
         
-        # Create course
+        # Create course (without student - students are enrolled separately)
         course = Course(
             course_template_id=data['course_template_id'],
             course_date=course_date,
             course_time=course_time,
             status=data.get('status', 'scheduled'),
             location=location,
-            student_id=student_id,
+            max_students=max_students_override,
             instructor1_id=instructor1_id,
             instructor2_id=instructor2_id
         )
         
         db.session.add(course)
+        db.session.commit()
+        
+        # If a student_id was provided in the data, enroll them
+        # This maintains backward compatibility with old forms
+        student_id = data.get('student_id') or None
+        if student_id == '':
+            student_id = None
+            
+        if student_id:
+            try:
+                CourseLogic.enroll_student(course.id, student_id, is_admin_override=True)
+            except Exception as e:
+                # If enrollment fails, we may want to delete the course or just log the error
+                # For now, we'll let the course exist without a student
+                db.session.rollback()
+                raise CourseBusinessError(f"Course created but failed to enroll student: {str(e)}")
+        
+        return course
         db.session.commit()
         
         return course
@@ -295,16 +314,20 @@ class CourseLogic:
         return user
     
     @staticmethod
-    def enroll_student(course_id, student_id):
+    def enroll_student(course_id, student_id, is_admin_override=False):
         """
         Enroll a student in a course.
         
         Args:
             course_id (int): ID of the course
             student_id (int): ID of the student to enroll
+            is_admin_override (bool): True if admin is enrolling (bypasses capacity check)
             
         Returns:
             Course: Updated course instance
+            
+        Raises:
+            CourseBusinessError: If enrollment fails business rules
         """
         course = Course.query.get(course_id)
         if not course:
@@ -314,14 +337,38 @@ class CourseLogic:
         if course.status in ['cancelled', 'completed']:
             raise CourseBusinessError(f"Cannot enroll in {course.status} course")
         
-        # Business rule: Cannot replace existing student (use different method)
-        if course.student_id:
-            raise CourseBusinessError("Course already has a student enrolled. Use replace_student method instead.")
+        # Business rule: Check if student is already enrolled
+        from src.models.user import User
+        student = User.query.get(student_id)
+        if not student:
+            raise CourseBusinessError(f"Student with ID {student_id} not found")
         
-        # Validate student
+        if student in course.students:
+            raise CourseBusinessError("Student is already enrolled in this course")
+        
+        # Validate student role
         CourseLogic._validate_student(student_id)
         
-        course.student_id = student_id
+        # Business rule: Check capacity (unless admin override)
+        if not is_admin_override:
+            if course.is_full():
+                raise CourseBusinessError(
+                    f"Course is full. Maximum capacity is {course.get_max_students()} students. "
+                    f"Currently {len(course.students)} students enrolled."
+                )
+        
+        # Enroll student
+        course.students.append(student)
+        
+        # Track if this was an admin enrollment
+        if is_admin_override:
+            # Update the enrollment record to mark as admin-enrolled
+            db.session.flush()
+            enrollment = db.session.execute(
+                db.text("UPDATE course_enrollments SET enrolled_by_admin = :is_admin WHERE course_id = :course_id AND student_id = :student_id"),
+                {"is_admin": True, "course_id": course_id, "student_id": student_id}
+            )
+        
         db.session.commit()
         
         return course
@@ -499,6 +546,17 @@ class CourseLogic:
         if 'location' in data:
             course.location = data['location'] or None
         
+        # Update max_students override if provided
+        if 'max_students' in data:
+            max_students = data['max_students']
+            if max_students is not None and max_students != '':
+                max_students = int(max_students)
+                if max_students < 1:
+                    raise CourseValidationError("Max students must be at least 1")
+                course.max_students = max_students
+            else:
+                course.max_students = None
+        
         # Update status if provided
         if 'status' in data:
             if data['status'] not in CourseLogic.VALID_STATUSES:
@@ -512,12 +570,21 @@ class CourseLogic:
                 raise CourseBusinessError("Cannot change status of cancelled course")
             course.status = data['status']
         
-        # Update student if provided
+        # Handle student enrollment (backward compatibility)
+        # NOTE: This is for updating existing single-student courses
+        # For adding students to multi-student courses, use enroll_student() instead
         if 'student_id' in data:
             student_id = data['student_id'] if data['student_id'] not in ['', None] else None
             if student_id:
+                # Validate student
                 CourseLogic._validate_student(student_id)
-            course.student_id = student_id
+                # Check if student is already enrolled
+                from src.models.user import User
+                student = User.query.get(student_id)
+                if student and student not in course.students:
+                    # Enroll the student using the proper method
+                    course.students.append(student)
+            # Note: Removing students should be done through a separate unenroll method
         
         # Update instructors if provided
         if 'instructor1_id' in data:
@@ -562,3 +629,66 @@ class CourseLogic:
         
         db.session.delete(course)
         db.session.commit()
+    
+    @staticmethod
+    def get_available_courses(filters=None, include_full=False):
+        """
+        Get all available courses (scheduled, future courses).
+        By default, excludes full courses for student enrollment.
+        
+        Args:
+            filters (dict): Optional filters including:
+                - course_template_id (int): Filter by course template
+                - location (str): Filter by location
+                - start_date (date): Filter courses after this date
+                - end_date (date): Filter courses before this date
+            include_full (bool): If True, includes full courses (for admin view)
+                
+        Returns:
+            list[Course]: List of available courses
+        """
+        from sqlalchemy.orm import joinedload
+        
+        query = Course.query.options(
+            joinedload(Course.template),
+            joinedload(Course.students)
+        ).filter(
+            Course.status == 'scheduled',
+            Course.course_date >= date.today()  # Only future courses
+        )
+        
+        if filters:
+            if filters.get('course_template_id'):
+                query = query.filter(Course.course_template_id == filters['course_template_id'])
+            
+            if filters.get('location'):
+                query = query.filter(Course.location == filters['location'])
+            
+            if filters.get('start_date'):
+                query = query.filter(Course.course_date >= filters['start_date'])
+            
+            if filters.get('end_date'):
+                query = query.filter(Course.course_date <= filters['end_date'])
+        
+        courses = query.order_by(Course.course_date, Course.course_time).all()
+        
+        # Filter out full courses unless include_full is True
+        if not include_full:
+            courses = [course for course in courses if not course.is_full()]
+        
+        return courses
+    
+    @staticmethod
+    def get_all_locations():
+        """
+        Get all unique locations from scheduled courses.
+        
+        Returns:
+            list[str]: List of unique location names
+        """
+        locations = db.session.query(Course.location).filter(
+            Course.location.isnot(None),
+            Course.location != ''
+        ).distinct().order_by(Course.location).all()
+        
+        return [loc[0] for loc in locations if loc[0]]

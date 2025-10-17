@@ -63,6 +63,9 @@ def init_blueprints(app):
         from src.controllers.user_admin_controller import user_admin_bp
         app.register_blueprint(user_admin_bp)
 
+        from src.controllers.instructor_controller import instructor_bp
+        app.register_blueprint(instructor_bp)
+
         
     except ImportError as e:
         app.looger.warning("Failed to import routes", error=str(e))

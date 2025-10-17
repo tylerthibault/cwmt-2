@@ -7,7 +7,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from flask import current_app as app
 
-# 1 MINUTES
+# Logout timer in seconds (e.g., 6000 seconds = 100 minutes)
 LOGOUT_TIMER = 6000
 
 class Logbook(BaseModel):

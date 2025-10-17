@@ -1,0 +1,200 @@
+{% extends 'bases/private.html' %}
+
+{% block custom_js %}
+<script src="{{ url_for('static', filename='js/private/instructor_schedule.js') }}"></script>
+{% endblock custom_js %}
+
+{% block content %}
+<div>
+    <!-- Header with Title -->
+    <div class="page-header">
+        <div>
+            <h1>Course Schedule</h1>
+            <p>View and sign up for upcoming courses</p>
+        </div>
+    </div>
+
+    <!-- Filter and Status Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-gradient-border card-shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex gap-2 align-items-center">
+                            <label for="statusFilter" class="mb-0 fw-semibold">Filter by Status:</label>
+                            <select id="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterByStatus(this.value)">
+                                <option value="all">All Courses</option>
+                                <option value="available" selected>Available to Sign Up</option>
+                                <option value="my-courses">My Assigned Courses</option>
+                                <option value="full">Fully Staffed</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <label for="dateFilter" class="mb-0 fw-semibold">Date Range:</label>
+                            <select id="dateFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterByDate(this.value)">
+                                <option value="week" selected>Next 7 Days</option>
+                                <option value="month">Next 30 Days</option>
+                                <option value="all">All Upcoming</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Cards Grid -->
+    <div class="row" id="courseGrid">
+        {% if courses %}
+            {% for course in courses %}
+            <div class="col-12 col-md-6 col-lg-4 mb-4 course-card" 
+                 data-status="{% if course.instructor1_id and course.instructor2_id %}full{% elif course.instructor1_id == current_user.id or course.instructor2_id == current_user.id %}my-courses{% else %}available{% endif %}"
+                 data-date="{{ course.course_date.isoformat() }}">
+                <div class="card card-gradient-border card-shadow h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{{ course.template.name }}</h5>
+                                <p class="mb-0 text-muted small">{{ course.template.experience_level|title }}</p>
+                            </div>
+                            {% if course.instructor1_id and course.instructor2_id %}
+                                <span class="badge badge--success">Fully Staffed</span>
+                            {% elif course.instructor1_id or course.instructor2_id %}
+                                <span class="badge badge--warning">1 Spot Open</span>
+                            {% else %}
+                                <span class="badge badge--info">2 Spots Open</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Date and Time -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-calendar-day text-primary"></i>
+                                <span class="fw-semibold">{{ course.course_date.strftime('%A, %B %d, %Y') }}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-clock text-primary"></i>
+                                <span>{{ course.course_time.strftime('%I:%M %p') }}</span>
+                            </div>
+                            {% if course.location %}
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                <span>{{ course.location }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Course Details -->
+                        <div class="mb-3">
+                            <p class="mb-2"><strong>Duration:</strong> {{ course.template.duration_days }} day{% if course.template.duration_days != 1 %}s{% endif %}</p>
+                            {% if course.template.description %}
+                            <p class="mb-0 text-muted small">{{ course.template.description[:100] }}{% if course.template.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Student Info -->
+                        {% if course.student %}
+                        <div class="mb-3">
+                            <p class="mb-1 small text-muted">Student:</p>
+                            <p class="mb-0 fw-semibold">{{ course.student.first_name }} {{ course.student.last_name }}</p>
+                        </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <p class="mb-0 text-muted small"><em>No student assigned yet</em></p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Instructor Assignments -->
+                        <div class="mb-3">
+                            <p class="mb-2 small text-muted">Instructors:</p>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-user-tie {% if course.instructor1_id %}text-success{% else %}text-secondary{% endif %}"></i>
+                                    {% if course.instructor1 %}
+                                        <span class="{% if course.instructor1_id == current_user.id %}fw-bold text-primary{% endif %}">
+                                            {{ course.instructor1.first_name }} {{ course.instructor1.last_name }}
+                                            {% if course.instructor1_id == current_user.id %}<span class="badge badge--primary ms-2">You</span>{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Slot 1: Open</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-user-tie {% if course.instructor2_id %}text-success{% else %}text-secondary{% endif %}"></i>
+                                    {% if course.instructor2 %}
+                                        <span class="{% if course.instructor2_id == current_user.id %}fw-bold text-primary{% endif %}">
+                                            {{ course.instructor2.first_name }} {{ course.instructor2.last_name }}
+                                            {% if course.instructor2_id == current_user.id %}<span class="badge badge--primary ms-2">You</span>{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Slot 2: Open</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        {% if course.instructor1_id == current_user.id or course.instructor2_id == current_user.id %}
+                            <!-- User is already assigned -->
+                            <button class="table-btn table-btn--danger w-100" onclick="removeFromCourse({{ course.id }})">
+                                <i class="fas fa-sign-out-alt me-2"></i>Remove Me from Course
+                            </button>
+                        {% elif course.instructor1_id and course.instructor2_id %}
+                            <!-- Course is fully staffed -->
+                            <button class="table-btn table-btn--secondary w-100" disabled>
+                                <i class="fas fa-check-circle me-2"></i>Fully Staffed
+                            </button>
+                        {% else %}
+                            <!-- User can sign up -->
+                            <button class="table-btn table-btn--primary w-100" onclick="signUpForCourse({{ course.id }})">
+                                <i class="fas fa-plus-circle me-2"></i>Sign Up as Instructor
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card card-shadow">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Upcoming Courses</h4>
+                        <p class="text-muted">There are no courses scheduled at this time.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Legend -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card card-shadow">
+                <div class="card-body">
+                    <h6 class="mb-3">Status Legend:</h6>
+                    <div class="d-flex gap-4 flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge--info">2 Spots Open</span>
+                            <span class="small">Both instructor positions available</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge--warning">1 Spot Open</span>
+                            <span class="small">One instructor needed</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge--success">Fully Staffed</span>
+                            <span class="small">Both instructors assigned</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge--primary">You</span>
+                            <span class="small">You are assigned to this course</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

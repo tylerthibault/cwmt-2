@@ -155,7 +155,7 @@ def edit_course_instance(course_id):
         # Delegate to logic layer for validation and update
         try:
             updated_course = CourseLogic.update_course_instance(course_id, data)
-            flash(f'Course instance "{updated_course.name}" updated successfully', 'success')
+            flash(f'Course instance "{updated_course.template.name}" updated successfully', 'success')
             return redirect(url_for('user_admin.schedule_management'))
         except ValueError as e:
             flash(str(e), 'error')
@@ -170,7 +170,7 @@ def edit_course_instance(course_id):
         **user_context,
         'course': course,
         'all_templates': all_templates,
-        'page_title': f'Edit Course: {course.name}'
+        'page_title': f'Edit Course: {course.template.name}'
     }
     
     return render_template('private/admin/schedule_management/edit.html', **context)

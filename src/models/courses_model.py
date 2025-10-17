@@ -7,6 +7,17 @@ from src.models import db
 from src.models.base_model import BaseModel
 
 
+# Association table for many-to-many relationship between courses and students
+course_enrollments = db.Table('course_enrollments',
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), nullable=False),
+    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), nullable=False),
+    db.Column('enrolled_at', db.DateTime, default=datetime.utcnow, nullable=False),
+    db.Column('enrolled_by_admin', db.Boolean, default=False, nullable=False),  # Track if admin enrolled vs self-enrollment
+    db.UniqueConstraint('course_id', 'student_id', name='unique_course_student')
+)
+
+
 class CourseTemplate(BaseModel):
     """
     CourseTemplate database model - THIN model pattern.
@@ -29,6 +40,7 @@ class CourseTemplate(BaseModel):
     description = db.Column(db.Text, nullable=True)
     duration_days = db.Column(db.Integer, nullable=False)  # Length of course in days
     experience_level = db.Column(db.String(50), nullable=False)  # e.g., 'beginner', 'intermediate', 'advanced'
+    max_students = db.Column(db.Integer, default=1, nullable=False)  # Maximum number of students per course
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Relationships
@@ -48,6 +60,7 @@ class CourseTemplate(BaseModel):
             'description': self.description,
             'duration_days': self.duration_days,
             'experience_level': self.experience_level,
+            'max_students': self.max_students,
             'is_active': self.is_active,
             'courses_count': len(self.courses) if self.courses else 0
         })
@@ -82,15 +95,15 @@ class Course(BaseModel):
     course_time = db.Column(db.Time, nullable=False)
     status = db.Column(db.String(50), default='scheduled', nullable=False)  # e.g., 'scheduled', 'in_progress', 'completed', 'cancelled'
     location = db.Column(db.String(255), nullable=True)  # Optional location field
+    max_students = db.Column(db.Integer, nullable=True)  # Override template's max_students if set, otherwise uses template's value
     
-    # Student and Instructor relationships (many-to-one with User)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    # Instructor relationships (many-to-one with User)
     instructor1_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     instructor2_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # Relationships
     template = db.relationship('CourseTemplate', back_populates='courses')
-    student = db.relationship('User', foreign_keys=[student_id], backref='enrolled_courses')
+    students = db.relationship('User', secondary=course_enrollments, backref='enrolled_courses')
     instructor1 = db.relationship('User', foreign_keys=[instructor1_id], backref='courses_as_instructor1')
     instructor2 = db.relationship('User', foreign_keys=[instructor2_id], backref='courses_as_instructor2')
     
@@ -112,7 +125,9 @@ class Course(BaseModel):
             'course_date': self.course_date.isoformat() if self.course_date else None,
             'course_time': self.course_time.isoformat() if self.course_time else None,
             'status': self.status,
-            'student_id': self.student_id,
+            'location': self.location,
+            'max_students': self.max_students,
+            'enrolled_count': len(self.students) if self.students else 0,
             'instructor1_id': self.instructor1_id,
             'instructor2_id': self.instructor2_id
         })
@@ -121,12 +136,43 @@ class Course(BaseModel):
             base_dict['template'] = self.template.to_dict()
         
         if include_users:
-            base_dict['student'] = self.student.to_dict() if self.student else None
+            base_dict['students'] = [student.to_dict() for student in self.students] if self.students else []
             base_dict['instructor1'] = self.instructor1.to_dict() if self.instructor1 else None
             base_dict['instructor2'] = self.instructor2.to_dict() if self.instructor2 else None
         
         return base_dict
     
+    def get_max_students(self):
+        """
+        Get the effective max students for this course.
+        Uses course-specific max_students if set, otherwise falls back to template's max_students.
+        
+        Returns:
+            int: Maximum number of students allowed
+        """
+        if self.max_students is not None:
+            return self.max_students
+        return self.template.max_students if self.template else 1
+    
+    def get_available_slots(self):
+        """
+        Get the number of available slots remaining for this course.
+        
+        Returns:
+            int: Number of slots available (can be negative if overbooked)
+        """
+        return self.get_max_students() - len(self.students)
+    
+    def is_full(self):
+        """
+        Check if course is at or over capacity.
+        
+        Returns:
+            bool: True if course is full
+        """
+        return len(self.students) >= self.get_max_students()
+    
     def __repr__(self):
         """String representation of course"""
         return f'<Course {self.id} - Template: {self.course_template_id} on {self.course_date}>'
+

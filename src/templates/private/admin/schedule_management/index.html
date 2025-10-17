@@ -19,76 +19,36 @@
     <div class="page-header">
         <div>
             <h1>Schedule Management</h1>
-            <p>Add course instances to the calendar by selecting dates and course templates.</p>
+            <p>Click on any date in the calendar to add a new course instance.</p>
         </div>
     </div>
 
+    <!-- Full Width Calendar -->
     <div class="row">
-        <!-- Sidebar - Course Templates -->
-        <div class="col-3">
-            <div class="card card-gradient-border card-shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">Course Templates</h5>
-                </div>
-                <div class="card-body">
-                    {% if all_templates %}
-                        <div class="course-templates-list">
-                            {% for template in all_templates %}
-                                {% if template.is_active %}
-                                <div class="template-card" data-template-id="{{ template.id }}">
-                                    <div class="template-info">
-                                        <h6 class="template-name">{{ template.name }}</h6>
-                                        <p class="template-description">{{ template.description[:50] }}{% if template.description and template.description|length > 50 %}...{% endif %}</p>
-                                        <div class="template-badges">
-                                            <span class="badge badge--info">{{ template.duration_days }} day{% if template.duration_days != 1 %}s{% endif %}</span>
-                                            <span class="badge badge--primary">{{ template.experience_level|title }}</span>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-sm btn-primary w-100 mt-2 add-to-calendar-btn" 
-                                            data-template-id="{{ template.id }}"
-                                            data-template-name="{{ template.name }}"
-                                            data-duration="{{ template.duration_days }}">
-                                        <i class="fas fa-calendar-plus"></i> Add to Calendar
-                                    </button>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-muted mb-0">No active course templates available. Please create templates first.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Legend -->
-            <div class="card card-shadow mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">Legend</h6>
-                </div>
-                <div class="card-body">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #3788d8;"></span>
-                        <span>Scheduled</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #ffa500;"></span>
-                        <span>In Progress</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #28a745;"></span>
-                        <span>Completed</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #dc3545;"></span>
-                        <span>Cancelled</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Calendar Section -->
-        <div class="col-9">
+        <div class="col-12">
             <div class="card card-shadow">
+                <!-- Legend at top -->
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Course Schedule</h5>
+                    <div class="legend-horizontal">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #3788d8;"></span>
+                            <span>Scheduled</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #ffa500;"></span>
+                            <span>In Progress</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #28a745;"></span>
+                            <span>Completed</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #dc3545;"></span>
+                            <span>Cancelled</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-body">
                     <div id="calendar"></div>
                 </div>
@@ -97,104 +57,162 @@
     </div>
 </div>
 
-<!-- Modal for Adding Course Instance -->
-<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+<!-- Wizard Modal for Adding Course Instance -->
+<div class="modal fade" id="addCourseWizardModal" tabindex="-1" aria-labelledby="addCourseWizardLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCourseModalLabel">Add Course Instance</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="POST" action="{{ url_for('user_admin.create_course_instance') }}" id="addCourseForm">
-                <div class="modal-body">
-                    <input type="hidden" name="course_template_id" id="modalTemplateId">
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="modalCourseName" class="form-label">Course Template</label>
-                                <input type="text" class="form-control" id="modalCourseName" readonly>
-                            </div>
+                <div class="wizard-header-content">
+                    <h5 class="modal-title" id="addCourseWizardLabel">Add Course Instance</h5>
+                    <div class="wizard-steps">
+                        <div class="wizard-step active" data-step="1">
+                            <span class="wizard-step-number">1</span>
+                            <span class="wizard-step-label">Choose Template</span>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="modalDuration" class="form-label">Duration</label>
-                                <input type="text" class="form-control" id="modalDuration" readonly>
-                            </div>
+                        <div class="wizard-step" data-step="2">
+                            <span class="wizard-step-number">2</span>
+                            <span class="wizard-step-label">Course Details</span>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="courseDate" class="form-label">Start Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="courseDate" name="course_date" required>
-                            </div>
+                        <div class="wizard-step" data-step="3">
+                            <span class="wizard-step-number">3</span>
+                            <span class="wizard-step-label">Assign Participants</span>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="courseTime" class="form-label">Start Time <span class="text-danger">*</span></label>
-                                <input type="time" class="form-control" id="courseTime" name="course_time" required value="09:00">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="courseLocation" class="form-label">Location (Optional)</label>
-                        <input type="text" class="form-control" id="courseLocation" name="location" placeholder="Enter location">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="courseStatus" class="form-label">Status</label>
-                        <select class="form-control" id="courseStatus" name="status">
-                            <option value="scheduled" selected>Scheduled</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-
-                    <hr>
-                    <h6>Assign Participants (Optional)</h6>
-                    
-                    <div class="mb-3">
-                        <label for="studentSelect" class="form-label">Student</label>
-                        <select class="form-control" id="studentSelect" name="student_id">
-                            <option value="">Select student...</option>
-                            <!-- Students will be loaded via JS or server-side -->
-                        </select>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="instructor1Select" class="form-label">Instructor 1</label>
-                                <select class="form-control" id="instructor1Select" name="instructor1_id">
-                                    <option value="">Select instructor...</option>
-                                    <!-- Instructors will be loaded via JS or server-side -->
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="instructor2Select" class="form-label">Instructor 2</label>
-                                <select class="form-control" id="instructor2Select" name="instructor2_id">
-                                    <option value="">Select instructor...</option>
-                                    <!-- Instructors will be loaded via JS or server-side -->
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Note:</strong> This course will span <span id="durationDisplay"></span> on the calendar based on the template duration.
                     </div>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('user_admin.create_course_instance') }}" id="addCourseWizardForm">
+                <div class="modal-body">
+                    <!-- Step 1: Choose Course Template -->
+                    <div class="wizard-panel active" data-panel="1">
+                        <h6 class="mb-3">Select a Course Template</h6>
+                        <p class="text-muted mb-3">Choose the course template you want to schedule for <strong><span id="selectedDateDisplay"></span></strong></p>
+                        
+                        <input type="hidden" name="course_template_id" id="wizardTemplateId">
+                        <input type="hidden" name="course_date" id="wizardCourseDate">
+                        
+                        <div class="template-selection-grid">
+                            {% if all_templates %}
+                                {% for template in all_templates %}
+                                    {% if template.is_active %}
+                                    <div class="template-selection-card" data-template-id="{{ template.id }}" 
+                                         data-template-name="{{ template.name }}"
+                                         data-duration="{{ template.duration_days }}"
+                                         data-description="{{ template.description }}">
+                                        <div class="template-selection-header">
+                                            <h6 class="template-selection-name">{{ template.name }}</h6>
+                                            <div class="template-selection-badges">
+                                                <span class="badge badge--info">{{ template.duration_days }} day{% if template.duration_days != 1 %}s{% endif %}</span>
+                                                <span class="badge badge--primary">{{ template.experience_level|title }}</span>
+                                            </div>
+                                        </div>
+                                        <p class="template-selection-description">{{ template.description[:100] }}{% if template.description and template.description|length > 100 %}...{% endif %}</p>
+                                        <div class="template-selection-check">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    No active course templates available. Please create templates first.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Course Details -->
+                    <div class="wizard-panel" data-panel="2">
+                        <h6 class="mb-3">Course Details</h6>
+                        <div class="selected-template-info mb-4">
+                            <div class="alert alert-info d-flex align-items-center">
+                                <i class="fas fa-info-circle me-3"></i>
+                                <div>
+                                    <strong id="selectedTemplateName"></strong>
+                                    <p class="mb-0"><span id="selectedTemplateDuration"></span> starting on <strong><span id="selectedDateDisplay2"></span></strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseTime" class="form-label">Start Time <span class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="courseTime" name="course_time" required value="09:00">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseStatus" class="form-label">Status</label>
+                                    <select class="form-control" id="courseStatus" name="status">
+                                        <option value="scheduled" selected>Scheduled</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="courseLocation" class="form-label">Location (Optional)</label>
+                            <input type="text" class="form-control" id="courseLocation" name="location" placeholder="Enter location">
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Assign Participants -->
+                    <div class="wizard-panel" data-panel="3">
+                        <h6 class="mb-3">Assign Participants (Optional)</h6>
+                        <p class="text-muted mb-4">You can assign participants now or leave blank to assign later.</p>
+                        
+                        <div class="mb-4">
+                            <label for="studentSelect" class="form-label">Student</label>
+                            <select class="form-control" id="studentSelect" name="student_id">
+                                <option value="">Select student...</option>
+                                <!-- Students will be loaded via JS or server-side -->
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="instructor1Select" class="form-label">Instructor 1</label>
+                                    <select class="form-control" id="instructor1Select" name="instructor1_id">
+                                        <option value="">Select instructor...</option>
+                                        <!-- Instructors will be loaded via JS or server-side -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="instructor2Select" class="form-label">Instructor 2</label>
+                                    <select class="form-control" id="instructor2Select" name="instructor2_id">
+                                        <option value="">Select instructor...</option>
+                                        <!-- Instructors will be loaded via JS or server-side -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Ready to schedule!</strong> Click "Create Course" to add this instance to the calendar.
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-calendar-plus"></i> Add to Schedule
+                    <button type="button" class="btn btn-outline-primary wizard-btn-prev" id="wizardPrevBtn" style="display: none;">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button type="button" class="btn btn-primary wizard-btn-next" id="wizardNextBtn">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success wizard-btn-submit" id="wizardSubmitBtn" style="display: none;">
+                        <i class="fas fa-calendar-plus"></i> Create Course
                     </button>
                 </div>
             </form>

@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from src.controllers.auth_controller import login_required
 from src.logic.user_logic import UserLogic
+from src.logic.course_logic import CourseLogic, CourseTemplateLogic
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -14,7 +15,65 @@ def dashboard():
     if not context:
         flash("Unable to load dashboard context.", "error")
         return redirect(url_for('main.index'))
+    
+    # Add course data for student dashboard
+    if context.get('dashboard_template') == 'private/dashboard/student/index.html':
+        try:
+            # Get available courses
+            available_courses = CourseLogic.get_available_courses()
+            
+            # Get all course templates for filtering
+            course_templates = CourseTemplateLogic.get_all_templates(active_only=True)
+            
+            # Get all locations for filtering
+            locations = CourseLogic.get_all_locations()
+            
+            # Get student's enrolled courses if applicable
+            enrolled_courses = []
+            if context.get('current_user'):
+                enrolled_courses = CourseLogic.get_courses_for_student(context['current_user'].id)
+            
+            context.update({
+                'available_courses': available_courses,
+                'course_templates': course_templates,
+                'locations': locations,
+                'enrolled_courses': enrolled_courses
+            })
+        except Exception as e:
+            flash(f"Error loading course data: {str(e)}", "error")
+    
     return render_template(context.get('dashboard_template', 'private/dashboard/student/index.html'), **context)
+
+
+@user_bp.route('/enroll/<int:course_id>', methods=['POST'])
+@login_required
+def enroll_in_course(course_id):
+    """Enroll the current user in a course"""
+    try:
+        from src.models.logbook import Logbook
+        from src.models.user import User
+        from src.logic.course_logic import CourseBusinessError
+        
+        # Get user from token
+        token = session.get('token')
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        
+        if not logbook_entry or not logbook_entry.user_id:
+            flash("You must be logged in to enroll in a course.", "error")
+            return redirect(url_for('user.dashboard'))
+        
+        user_id = logbook_entry.user_id
+        
+        # Attempt to enroll the student
+        course = CourseLogic.enroll_student(course_id, user_id, is_admin_override=False)
+        flash(f"Successfully enrolled in {course.course_template.name}!", "success")
+            
+    except CourseBusinessError as e:
+        flash(str(e), "error")
+    except Exception as e:
+        flash(f"An error occurred during enrollment: {str(e)}", "error")
+    
+    return redirect(url_for('user.dashboard'))
 
 
 @user_bp.route('/settings')

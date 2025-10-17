@@ -30,11 +30,15 @@ def init_db(app):
         app.looger.info("Database tables created successfully")
         
         # Seed default roles on first database creation
-        from src.utils.seed_roles import seed_default_roles
+        from seeds.seed_roles import seed_default_roles
         seed_default_roles(app)
         
+        # Seed default users with test accounts
+        from seeds.seed_users import seed_default_users
+        seed_default_users(app)
+        
         # Seed default course templates
-        from src.utils.seed_courses import seed_default_course_templates
+        from seeds.seed_courses import seed_default_course_templates
         seed_default_course_templates(app)
 
 

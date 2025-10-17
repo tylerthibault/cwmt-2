@@ -1,12 +1,14 @@
 /**
  * Schedule Management JavaScript
- * Handles calendar interaction and course instance creation
+ * Handles calendar interaction and course instance creation with wizard flow
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     let calendar;
+    let currentWizardStep = 1;
     let selectedTemplate = null;
+    let selectedDate = null;
 
     // Initialize FullCalendar
     if (calendarEl) {
@@ -17,8 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            selectable: true,
-            selectMirror: true,
+            selectable: false,
+            selectMirror: false,
             editable: false,
             eventClick: handleEventClick,
             dateClick: handleDateClick,
@@ -33,6 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         calendar.render();
     }
+
+    /**
+     * Initialize wizard functionality
+     */
+    initializeWizard();
 
     /**
      * Load existing courses from server data
@@ -85,14 +92,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Handle clicking on calendar date
+     * Handle clicking on calendar date - Open wizard modal
      */
     function handleDateClick(info) {
-        if (selectedTemplate) {
-            openAddCourseModal(info.dateStr);
-        } else {
-            alert('Please select a course template from the sidebar first.');
-        }
+        selectedDate = info.dateStr;
+        openWizardModal(info.dateStr);
     }
 
     /**
@@ -104,46 +108,161 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Add to calendar button click handlers
+     * Open wizard modal for adding course
      */
-    document.querySelectorAll('.add-to-calendar-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Update selected template
-            selectedTemplate = {
-                id: this.dataset.templateId,
-                name: this.dataset.templateName,
-                duration: parseInt(this.dataset.duration)
-            };
-
-            // Highlight selected template card
-            document.querySelectorAll('.template-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            this.closest('.template-card').classList.add('selected');
-
-            // Show instruction
-            showNotification('Now click on the calendar to select a date for this course.', 'info');
+    function openWizardModal(dateStr) {
+        const modal = new bootstrap.Modal(document.getElementById('addCourseWizardModal'));
+        
+        // Reset wizard to step 1
+        currentWizardStep = 1;
+        selectedTemplate = null;
+        updateWizardUI();
+        
+        // Set selected date
+        const dateObj = new Date(dateStr);
+        const formattedDate = dateObj.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
         });
-    });
+        
+        document.getElementById('selectedDateDisplay').textContent = formattedDate;
+        document.getElementById('selectedDateDisplay2').textContent = formattedDate;
+        document.getElementById('wizardCourseDate').value = dateStr;
+        
+        // Clear all template selections
+        document.querySelectorAll('.template-selection-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        modal.show();
+    }
 
     /**
-     * Open modal to add course instance
+     * Initialize wizard functionality
      */
-    function openAddCourseModal(dateStr) {
-        if (!selectedTemplate) return;
+    function initializeWizard() {
+        // Template selection cards
+        document.querySelectorAll('.template-selection-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Deselect all
+                document.querySelectorAll('.template-selection-card').forEach(c => {
+                    c.classList.remove('selected');
+                });
+                
+                // Select this one
+                this.classList.add('selected');
+                
+                // Store selected template data
+                selectedTemplate = {
+                    id: this.dataset.templateId,
+                    name: this.dataset.templateName,
+                    duration: parseInt(this.dataset.duration),
+                    description: this.dataset.description
+                };
+                
+                // Update hidden input
+                document.getElementById('wizardTemplateId').value = selectedTemplate.id;
+            });
+        });
 
-        const modal = new bootstrap.Modal(document.getElementById('addCourseModal'));
-        
-        // Populate modal fields
-        document.getElementById('modalTemplateId').value = selectedTemplate.id;
-        document.getElementById('modalCourseName').value = selectedTemplate.name;
-        document.getElementById('modalDuration').value = selectedTemplate.duration + ' day' + (selectedTemplate.duration > 1 ? 's' : '');
-        document.getElementById('courseDate').value = dateStr;
-        document.getElementById('durationDisplay').textContent = selectedTemplate.duration + ' day' + (selectedTemplate.duration > 1 ? 's' : '');
+        // Wizard navigation buttons
+        document.getElementById('wizardNextBtn').addEventListener('click', function() {
+            if (validateCurrentStep()) {
+                currentWizardStep++;
+                updateWizardUI();
+            }
+        });
 
-        modal.show();
+        document.getElementById('wizardPrevBtn').addEventListener('click', function() {
+            currentWizardStep--;
+            updateWizardUI();
+        });
+
+        // Reset wizard when modal closes
+        document.getElementById('addCourseWizardModal').addEventListener('hidden.bs.modal', function() {
+            currentWizardStep = 1;
+            selectedTemplate = null;
+            updateWizardUI();
+            
+            // Clear form
+            document.getElementById('addCourseWizardForm').reset();
+        });
+    }
+
+    /**
+     * Validate current wizard step
+     */
+    function validateCurrentStep() {
+        if (currentWizardStep === 1) {
+            // Validate template selection
+            if (!selectedTemplate) {
+                showNotification('Please select a course template', 'warning');
+                return false;
+            }
+        } else if (currentWizardStep === 2) {
+            // Validate course details
+            const time = document.getElementById('courseTime').value;
+            if (!time) {
+                showNotification('Please enter a start time', 'warning');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Update wizard UI based on current step
+     */
+    function updateWizardUI() {
+        // Update step indicators
+        document.querySelectorAll('.wizard-step').forEach(step => {
+            const stepNum = parseInt(step.dataset.step);
+            step.classList.remove('active', 'completed');
+            
+            if (stepNum === currentWizardStep) {
+                step.classList.add('active');
+            } else if (stepNum < currentWizardStep) {
+                step.classList.add('completed');
+            }
+        });
+
+        // Update panels
+        document.querySelectorAll('.wizard-panel').forEach(panel => {
+            const panelNum = parseInt(panel.dataset.panel);
+            if (panelNum === currentWizardStep) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+        });
+
+        // Update buttons
+        const prevBtn = document.getElementById('wizardPrevBtn');
+        const nextBtn = document.getElementById('wizardNextBtn');
+        const submitBtn = document.getElementById('wizardSubmitBtn');
+
+        if (currentWizardStep === 1) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        } else if (currentWizardStep === 3) {
+            prevBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+        } else {
+            prevBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+
+        // Update template info in step 2
+        if (currentWizardStep === 2 && selectedTemplate) {
+            document.getElementById('selectedTemplateName').textContent = selectedTemplate.name;
+            document.getElementById('selectedTemplateDuration').textContent = 
+                selectedTemplate.duration + ' day' + (selectedTemplate.duration > 1 ? 's' : '');
+        }
     }
 
     /**
@@ -198,45 +317,135 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Show notification message
+     * Show notification message matching flash message component style
      */
     function showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-        notification.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        // Create or get flash messages container
+        let container = document.querySelector('.flash-messages-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'flash-messages-container';
+            document.body.appendChild(container);
+        }
+
+        // Create flash message element
+        const flashMessage = document.createElement('div');
+        flashMessage.className = `flash-message flash-message--${type} flash-message--entering`;
+        flashMessage.setAttribute('role', 'alert');
+        flashMessage.setAttribute('aria-live', 'polite');
+
+        // Determine icon based on type
+        let iconSVG;
+        switch(type) {
+            case 'success':
+                iconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>';
+                break;
+            case 'error':
+            case 'danger':
+                iconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>';
+                break;
+            case 'warning':
+                iconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>';
+                break;
+            default: // info
+                iconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>';
+        }
+
+        flashMessage.innerHTML = `
+            <div class="flash-message__content">
+                <span class="flash-message__icon">
+                    ${iconSVG}
+                </span>
+                <span class="flash-message__text">${message}</span>
+                <button class="flash-message__close" aria-label="Close message" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="flash-message__progress">
+                <div class="flash-message__progress-bar"></div>
+            </div>
         `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto-remove after 5 seconds
+
+        // Add to container
+        container.appendChild(flashMessage);
+
+        // Setup close button
+        const closeBtn = flashMessage.querySelector('.flash-message__close');
+        closeBtn.addEventListener('click', function() {
+            dismissFlashMessage(flashMessage);
+        });
+
+        // Setup auto-dismiss with progress bar
+        const progressBar = flashMessage.querySelector('.flash-message__progress-bar');
+        const timeout = 5000; // 5 seconds
+
+        // Animate progress bar
         setTimeout(() => {
-            notification.remove();
-        }, 5000);
+            progressBar.style.transition = `transform ${timeout}ms linear`;
+            progressBar.style.transform = 'scaleX(0)';
+        }, 10);
+
+        // Auto-dismiss
+        const timeoutId = setTimeout(() => {
+            dismissFlashMessage(flashMessage);
+        }, timeout);
+
+        // Pause on hover
+        let isPaused = false;
+        let remainingTime = timeout;
+        let startTime = Date.now();
+
+        flashMessage.addEventListener('mouseenter', function() {
+            if (!isPaused) {
+                clearTimeout(timeoutId);
+                const elapsed = Date.now() - startTime;
+                remainingTime = Math.max(0, timeout - elapsed);
+                const currentTransform = window.getComputedStyle(progressBar).transform;
+                progressBar.style.transition = 'none';
+                progressBar.style.transform = currentTransform;
+                isPaused = true;
+            }
+        });
+
+        flashMessage.addEventListener('mouseleave', function() {
+            if (isPaused) {
+                startTime = Date.now();
+                progressBar.style.transition = `transform ${remainingTime}ms linear`;
+                progressBar.style.transform = 'scaleX(0)';
+                setTimeout(() => {
+                    dismissFlashMessage(flashMessage);
+                }, remainingTime);
+                isPaused = false;
+            }
+        });
+    }
+
+    /**
+     * Dismiss flash message with animation
+     */
+    function dismissFlashMessage(messageElement) {
+        messageElement.classList.add('flash-message--closing');
+        setTimeout(() => {
+            messageElement.remove();
+            
+            // Remove container if empty
+            const container = document.querySelector('.flash-messages-container');
+            if (container && container.querySelectorAll('.flash-message').length === 0) {
+                container.remove();
+            }
+        }, 300);
     }
 
     /**
      * Handle form submission
      */
-    const addCourseForm = document.getElementById('addCourseForm');
-    if (addCourseForm) {
-        addCourseForm.addEventListener('submit', function(e) {
-            // Form will submit normally, no need to prevent default
-            // The server will handle the creation and redirect
-        });
-    }
-
-    /**
-     * Reset template selection when modal is closed
-     */
-    document.getElementById('addCourseModal')?.addEventListener('hidden.bs.modal', function() {
-        // Don't reset selection, keep it for multiple additions
-        // selectedTemplate = null;
-        // document.querySelectorAll('.template-card').forEach(card => {
-        //     card.classList.remove('selected');
-        // });
+    document.getElementById('addCourseWizardForm').addEventListener('submit', function(e) {
+        // Form will submit normally to server
+        // Show loading state on submit button
+        const submitBtn = document.getElementById('wizardSubmitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
     });
 });
