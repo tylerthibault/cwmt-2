@@ -463,10 +463,20 @@ class CourseLogic:
     
     @staticmethod
     def get_courses_for_student(student_id):
-        """Get all courses for a specific student"""
-        return Course.query.filter_by(student_id=student_id).order_by(
+        """
+        Get all courses for a specific student.
+        Uses the many-to-many relationship through course_enrollments table.
+        """
+        print(f"DEBUG CourseLogic.get_courses_for_student: student_id = {student_id}")
+        courses = Course.query.filter(
+            Course.students.any(id=student_id)
+        ).order_by(
             Course.course_date, Course.course_time
         ).all()
+        print(f"DEBUG CourseLogic.get_courses_for_student: Found {len(courses)} courses")
+        for course in courses:
+            print(f"  - Course {course.id}: {course.template.name if course.template else 'No template'}")
+        return courses
     
     @staticmethod
     def get_courses_for_instructor(instructor_id):

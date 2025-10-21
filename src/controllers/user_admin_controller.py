@@ -176,6 +176,29 @@ def edit_course_instance(course_id):
     return render_template('private/admin/schedule_management/edit.html', **context)
 
 
+@user_admin_bp.route('/schedule/view/<int:course_id>')
+@admin_required
+def view_course_instance(course_id):
+    """
+    View detailed information about a course instance.
+    Read-only view with full roster and details.
+    """
+    course = Course.query.get_or_404(course_id)
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    # Get course data with all relationships
+    course_dict = course.to_dict(include_users=True, include_template=True)
+    
+    context = {
+        **user_context,
+        'course': course,
+        'course_dict': course_dict,
+        'page_title': f'View Course: {course.template.name if course.template else "Course Details"}'
+    }
+    
+    return render_template('private/admin/schedule_management/view.html', **context)
+
+
 @user_admin_bp.route('/schedule/delete/<int:course_id>', methods=['POST'])
 @admin_required
 def delete_course_instance(course_id):

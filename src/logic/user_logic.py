@@ -118,11 +118,31 @@ class UserLogic:
     @staticmethod
     def _build_student_context(user, current_role):
         """Build context for student dashboard"""
+        from src.logic.course_logic import CourseLogic, CourseTemplateLogic
+        
         app.logger.info(f"Building context for student: {user.email}")
+        
+        # Get available courses
+        available_courses = CourseLogic.get_available_courses()
+        
+        # Get all course templates for filtering
+        course_templates = CourseTemplateLogic.get_all_templates(active_only=True)
+        
+        # Get all locations for filtering
+        locations = CourseLogic.get_all_locations()
+        
+        # Get student's enrolled courses
+        enrolled_courses = CourseLogic.get_courses_for_student(user.id)
+        
         context = {
             'user': user,
+            'current_user': user,  # Add current_user for template compatibility
             'current_role': current_role,
-            'dashboard_template': 'private/dashboard/student/index.html'
+            'dashboard_template': 'private/dashboard/student/index.html',
+            'available_courses': available_courses,
+            'course_templates': course_templates,
+            'locations': locations,
+            'enrolled_courses': enrolled_courses
         }
         return context
     
