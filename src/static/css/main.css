@@ -10,8 +10,8 @@
 /* Light mode (default) */
 :root {
     /* Subtle variations - barely perceptible */
-    --bs-primary: #5587c0;
-    --bs-secondary: #478169;
+    --bs-primary: #1f4168;
+    --bs-secondary: #2b9c89;
     --bs-success: #d1fae5;
     --bs-info: #dbeafe;
     --bs-warning: #fef3c7;
@@ -55,4 +55,11 @@
     /* Dark Gradients - Deep & Rich */
     --primary-gradient: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
     --secondary-gradient: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
+}
+
+/* Body theme support */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }

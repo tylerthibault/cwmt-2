@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Theme loader - Must run before any content renders to prevent flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('cwmt-theme') || 
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
+
     <!-- bootstrap css -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrapcss/bootstrap.min.css') }}">
 
@@ -19,9 +28,15 @@
     {% endblock custom_head %}
 
     <title>CWMT</title>
+    
+    <style>
+        main {
+            margin-top: 5rem;
+        }
+    </style>
 </head>
 
-<body class="text-primary bg-light">
+<body>
     {% include 'components/flash_messages.html' %}
 
     {% block page_wrapper %}
@@ -47,9 +62,12 @@
         
     </div>
     {% endblock page_wrapper %}
+    
     <!-- bootstrap js -->
     <script src="{{ url_for('static', filename='js/bootstrapjs/bootstrap.bundle.min.js') }}"></script>
-
+    
+    <!-- Theme Manager -->
+    <script src="{{ url_for('static', filename='js/components/theme-manager.js') }}"></script>
 
     {% block custom_js %}
 

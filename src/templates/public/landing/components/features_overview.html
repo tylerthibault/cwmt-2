@@ -1,0 +1,78 @@
+<!-- Features / Benefits overview (3-5 items). Follow hero style rules: use CSS variables from `src/static/css/main.css` and BEM-like classes -->
+<section class="features features-overview" aria-labelledby="features-heading">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/landing/features_overview.css') }}">
+	
+	<div class="container">
+		<div class="row justify-content-center text-center">
+			<div class="col-lg-8">
+				<p class="features__eyebrow label-text">Why riders choose us</p>
+				<h2 id="features-heading" class="features__title">What you get with CWMT</h2>
+				<p class="features__subtitle">Practical, instructor-led training that builds confidence and keeps you safe on the road.</p>
+				<div class="features__trust" aria-hidden="false">
+					<span class="badge badge-light">Trusted by 1,000+ students</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="row g-4 mt-4" role="list">
+			<!-- Feature 1 -->
+			<div class="col-sm-6 col-lg-3" role="listitem">
+				<div class="feature-item">
+					<div class="feature-icon feature-icon--secondary" aria-hidden="true">
+						<!-- inline SVG icon uses currentColor -->
+						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M12 2l2 5h5l-4 3 1 6-5-3-5 3 1-6-4-3h5l2-5z" fill="currentColor"/>
+						</svg>
+					</div>
+					<h3 class="feature-title">Certified Instructors</h3>
+					<p class="feature-desc">Expert trainers with years of on-bike teaching experience.</p>
+				</div>
+			</div>
+
+			<!-- Feature 2 -->
+			<div class="col-sm-6 col-lg-3" role="listitem">
+				<div class="feature-item">
+					<div class="feature-icon feature-icon--primary" aria-hidden="true">
+						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14.5L7.5 13l1-1.2 4.5 3 6-7L21 9l-7 7.5z" fill="currentColor"/>
+						</svg>
+					</div>
+					<h3 class="feature-title">High Success Rate</h3>
+					<p class="feature-desc">98% course completion and licensing success across programs.</p>
+				</div>
+			</div>
+
+			<!-- Feature 3 -->
+			<div class="col-sm-6 col-lg-3" role="listitem">
+				<div class="feature-item">
+					<div class="feature-icon feature-icon--secondary" aria-hidden="true">
+						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M3 12h18M12 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+					</div>
+					<h3 class="feature-title">Flexible Scheduling</h3>
+					<p class="feature-desc">Weekend and evening classes to fit busy schedules.</p>
+				</div>
+			</div>
+
+			<!-- Feature 4 -->
+			<div class="col-sm-6 col-lg-3" role="listitem">
+				<div class="feature-item">
+					<div class="feature-icon feature-icon--primary" aria-hidden="true">
+						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7l3-7z" fill="currentColor"/>
+						</svg>
+					</div>
+					<h3 class="feature-title">All Gear Included</h3>
+					<p class="feature-desc">We provide helmets and protective equipment for training days.</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="row mt-4">
+			<div class="col text-center  text-primary">
+				<a href="/courses" class="btn btn-primary text-white">See Courses</a>
+			</div>
+		</div>
+	</div>
+</section>

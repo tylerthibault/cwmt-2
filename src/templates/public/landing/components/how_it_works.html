@@ -1,0 +1,105 @@
+<!-- HOW IT WORKS SECTION -->
+<!-- Follows style guide: NO inline styles, uses CSS classes, accessible markup -->
+<section class="how-it-works" aria-labelledby="how-it-works-heading">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/landing/how_it_works.css') }}">
+	
+	<div class="container">
+		<!-- Header -->
+		<div class="how-it-works__header">
+			<p class="how-it-works__eyebrow">Simple Process</p>
+			<h2 id="how-it-works-heading" class="how-it-works__title">How It Works</h2>
+			<p class="how-it-works__subtitle">
+				Get started with motorcycle training in 4 easy steps
+			</p>
+		</div>
+		
+		<!-- Steps with Visual Connector -->
+		<div class="how-it-works__steps">
+			<!-- Connecting line (desktop only) -->
+			<div class="how-it-works__connector" aria-hidden="true"></div>
+			
+			<div class="row" role="list">
+				<!-- Step 1 -->
+				<div class="col-sm-6 col-lg-3" role="listitem">
+					<article class="step-card">
+						<div class="step-card__number" aria-label="Step 1">
+							1
+						</div>
+						<div class="step-card__icon" aria-hidden="true">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+								<path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+						<h3 class="step-card__title">Choose Your Course</h3>
+						<p class="step-card__description">
+							Browse our courses and select the training program that matches your skill level and goals.
+						</p>
+					</article>
+				</div>
+				
+				<!-- Step 2 -->
+				<div class="col-sm-6 col-lg-3" role="listitem">
+					<article class="step-card">
+						<div class="step-card__number step-card__number--inactive" aria-label="Step 2">
+							2
+						</div>
+						<div class="step-card__icon" aria-hidden="true">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+								<path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+						<h3 class="step-card__title">Register & Book</h3>
+						<p class="step-card__description">
+							Complete a simple registration form and select your preferred class date and time.
+						</p>
+					</article>
+				</div>
+				
+				<!-- Step 3 -->
+				<div class="col-sm-6 col-lg-3" role="listitem">
+					<article class="step-card">
+						<div class="step-card__number step-card__number--inactive" aria-label="Step 3">
+							3
+						</div>
+						<div class="step-card__icon" aria-hidden="true">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+								<path d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.2465 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+						<h3 class="step-card__title">Learn & Practice</h3>
+						<p class="step-card__description">
+							Attend classroom sessions and hands-on training with our expert instructors.
+						</p>
+					</article>
+				</div>
+				
+				<!-- Step 4 -->
+				<div class="col-sm-6 col-lg-3" role="listitem">
+					<article class="step-card">
+						<div class="step-card__number step-card__number--inactive" aria-label="Step 4">
+							4
+						</div>
+						<div class="step-card__icon" aria-hidden="true">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+								<path d="M9 12L11 14L15 10M21 12C21 13.1819 20.7672 14.3522 20.3149 15.4442C19.8626 16.5361 19.1997 17.5282 18.364 18.364C17.5282 19.1997 16.5361 19.8626 15.4442 20.3149C14.3522 20.7672 13.1819 21 12 21C10.8181 21 9.64778 20.7672 8.55585 20.3149C7.46392 19.8626 6.47177 19.1997 5.63604 18.364C4.80031 17.5282 4.13738 16.5361 3.68508 15.4442C3.23279 14.3522 3 13.1819 3 12C3 9.61305 3.94821 7.32387 5.63604 5.63604C7.32387 3.94821 9.61305 3 12 3C14.3869 3 16.6761 3.94821 18.364 5.63604C20.0518 7.32387 21 9.61305 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+						<h3 class="step-card__title">Get Certified</h3>
+						<p class="step-card__description">
+							Pass the final test and receive your motorcycle endorsement or certification.
+						</p>
+					</article>
+				</div>
+			</div>
+		</div>
+		
+		<!-- CTA -->
+		<div class="how-it-works__cta">
+			<p class="how-it-works__cta-text">Ready to start your motorcycle journey?</p>
+			<a href="/courses" class="btn btn-primary btn-lg">Browse Courses</a>
+		</div>
+	</div>
+</section>
+ v

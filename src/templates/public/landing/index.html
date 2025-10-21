@@ -5,9 +5,19 @@
 {% endblock header %}
 
 {% block content %}
-<section>
-    {% include 'public/landing/components/hero.html' %}
-</section>
+<style>
+    main {
+        margin-top: 0;
+    }
+</style>
+
+{% include 'public/landing/components/hero_v2_dynamic.html' %}
+{% include 'public/landing/components/features_overview.html' %}
+{% include 'public/landing/components/testimonials.html' %}
+{% include 'public/landing/components/how_it_works.html' %}
+{% include 'public/landing/components/pricing.html' %}
+{% include 'public/landing/components/faq.html' %}
+
 {% endblock content %}
 
 

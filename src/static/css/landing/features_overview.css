@@ -1,0 +1,147 @@
+/* FEATURES OVERVIEW SECTION */
+/* Follows hero style guide: uses CSS variables from main.css, BEM-like naming, property order: Layout → Spacing → Visual → Animation */
+/* Note: .btn-primary styles come from bootstrap_addons/buttons.css */
+/* Note: .badge styles come from Bootstrap CSS */
+
+.features-overview {
+  /* Spacing */
+  padding: 80px 0;
+  
+  /* Visual */
+  background: var(--bg-primary);
+}
+
+/* Header Section */
+.features__eyebrow {
+  /* Spacing */
+  margin-bottom: 0.5rem;
+  
+  /* Visual */
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.features__title {
+  /* Spacing */
+  margin-bottom: 1rem;
+  
+  /* Visual */
+  color: var(--text-primary);
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.features__subtitle {
+  /* Spacing */
+  margin-bottom: 1.5rem;
+  
+  /* Visual */
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.features__trust {
+  /* Spacing */
+  margin-top: 1rem;
+}
+
+/* Feature Items - extends card behavior from components/cards.css */
+.feature-item {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  /* Spacing */
+  padding: 2rem;
+  
+  /* Visual */
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  
+  /* Animation */
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  /* Visual */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--bs-primary);
+  
+  /* Animation */
+  transform: translateY(-4px);
+}
+
+.feature-icon {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Spacing */
+  margin-bottom: 1.5rem;
+  
+  /* Visual */
+  font-size: 2rem;
+  color: var(--bs-secondary);
+}
+
+.feature-icon--primary {
+  color: var(--bs-primary);
+}
+
+.feature-icon--secondary {
+  color: var(--bs-secondary);
+}
+
+.feature-title {
+  /* Spacing */
+  margin-bottom: 0.75rem;
+  
+  /* Visual */
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.feature-desc {
+  /* Visual */
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .features-overview {
+    padding: 60px 0;
+  }
+  
+  .features__title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .features-overview {
+    padding: 40px 0;
+  }
+  
+  .features__title {
+    font-size: 1.75rem;
+  }
+  
+  .feature-item {
+    padding: 1.5rem;
+  }
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .feature-item:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
