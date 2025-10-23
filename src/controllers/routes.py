@@ -52,7 +52,7 @@ def api_available_courses():
                 'experience_level': course.template.experience_level if course.template else 'beginner',
                 'duration_days': course.template.duration_days if course.template else 1,
                 'max_students': course.get_max_students(),
-                'enrolled_count': len(course.students),
+                'enrolled_count': len(course.enrollments),
                 'available_slots': course.get_available_slots(),
                 'is_full': course.is_full()
             })

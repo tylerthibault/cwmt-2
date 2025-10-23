@@ -76,7 +76,7 @@ def schedule_management():
     # Serialize courses with template information for JavaScript
     all_courses = []
     for course in all_courses_raw:
-        course_dict = course.to_dict(include_users=True, include_template=True)
+        course_dict = course.to_dict(include_enrollments=True, include_template=True)
         all_courses.append(course_dict)
     
     # Serialize templates for JavaScript
@@ -187,7 +187,7 @@ def view_course_instance(course_id):
     user_context = UserLogic.get_context(view_as='admin')
     
     # Get course data with all relationships
-    course_dict = course.to_dict(include_users=True, include_template=True)
+    course_dict = course.to_dict(include_enrollments=True, include_template=True)
     
     context = {
         **user_context,
@@ -394,3 +394,236 @@ def delete_announcement(announcement_id):
     
     flash('Announcement deletion not yet implemented', 'warning')
     return redirect(url_for('user_admin.announcements'))
+
+
+# ============================================================================
+# STUDENT MANAGEMENT ROUTES
+# ============================================================================
+
+@user_admin_bp.route('/students')
+@admin_required
+def students_list():
+    """
+    Display list of all students.
+    Admin can view all students and access their details.
+    """
+    from src.models.student_profile import StudentProfile
+    from src.models.user import User
+    
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    # Get all student profiles with user information
+    students = StudentProfile.query.join(User).order_by(User.last_name, User.first_name).all()
+    
+    context = {
+        **user_context,
+        'students': students,
+        'page_title': 'Student Management'
+    }
+    
+    return render_template('private/admin/students/list.html', **context)
+
+
+@user_admin_bp.route('/students/<int:student_id>')
+@admin_required
+def student_detail(student_id):
+    """
+    Display detailed information about a student.
+    Shows profile, enrollments, scores, and vehicle info.
+    
+    Args:
+        student_id: StudentProfile ID (not User ID)
+    """
+    from src.logic.student_logic import StudentLogic
+    from src.models.student_profile import StudentProfile
+    
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    # Get student profile
+    student = StudentProfile.query.get_or_404(student_id)
+    
+    # Get all enrollments for this student
+    enrollments = StudentLogic.get_student_courses(student_id)
+    
+    # Calculate GPA
+    gpa = StudentLogic.calculate_student_gpa(student_id)
+    
+    context = {
+        **user_context,
+        'student': student,
+        'enrollments': enrollments,
+        'gpa': gpa,
+        'page_title': f'Student: {student.user.first_name} {student.user.last_name}'
+    }
+    
+    return render_template('private/admin/students/detail.html', **context)
+
+
+@user_admin_bp.route('/students/<int:student_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_student(student_id):
+    """
+    Edit student profile information.
+    
+    Args:
+        student_id: StudentProfile ID (not User ID)
+    """
+    from src.logic.student_logic import StudentLogic
+    from src.models.student_profile import StudentProfile
+    
+    student = StudentProfile.query.get_or_404(student_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            update_data = {
+                'student_number': request.form.get('student_number'),
+                'grade_level': request.form.get('grade_level'),
+                'emergency_contact_name': request.form.get('emergency_contact_name'),
+                'emergency_contact_phone': request.form.get('emergency_contact_phone')
+            }
+            
+            # Remove None values
+            update_data = {k: v for k, v in update_data.items() if v is not None}
+            
+            # Update student profile
+            StudentLogic.update_student_profile(student_id, update_data)
+            
+            flash('Student profile updated successfully', 'success')
+            return redirect(url_for('user_admin.student_detail', student_id=student_id))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f'Failed to update student profile: {str(e)}', 'error')
+    
+    # GET request - display form
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    context = {
+        **user_context,
+        'student': student,
+        'page_title': f'Edit Student: {student.user.first_name} {student.user.last_name}'
+    }
+    
+    return render_template('private/admin/students/edit.html', **context)
+
+
+@user_admin_bp.route('/api/students/<int:student_id>/enrollment/<int:enrollment_id>', methods=['PUT'])
+@admin_required
+def update_enrollment(student_id, enrollment_id):
+    """
+    Update enrollment details via AJAX.
+    
+    Args:
+        student_id: StudentProfile ID
+        enrollment_id: CourseEnrollment ID
+    """
+    from src.logic.student_logic import StudentLogic
+    import json
+    
+    try:
+        data = request.get_json()
+        
+        # Update enrollment
+        enrollment = StudentLogic.update_enrollment(enrollment_id, data)
+        
+        return json.dumps({
+            'success': True,
+            'message': 'Enrollment updated successfully',
+            'enrollment': enrollment.to_dict()
+        }), 200
+        
+    except ValueError as e:
+        return json.dumps({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'message': f'Failed to update enrollment: {str(e)}'
+        }), 500
+
+
+@user_admin_bp.route('/api/students/<int:student_id>/enrollment/<int:enrollment_id>/score', methods=['PUT'])
+@admin_required
+def update_enrollment_score(student_id, enrollment_id):
+    """
+    Update course score for an enrollment via AJAX.
+    
+    Args:
+        student_id: StudentProfile ID
+        enrollment_id: CourseEnrollment ID
+    """
+    from src.logic.student_logic import StudentLogic
+    import json
+    
+    try:
+        data = request.get_json()
+        score = float(data.get('score', 0))
+        
+        # Update score
+        enrollment = StudentLogic.update_course_score(enrollment_id, score)
+        
+        # Get updated student profile for overall score
+        student = StudentLogic.get_student_profile_by_id(student_id)
+        
+        return json.dumps({
+            'success': True,
+            'message': 'Score updated successfully',
+            'course_score': enrollment.course_score,
+            'overall_score': student.overall_score
+        }), 200
+        
+    except ValueError as e:
+        return json.dumps({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'message': f'Failed to update score: {str(e)}'
+        }), 500
+
+
+@user_admin_bp.route('/api/students/<int:student_id>/enrollment/<int:enrollment_id>/complete', methods=['POST'])
+@admin_required
+def complete_enrollment(student_id, enrollment_id):
+    """
+    Mark enrollment as completed via AJAX.
+    
+    Args:
+        student_id: StudentProfile ID
+        enrollment_id: CourseEnrollment ID
+    """
+    from src.logic.student_logic import StudentLogic
+    import json
+    
+    try:
+        data = request.get_json()
+        final_score = data.get('final_score')
+        
+        if final_score is not None:
+            final_score = float(final_score)
+        
+        # Complete course
+        enrollment = StudentLogic.complete_course(enrollment_id, final_score)
+        
+        return json.dumps({
+            'success': True,
+            'message': 'Course marked as completed',
+            'enrollment': enrollment.to_dict()
+        }), 200
+        
+    except ValueError as e:
+        return json.dumps({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'message': f'Failed to complete course: {str(e)}'
+        }), 500

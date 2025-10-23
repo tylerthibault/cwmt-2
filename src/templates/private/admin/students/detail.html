@@ -1,0 +1,476 @@
+{% extends "bases/private.html" %}
+
+{% block title %}{{ page_title }} - CWMT{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Back Button and Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('user_admin.students_list') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Students
+        </a>
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="h2 mb-1">{{ student.user.first_name }} {{ student.user.last_name }}</h1>
+                <p class="text-muted">{{ student.student_number or 'No Student Number' }} • {{ student.user.email }}</p>
+            </div>
+            <a href="{{ url_for('user_admin.edit_student', student_id=student.id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Info -->
+        <div class="col-lg-4 mb-4">
+            <!-- Profile Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> Student Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Student Number:</span>
+                            <span class="info-value">{{ student.student_number or 'Not Assigned' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Username:</span>
+                            <span class="info-value">@{{ student.user.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ student.user.email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Grade Level:</span>
+                            <span class="badge bg-info">{{ student.grade_level or 'Not Set' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Status:</span>
+                            <span class="badge {% if student.user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ 'Active' if student.user.is_active else 'Inactive' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-telephone-fill"></i> Emergency Contact</h5>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ student.emergency_contact_name or 'Not Provided' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone:</span>
+                            <span class="info-value">{{ student.emergency_contact_phone or 'Not Provided' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Performance Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Academic Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-4 fw-bold 
+                            {% if student.overall_score >= 90 %}text-success
+                            {% elif student.overall_score >= 80 %}text-primary
+                            {% elif student.overall_score >= 70 %}text-warning
+                            {% else %}text-danger
+                            {% endif %}
+                        ">
+                            {{ "%.1f"|format(student.overall_score) }}%
+                        </div>
+                        <p class="text-muted mb-0">Overall Score</p>
+                    </div>
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div class="progress-bar 
+                            {% if student.overall_score >= 90 %}bg-success
+                            {% elif student.overall_score >= 80 %}bg-primary
+                            {% elif student.overall_score >= 70 %}bg-warning
+                            {% else %}bg-danger
+                            {% endif %}
+                        " 
+                        style="width: {{ student.overall_score }}%"></div>
+                    </div>
+                    <hr>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">GPA:</span>
+                            <span class="info-value fw-bold">{{ "%.2f"|format(gpa) }} / 4.0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Courses Completed:</span>
+                            <span class="info-value">
+                                {% set completed = enrollments|selectattr('status', 'equalto', 'completed')|list|length %}
+                                {{ completed }}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Active Enrollments:</span>
+                            <span class="info-value">
+                                {% set active = enrollments|selectattr('status', 'equalto', 'active')|list|length %}
+                                {{ active }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Enrollments -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-book-fill"></i> Course Enrollments</h5>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                        {% for enrollment in enrollments %}
+                        <div class="enrollment-card mb-3" data-enrollment-id="{{ enrollment.id }}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        {% if enrollment.course and enrollment.course.template %}
+                                            {{ enrollment.course.template.name }}
+                                        {% else %}
+                                            Course #{{ enrollment.course_id }}
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted">
+                                        {% if enrollment.course %}
+                                            {{ enrollment.course.course_date.strftime('%B %d, %Y') }}
+                                            at {{ enrollment.course.course_time.strftime('%I:%M %p') }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge 
+                                    {% if enrollment.status == 'completed' %}bg-success
+                                    {% elif enrollment.status == 'active' %}bg-primary
+                                    {% elif enrollment.status == 'withdrawn' %}bg-secondary
+                                    {% else %}bg-danger
+                                    {% endif %}
+                                ">
+                                    {{ enrollment.status|upper }}
+                                </span>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Score Section -->
+                                <div class="col-md-6">
+                                    <div class="info-section">
+                                        <label class="form-label fw-bold">Course Score</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" 
+                                                   class="form-control score-input" 
+                                                   value="{{ enrollment.course_score }}"
+                                                   min="0" 
+                                                   max="100" 
+                                                   step="0.1"
+                                                   {% if enrollment.status != 'active' %}disabled{% endif %}>
+                                            <span class="input-group-text">%</span>
+                                            <button class="btn btn-outline-primary btn-update-score" 
+                                                    type="button"
+                                                    data-enrollment-id="{{ enrollment.id }}"
+                                                    {% if enrollment.status != 'active' %}disabled{% endif %}>
+                                                Update
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Attendance Section -->
+                                <div class="col-md-6">
+                                    <div class="info-section">
+                                        <label class="form-label fw-bold">Attendance</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" 
+                                                   class="form-control attendance-input" 
+                                                   value="{{ enrollment.attendance_percentage }}"
+                                                   min="0" 
+                                                   max="100" 
+                                                   step="0.1"
+                                                   {% if enrollment.status == 'completed' %}disabled{% endif %}>
+                                            <span class="input-group-text">%</span>
+                                            <button class="btn btn-outline-primary btn-update-attendance" 
+                                                    type="button"
+                                                    data-enrollment-id="{{ enrollment.id }}"
+                                                    {% if enrollment.status == 'completed' %}disabled{% endif %}>
+                                                Update
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vehicle Information -->
+                                {% if enrollment.brings_motorcycle or enrollment.brings_car %}
+                                <div class="col-12">
+                                    <div class="vehicle-info p-2 bg-light rounded">
+                                        <strong><i class="bi bi-car-front-fill"></i> Vehicle Information:</strong>
+                                        <div class="mt-2">
+                                            {% if enrollment.brings_motorcycle %}
+                                            <div class="mb-1">
+                                                <span class="badge bg-warning text-dark">Motorcycle</span>
+                                                {{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}
+                                                {% if enrollment.motorcycle_license_plate %}
+                                                    • Plate: {{ enrollment.motorcycle_license_plate }}
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            {% if enrollment.brings_car %}
+                                            <div>
+                                                <span class="badge bg-info">Car</span>
+                                                {{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}
+                                                {% if enrollment.car_license_plate %}
+                                                    • Plate: {{ enrollment.car_license_plate }}
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Notes -->
+                                {% if enrollment.notes %}
+                                <div class="col-12">
+                                    <div class="notes-section">
+                                        <strong><i class="bi bi-sticky-fill"></i> Notes:</strong>
+                                        <p class="mb-0 mt-1 text-muted small">{{ enrollment.notes }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Enrollment Dates -->
+                                <div class="col-12">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-plus"></i> Enrolled: {{ enrollment.enrollment_date.strftime('%B %d, %Y') }}
+                                        {% if enrollment.completion_date %}
+                                            • <i class="bi bi-calendar-check"></i> Completed: {{ enrollment.completion_date.strftime('%B %d, %Y') }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+
+                                <!-- Actions -->
+                                {% if enrollment.status == 'active' %}
+                                <div class="col-12">
+                                    <button class="btn btn-success btn-sm btn-complete-course" 
+                                            data-enrollment-id="{{ enrollment.id }}">
+                                        <i class="bi bi-check-circle"></i> Mark as Completed
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm btn-withdraw-course" 
+                                            data-enrollment-id="{{ enrollment.id }}">
+                                        <i class="bi bi-x-circle"></i> Withdraw
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-book" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mt-2">No course enrollments found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.info-value {
+    color: #333;
+}
+
+.enrollment-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    transition: box-shadow 0.2s;
+}
+
+.enrollment-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.info-section {
+    margin-bottom: 0;
+}
+</style>
+
+<script>
+const studentId = {{ student.id }};
+
+// Update score
+document.querySelectorAll('.btn-update-score').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const enrollmentId = this.dataset.enrollmentId;
+        const scoreInput = this.closest('.input-group').querySelector('.score-input');
+        const score = parseFloat(scoreInput.value);
+        
+        if (isNaN(score) || score < 0 || score > 100) {
+            alert('Please enter a valid score between 0 and 100');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/students/${studentId}/enrollment/${enrollmentId}/score`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ score: score })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Score updated successfully!');
+                location.reload(); // Reload to show updated overall score
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Failed to update score: ' + error.message);
+        }
+    });
+});
+
+// Update attendance
+document.querySelectorAll('.btn-update-attendance').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const enrollmentId = this.dataset.enrollmentId;
+        const attendanceInput = this.closest('.input-group').querySelector('.attendance-input');
+        const attendance = parseFloat(attendanceInput.value);
+        
+        if (isNaN(attendance) || attendance < 0 || attendance > 100) {
+            alert('Please enter a valid attendance percentage between 0 and 100');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/students/${studentId}/enrollment/${enrollmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ attendance_percentage: attendance })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Attendance updated successfully!');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Failed to update attendance: ' + error.message);
+        }
+    });
+});
+
+// Complete course
+document.querySelectorAll('.btn-complete-course').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const enrollmentId = this.dataset.enrollmentId;
+        const enrollmentCard = this.closest('.enrollment-card');
+        const scoreInput = enrollmentCard.querySelector('.score-input');
+        const finalScore = parseFloat(scoreInput.value);
+        
+        if (!confirm('Mark this course as completed?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/students/${studentId}/enrollment/${enrollmentId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ final_score: finalScore })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Course marked as completed!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Failed to complete course: ' + error.message);
+        }
+    });
+});
+
+// Withdraw from course
+document.querySelectorAll('.btn-withdraw-course').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const enrollmentId = this.dataset.enrollmentId;
+        
+        if (!confirm('Withdraw student from this course? This cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/students/${studentId}/enrollment/${enrollmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: 'withdrawn' })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Student withdrawn from course');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Failed to withdraw: ' + error.message);
+        }
+    });
+});
+</script>
+{% endblock %}

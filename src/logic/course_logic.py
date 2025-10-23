@@ -320,7 +320,7 @@ class CourseLogic:
         
         Args:
             course_id (int): ID of the course
-            student_id (int): ID of the student to enroll
+            student_id (int): ID of the student (User ID, not StudentProfile ID)
             is_admin_override (bool): True if admin is enrolling (bypasses capacity check)
             
         Returns:
@@ -329,6 +329,11 @@ class CourseLogic:
         Raises:
             CourseBusinessError: If enrollment fails business rules
         """
+        from src.models.user import User
+        from src.models.student_profile import StudentProfile
+        from src.models.course_enrollment import CourseEnrollment
+        from src.logic.student_logic import StudentLogic
+        
         course = Course.query.get(course_id)
         if not course:
             raise CourseBusinessError(f"Course with ID {course_id} not found")
@@ -337,13 +342,28 @@ class CourseLogic:
         if course.status in ['cancelled', 'completed']:
             raise CourseBusinessError(f"Cannot enroll in {course.status} course")
         
-        # Business rule: Check if student is already enrolled
-        from src.models.user import User
-        student = User.query.get(student_id)
-        if not student:
+        # Business rule: Check if student exists
+        student_user = User.query.get(student_id)
+        if not student_user:
             raise CourseBusinessError(f"Student with ID {student_id} not found")
         
-        if student in course.students:
+        # Get or create student profile
+        student_profile = StudentLogic.get_student_profile(student_id)
+        if not student_profile:
+            try:
+                student_profile = StudentLogic.create_student_profile(student_id, {
+                    'student_number': f'STU{student_id:05d}'
+                })
+            except Exception as e:
+                raise CourseBusinessError(f"Failed to create student profile: {str(e)}")
+        
+        # Business rule: Check if student is already enrolled
+        existing_enrollment = CourseEnrollment.query.filter_by(
+            student_id=student_profile.id,
+            course_id=course_id
+        ).first()
+        
+        if existing_enrollment:
             raise CourseBusinessError("Student is already enrolled in this course")
         
         # Validate student role
@@ -354,20 +374,21 @@ class CourseLogic:
             if course.is_full():
                 raise CourseBusinessError(
                     f"Course is full. Maximum capacity is {course.get_max_students()} students. "
-                    f"Currently {len(course.students)} students enrolled."
+                    f"Currently {len(course.enrollments)} students enrolled."
                 )
         
-        # Enroll student
-        course.students.append(student)
-        
-        # Track if this was an admin enrollment
-        if is_admin_override:
-            # Update the enrollment record to mark as admin-enrolled
-            db.session.flush()
-            enrollment = db.session.execute(
-                db.text("UPDATE course_enrollments SET enrolled_by_admin = :is_admin WHERE course_id = :course_id AND student_id = :student_id"),
-                {"is_admin": True, "course_id": course_id, "student_id": student_id}
+        # Enroll student using StudentLogic
+        try:
+            enrollment_data = {
+                'notes': 'Enrolled by admin' if is_admin_override else 'Self-enrolled'
+            }
+            StudentLogic.enroll_in_course(
+                student_id=student_profile.id,
+                course_id=course_id,
+                enrollment_data=enrollment_data
             )
+        except Exception as e:
+            raise CourseBusinessError(f"Failed to enroll student: {str(e)}")
         
         db.session.commit()
         
@@ -464,15 +485,30 @@ class CourseLogic:
     @staticmethod
     def get_courses_for_student(student_id):
         """
-        Get all courses for a specific student.
-        Uses the many-to-many relationship through course_enrollments table.
+        Get all courses for a specific student (using User ID).
+        Uses CourseEnrollment relationship.
         """
-        print(f"DEBUG CourseLogic.get_courses_for_student: student_id = {student_id}")
-        courses = Course.query.filter(
-            Course.students.any(id=student_id)
-        ).order_by(
+        from src.models.student_profile import StudentProfile
+        from src.models.course_enrollment import CourseEnrollment
+        from src.logic.student_logic import StudentLogic
+        
+        print(f"DEBUG CourseLogic.get_courses_for_student: student_id (user_id) = {student_id}")
+        
+        # Get student profile
+        student_profile = StudentLogic.get_student_profile(student_id)
+        if not student_profile:
+            print(f"DEBUG CourseLogic.get_courses_for_student: No student profile found for user_id {student_id}")
+            return []
+        
+        # Get enrollments and extract courses
+        enrollments = CourseEnrollment.query.filter_by(
+            student_id=student_profile.id
+        ).join(Course).order_by(
             Course.course_date, Course.course_time
         ).all()
+        
+        courses = [enrollment.course for enrollment in enrollments]
+        
         print(f"DEBUG CourseLogic.get_courses_for_student: Found {len(courses)} courses")
         for course in courses:
             print(f"  - Course {course.id}: {course.template.name if course.template else 'No template'}")
@@ -588,12 +624,13 @@ class CourseLogic:
             if student_id:
                 # Validate student
                 CourseLogic._validate_student(student_id)
-                # Check if student is already enrolled
-                from src.models.user import User
-                student = User.query.get(student_id)
-                if student and student not in course.students:
-                    # Enroll the student using the proper method
-                    course.students.append(student)
+                # Check if student is already enrolled - use enroll_student method
+                try:
+                    CourseLogic.enroll_student(course.id, student_id, is_admin_override=True)
+                except CourseBusinessError as e:
+                    # If already enrolled, that's okay, just continue
+                    if "already enrolled" not in str(e).lower():
+                        raise
             # Note: Removing students should be done through a separate unenroll method
         
         # Update instructors if provided
@@ -661,7 +698,7 @@ class CourseLogic:
         
         query = Course.query.options(
             joinedload(Course.template),
-            joinedload(Course.students)
+            joinedload(Course.enrollments)
         ).filter(
             Course.status == 'scheduled',
             Course.course_date >= date.today()  # Only future courses

@@ -36,6 +36,7 @@ class User(BaseModel):
     roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan', overlaps="role_list,users_list")
     role_list = db.relationship('Role', secondary='user_has_roles', backref='users_list', overlaps="roles")
     logbooks = db.relationship('Logbook', back_populates='user', cascade='all, delete-orphan')
+    # student_profile relationship is defined in StudentProfile model as backref
     
     def to_dict(self, include_sensitive=False):
         """

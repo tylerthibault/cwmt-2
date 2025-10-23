@@ -1,0 +1,228 @@
+{% extends "bases/private.html" %}
+
+{% block title %}{{ page_title }} - CWMT{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Back Button and Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('instructor.schedule') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Schedule
+        </a>
+        <div>
+            <h1 class="h2 mb-1">{{ page_title }}</h1>
+            <p class="text-muted">
+                {{ course.course_date.strftime('%B %d, %Y') }} at {{ course.course_time.strftime('%I:%M %p') }}
+                {% if course.location %} • {{ course.location }}{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Course Info Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-info-circle-fill"></i> Course Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <strong>Status:</strong>
+                    <br>
+                    <span class="badge 
+                        {% if course.status == 'completed' %}bg-success
+                        {% elif course.status == 'scheduled' %}bg-primary
+                        {% elif course.status == 'in_progress' %}bg-info
+                        {% else %}bg-secondary
+                        {% endif %}
+                    ">
+                        {{ course.status|upper }}
+                    </span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Capacity:</strong>
+                    <br>
+                    {{ enrollments|length }} / {{ course.get_max_students() }} students
+                </div>
+                <div class="col-md-3">
+                    <strong>Duration:</strong>
+                    <br>
+                    {{ course.template.duration_days if course.template else 1 }} days
+                </div>
+                <div class="col-md-3">
+                    <strong>Level:</strong>
+                    <br>
+                    <span class="badge bg-info">
+                        {{ course.template.experience_level|upper if course.template else 'N/A' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people-fill"></i> Enrolled Students ({{ enrollments|length }})</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search students...">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if enrollments %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Student Number</th>
+                            <th>Contact</th>
+                            <th>Vehicle</th>
+                            <th>Score</th>
+                            <th>Attendance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        {% for enrollment in enrollments %}
+                        <tr data-enrollment-id="{{ enrollment.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2">
+                                        {{ enrollment.student.user.first_name[0] if enrollment.student.user.first_name else 'S' }}{{ enrollment.student.user.last_name[0] if enrollment.student.user.last_name else 'T' }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ enrollment.student.user.first_name }} {{ enrollment.student.user.last_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">Grade: {{ enrollment.student.grade_level or 'N/A' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{ enrollment.student.student_number or 'N/A' }}</strong>
+                            </td>
+                            <td>
+                                <small>
+                                    {{ enrollment.student.user.email }}
+                                    <br>
+                                    <span class="text-muted">Emergency: {{ enrollment.student.emergency_contact_phone or 'N/A' }}</span>
+                                </small>
+                            </td>
+                            <td>
+                                {% if enrollment.brings_motorcycle %}
+                                    <span class="badge bg-warning text-dark mb-1">
+                                        <i class="bi bi-bicycle"></i> Motorcycle
+                                    </span>
+                                    <br>
+                                    <small>{{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}</small>
+                                {% endif %}
+                                {% if enrollment.brings_car %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-car-front"></i> Car
+                                    </span>
+                                    <br>
+                                    <small>{{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}</small>
+                                {% endif %}
+                                {% if not enrollment.brings_motorcycle and not enrollment.brings_car %}
+                                    <span class="text-muted">No vehicle</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong class="
+                                    {% if enrollment.course_score >= 90 %}text-success
+                                    {% elif enrollment.course_score >= 80 %}text-primary
+                                    {% elif enrollment.course_score >= 70 %}text-warning
+                                    {% else %}text-danger
+                                    {% endif %}
+                                ">
+                                    {{ "%.1f"|format(enrollment.course_score) }}%
+                                </strong>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" 
+                                         role="progressbar" 
+                                         style="width: {{ enrollment.attendance_percentage }}%"
+                                         aria-valuenow="{{ enrollment.attendance_percentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ "%.0f"|format(enrollment.attendance_percentage) }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('instructor.view_student', student_id=enrollment.student_id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">No students enrolled yet</p>
+            </div>
+            {% endif %}
+        </div>
+        {% if enrollments %}
+        <div class="card-footer text-muted">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Average Score:</strong> 
+                    {% set avg_score = (enrollments|sum(attribute='course_score') / enrollments|length) if enrollments else 0 %}
+                    {{ "%.1f"|format(avg_score) }}%
+                </div>
+                <div class="col-md-4">
+                    <strong>Average Attendance:</strong> 
+                    {% set avg_attendance = (enrollments|sum(attribute='attendance_percentage') / enrollments|length) if enrollments else 0 %}
+                    {{ "%.1f"|format(avg_attendance) }}%
+                </div>
+                <div class="col-md-4">
+                    <strong>Vehicles:</strong> 
+                    {{ enrollments|selectattr('brings_motorcycle')|list|length }} motorcycles, 
+                    {{ enrollments|selectattr('brings_car')|list|length }} cars
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.875rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#studentsTableBody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

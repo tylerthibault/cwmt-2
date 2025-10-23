@@ -420,11 +420,13 @@ def seed_sample_courses(app):
             db.session.add(course)
             db.session.flush()  # Flush to get the course ID
             
-            # Enroll student if specified
+            # Enroll student if specified - use CourseLogic to handle new enrollment system
             if student_to_enroll:
-                student = User.query.get(student_to_enroll)
-                if student:
-                    course.students.append(student)
+                from src.logic.course_logic import CourseLogic
+                try:
+                    CourseLogic.enroll_student(course.id, student_to_enroll, is_admin_override=True)
+                except Exception as e:
+                    app.looger.warning(f"Could not enroll student {student_to_enroll}: {str(e)}")
             
             courses_created += 1
             app.looger.info(f"Created sample course on {course_data['course_date']}")

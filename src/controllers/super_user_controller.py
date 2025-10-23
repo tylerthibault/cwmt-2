@@ -116,6 +116,16 @@ def add_user_to_role():
     # Assign the role
     try:
         UserHasRoles.assign_role(int(user_id), role.id)
+        
+        # If role is student, create student profile if it doesn't exist
+        if role_name == 'student':
+            from src.logic.student_logic import StudentLogic
+            if not StudentLogic.get_student_profile(int(user_id)):
+                try:
+                    StudentLogic.create_student_profile(int(user_id))
+                except Exception as e:
+                    flash(f'Warning: Student profile creation failed: {str(e)}', 'warning')
+        
         flash(f'Successfully added {user.username} to {role_name} role', 'success')
     except Exception as e:
         flash(f'Error adding user to role: {str(e)}', 'error')
@@ -377,3 +387,112 @@ def system_settings():
     # Get current settings
     context = UserLogic.get_context(view_as='super-user')
     return render_template('private/super_user/system_settings/index.html', **context)
+
+
+# ============================================================================
+# STUDENT MANAGEMENT ROUTES (Super User has full access)
+# ============================================================================
+
+@super_user_bp.route('/students')
+@super_user_required
+def students_list():
+    """
+    Display list of all students (super user has full access).
+    """
+    from src.models.student_profile import StudentProfile
+    from src.models.user import User
+    
+    context = UserLogic.get_context(view_as='super-user')
+    
+    # Get all student profiles with user information
+    students = StudentProfile.query.join(User).order_by(User.last_name, User.first_name).all()
+    
+    context.update({
+        'students': students,
+        'page_title': 'Student Management'
+    })
+    
+    return render_template('private/super_user/students/list.html', **context)
+
+
+@super_user_bp.route('/students/<int:student_id>')
+@super_user_required
+def student_detail(student_id):
+    """
+    Display detailed information about a student.
+    Super user has full access to all student information.
+    
+    Args:
+        student_id: StudentProfile ID (not User ID)
+    """
+    from src.logic.student_logic import StudentLogic
+    from src.models.student_profile import StudentProfile
+    
+    context = UserLogic.get_context(view_as='super-user')
+    
+    # Get student profile
+    student = StudentProfile.query.get_or_404(student_id)
+    
+    # Get all enrollments for this student
+    enrollments = StudentLogic.get_student_courses(student_id)
+    
+    # Calculate GPA
+    gpa = StudentLogic.calculate_student_gpa(student_id)
+    
+    context.update({
+        'student': student,
+        'enrollments': enrollments,
+        'gpa': gpa,
+        'page_title': f'Student: {student.user.first_name} {student.user.last_name}'
+    })
+    
+    return render_template('private/super_user/students/detail.html', **context)
+
+
+@super_user_bp.route('/students/<int:student_id>/edit', methods=['GET', 'POST'])
+@super_user_required
+def edit_student(student_id):
+    """
+    Edit student profile information (super user access).
+    
+    Args:
+        student_id: StudentProfile ID (not User ID)
+    """
+    from src.logic.student_logic import StudentLogic
+    from src.models.student_profile import StudentProfile
+    
+    student = StudentProfile.query.get_or_404(student_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            update_data = {
+                'student_number': request.form.get('student_number'),
+                'grade_level': request.form.get('grade_level'),
+                'emergency_contact_name': request.form.get('emergency_contact_name'),
+                'emergency_contact_phone': request.form.get('emergency_contact_phone')
+            }
+            
+            # Remove None values
+            update_data = {k: v for k, v in update_data.items() if v is not None}
+            
+            # Update student profile
+            StudentLogic.update_student_profile(student_id, update_data)
+            
+            flash('Student profile updated successfully', 'success')
+            return redirect(url_for('super_user.student_detail', student_id=student_id))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f'Failed to update student profile: {str(e)}', 'error')
+    
+    # GET request - display form
+    context = UserLogic.get_context(view_as='super-user')
+    
+    context.update({
+        'student': student,
+        'page_title': f'Edit Student: {student.user.first_name} {student.user.last_name}'
+    })
+    
+    return render_template('private/super_user/students/edit.html', **context)

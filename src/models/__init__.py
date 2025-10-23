@@ -23,6 +23,8 @@ def init_db(app):
         from src.models.roles import Role, UserHasRoles
         from src.models.logbook import Logbook
         from src.models.courses_model import CourseTemplate, Course
+        from src.models.student_profile import StudentProfile
+        from src.models.course_enrollment import CourseEnrollment
         
         # Create all tables if they don't exist
         db.create_all()

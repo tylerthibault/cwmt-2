@@ -26,6 +26,7 @@ from src import create_app
 from seeds.seed_roles import seed_default_roles
 from seeds.seed_users import seed_default_users
 from seeds.seed_courses import seed_default_course_templates
+from seeds.seed_students import seed_all_students
 
 
 def run_all_seeds(app):
@@ -59,6 +60,11 @@ def run_all_seeds(app):
     seed_default_course_templates(app)
     print("✓ Courses seeding completed\n")
     
+    # Seed students and enrollments
+    print("→ Seeding students...")
+    seed_all_students(app)
+    print("✓ Students seeding completed\n")
+    
     print("="*60)
     print("Database seeding completed successfully!")
     print("="*60 + "\n")
@@ -83,6 +89,13 @@ def run_courses_seed(app):
     print("\n→ Seeding courses...")
     seed_default_course_templates(app)
     print("✓ Courses seeding completed\n")
+
+
+def run_students_seed(app):
+    """Run only the students seed file"""
+    print("\n→ Seeding students...")
+    seed_all_students(app)
+    print("✓ Students seeding completed\n")
 
 
 def main():
@@ -112,6 +125,8 @@ Note: Running --users requires roles to exist first.
                       help='Run only users seed (requires roles to exist)')
     group.add_argument('--courses', action='store_true',
                       help='Run only courses seed')
+    group.add_argument('--students', action='store_true',
+                      help='Run only students seed (requires users and courses to exist)')
     
     args = parser.parse_args()
     
@@ -128,6 +143,8 @@ Note: Running --users requires roles to exist first.
                 run_users_seed(app)
             elif args.courses:
                 run_courses_seed(app)
+            elif args.students:
+                run_students_seed(app)
                 
             print("✅ Seeding process completed successfully!\n")
             return 0

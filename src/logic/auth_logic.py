@@ -44,6 +44,13 @@ class AuthLogic:
             # link the new user to a role of student
             role = Role.query.filter_by(name='student').first()
             UserHasRoles.assign_role(user.id, role.id)
+            
+            # Create student profile for the new student
+            from src.logic.student_logic import StudentLogic
+            try:
+                StudentLogic.create_student_profile(user.id)
+            except Exception as e:
+                flash(f'Warning: Student profile creation failed: {str(e)}', 'warning')
 
             flash('Registration successful! Please log in.', 'success')
             return user.id

@@ -44,6 +44,11 @@
                             <span class="sidenav-btn-text">Schedule</span>
                         </a>
                     </li>
+                    <li><a href="{{ url_for('instructor.students_list') }}">
+                            <span class="icon">&#128100;</span>
+                            <span class="sidenav-btn-text">Students</span>
+                        </a>
+                    </li>
                 </div>
                 {% endif %}
 
@@ -71,6 +76,11 @@
                             <span class="sidenav-btn-text">Announcements</span>
                         </a>
                     </li>
+                    <li><a href="{{ url_for('user_admin.students_list') }}">
+                            <span class="icon">&#128100;</span>
+                            <span class="sidenav-btn-text">Students</span>
+                        </a>
+                    </li>
                 </div>
                 {% endif %}
 
@@ -96,6 +106,11 @@
                     <li><a href="{{ url_for('super_user.system_settings') }}">
                             <span class="icon">&#128295;</span>
                             <span class="sidenav-btn-text">System Settings</span>
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('super_user.students_list') }}">
+                            <span class="icon">&#128100;</span>
+                            <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
                 </div>

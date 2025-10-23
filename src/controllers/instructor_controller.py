@@ -74,7 +74,7 @@ def schedule():
         # Convert to dicts with relationships
         courses_data = []
         for course in upcoming_courses:
-            course_dict = course.to_dict(include_users=True, include_template=True)
+            course_dict = course.to_dict(include_enrollments=True, include_template=True)
             courses_data.append(course)
         
         return render_template(
@@ -216,3 +216,76 @@ def my_courses():
     except Exception as e:
         flash(f'Error loading your courses: {str(e)}', 'danger')
         return redirect(url_for('instructor.schedule'))
+
+
+# ============================================================================
+# STUDENT VIEWING ROUTES (Instructor Access)
+# ============================================================================
+
+@instructor_bp.route('/students/<int:student_id>')
+@instructor_required
+def view_student(student_id):
+    """
+    View student details (instructor can view students in their courses).
+    
+    Args:
+        student_id: StudentProfile ID (not User ID)
+    """
+    from src.logic.student_logic import StudentLogic
+    from src.models.student_profile import StudentProfile
+    
+    current_user = get_current_user()
+    
+    # Get student profile
+    student = StudentProfile.query.get_or_404(student_id)
+    
+    # Get all enrollments for this student
+    enrollments = StudentLogic.get_student_courses(student_id)
+    
+    # Calculate GPA
+    gpa = StudentLogic.calculate_student_gpa(student_id)
+    
+    return render_template(
+        'private/instructor/students/detail.html',
+        student=student,
+        enrollments=enrollments,
+        gpa=gpa,
+        current_user=current_user,
+        user=current_user,
+        current_role='instructor',
+        page_title=f'Student: {student.user.first_name} {student.user.last_name}'
+    )
+
+
+@instructor_bp.route('/course/<int:course_id>/students')
+@instructor_required
+def course_students(course_id):
+    """
+    View all students enrolled in a specific course.
+    Only accessible if the instructor is assigned to the course.
+    
+    Args:
+        course_id: Course ID
+    """
+    from src.logic.student_logic import StudentLogic
+    
+    current_user = get_current_user()
+    course = Course.query.get_or_404(course_id)
+    
+    # Verify instructor is assigned to this course
+    if course.instructor1_id != current_user.id and course.instructor2_id != current_user.id:
+        flash('You do not have access to this course', 'error')
+        return redirect(url_for('instructor.schedule'))
+    
+    # Get all students in this course
+    enrollments = StudentLogic.get_course_students(course_id, status='active')
+    
+    return render_template(
+        'private/instructor/students/course_roster.html',
+        course=course,
+        enrollments=enrollments,
+        current_user=current_user,
+        user=current_user,
+        current_role='instructor',
+        page_title=f'Students in {course.template.name if course.template else "Course"}'
+    )

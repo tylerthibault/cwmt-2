@@ -58,6 +58,15 @@ class UserLogic:
             role = Role.get_by_name(data.get('role_name'))
             if role:
                 UserHasRoles.assign_role(user.id, role.id)
+                
+                # If role is student, create student profile
+                if role.name == 'student':
+                    from src.logic.student_logic import StudentLogic
+                    try:
+                        StudentLogic.create_student_profile(user.id)
+                    except Exception as e:
+                        # Log but don't fail user creation
+                        app.logger.warning(f'Failed to create student profile for user {user.id}: {str(e)}')
         
         return user
 
