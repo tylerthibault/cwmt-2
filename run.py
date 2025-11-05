@@ -2,8 +2,8 @@ from src import create_app
 import os
 
 # Get config from environment or default to production in Docker
-# config_name = os.environ.get('FLASK_CONFIG', 'production')
-config_name = os.environ.get('FLASK_CONFIG', 'development')
+config_name = os.environ.get('FLASK_CONFIG', 'production')
+# config_name = os.environ.get('FLASK_CONFIG', 'development')
 app = create_app(config_name)
 
 if __name__ == '__main__':
