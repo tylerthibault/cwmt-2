@@ -17,7 +17,7 @@ class SettingsLogic:
     @staticmethod
     def _get_encryption_key():
         """Get encryption key from environment or generate one."""
-        key = os.environ.get('SETTINGS_ENCRYPTION_KEY')
+        key = b'w55s2lcaOqDIucTmhtrbk-zxYCHE3k4bEXCF2FzzJLw='
         if not key:
             logger.warning("No encryption key found. Generating temporary one.")
             key = Fernet.generate_key().decode()
