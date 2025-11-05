@@ -26,4 +26,5 @@ RUN mkdir -p instance logs
 EXPOSE 80
 
 # Run with Gunicorn (no --preload). Capture output and set debug logging while we troubleshoot.
+# updating the dockerfile
 CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "--capture-output", "run:app"]
