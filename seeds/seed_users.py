@@ -22,7 +22,7 @@ def seed_default_users(app):
         app: Flask application instance
     """
     # Default password for all test users (should be changed in production)
-    default_password = 'Password123!'
+    default_password = 'Pass123!!'
     password_hash = AuthLogic.generate_password_hash(default_password)
     
     default_users = [

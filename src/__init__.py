@@ -1,8 +1,12 @@
 from flask import Flask
 from src.utils.looger import Logger, LogLevel
 from config import config
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt 
+from src.logic.setting_logic import SettingsLogic
+from flask_mail import Mail
 
+# Initialize Flask-Mail
+mail = Mail()
 
 def create_app(config_name='development'):
     """Application factory pattern for creating Flask app instances"""
@@ -20,6 +24,14 @@ def create_app(config_name='development'):
     
     # Initialize database
     init_database(app)
+
+    with app.app_context():
+        # Initialize default settings
+        SettingsLogic.initialize_default_mail_settings()
+        
+        # Load email config from database
+        mail_config = SettingsLogic.get_flask_mail_config()
+        app.config.update(mail_config)
     
     # Initialize blueprints
     init_blueprints(app)
@@ -65,6 +77,7 @@ def init_blueprints(app):
 
         from src.controllers.instructor_controller import instructor_bp
         app.register_blueprint(instructor_bp)
+
 
         
     except ImportError as e:

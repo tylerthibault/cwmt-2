@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from functools import wraps
 from src.models.logbook import Logbook
 from src.logic.user_logic import UserLogic
 from src.models.user import User
 from src.models.roles import Role, UserHasRoles
 from src.models.courses_model import Course, CourseTemplate
+from src.logic.setting_logic import SettingsLogic
 
 super_user_bp = Blueprint('super_user', __name__, url_prefix='/super')
 
@@ -386,6 +387,10 @@ def system_settings():
     
     # Get current settings
     context = UserLogic.get_context(view_as='super-user')
+    context.update({
+        'page_title': 'System Settings',
+        'main_container': SettingsLogic.get_settings_by_category('email')
+    })
     return render_template('private/super_user/system_settings/index.html', **context)
 
 
@@ -496,3 +501,58 @@ def edit_student(student_id):
     })
     
     return render_template('private/super_user/students/edit.html', **context)
+
+
+# ============================================================================
+# Flask Mail Integration
+# ============================================================================
+
+from flask import jsonify
+
+
+@super_user_bp.route('/settings/email', methods=['GET'])
+@super_user_required
+def email_settings():
+    """Display email settings page."""
+    settings = SettingsLogic.get_settings_by_category('email')
+    context = UserLogic.get_context(view_as='super-user')
+    context.update({
+        'settings': settings,
+        'page_title': 'Email Settings'
+    })
+    return render_template('private/super_user/email_settings.html', **context)
+
+@super_user_bp.route('/settings/email', methods=['POST'])
+@super_user_required
+def update_email_settings():
+    """Update email settings."""
+    data = request.get_json()
+    
+    for key, value in data.items():
+        if key.startswith('mail_'):
+            is_encrypted = key == 'mail_password'
+            SettingsLogic.set_setting(key, value, category='email', is_encrypted=is_encrypted)
+    
+    # Reload mail config
+    mail_config = SettingsLogic.get_flask_mail_config()
+    current_app.config.update(mail_config)
+    
+    return jsonify({'message': 'Settings updated successfully'})
+
+@super_user_bp.route('/settings/email/test', methods=['POST'])
+@super_user_required
+def test_email_settings():
+    """Test email configuration."""
+    try:
+        from flask_mail import Message
+        from run import mail  # Import mail from main app
+        
+        msg = Message(
+            subject='Test Email',
+            recipients=[SettingsLogic.get_setting('mail_default_sender')],
+            body='This is a test email.'
+        )
+        mail.send(msg)
+        return jsonify({'message': 'Test email sent successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

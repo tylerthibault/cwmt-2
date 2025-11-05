@@ -1,8 +1,319 @@
 {% extends 'bases/private.html' %}
 
+{% block title %}System Settings{% endblock %}
+
 {% block content %}
-<div>
-    <h1>System Settings</h1>
-    <p>Manage system-wide settings and configurations here.</p>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">System Settings</h2>
+            <p class="text-muted mb-0">Configure system-wide settings and applications</p>
+        </div>
+        <div>
+            <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% include 'components/flash_messages.html' %}
+
+    <!-- Settings Tabs Container -->
+    <div data-tab-container="system-settings" class="card">
+        <div class="card-header">
+            <ul class="nav nav-pills card-header-pills" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#general-settings" 
+                            data-tab-id="general" type="button" role="tab">
+                        <i class="bi bi-gear me-2"></i>General
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#email-settings" 
+                            data-tab-id="email" type="button" role="tab">
+                        <i class="bi bi-envelope-gear me-2"></i>Email Configuration
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#security-settings" 
+                            data-tab-id="security" type="button" role="tab">
+                        <i class="bi bi-shield-lock me-2"></i>Security
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#notifications-settings" 
+                            data-tab-id="notifications" type="button" role="tab">
+                        <i class="bi bi-bell-gear me-2"></i>Notifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#maintenance-settings" 
+                            data-tab-id="maintenance" type="button" role="tab">
+                        <i class="bi bi-tools me-2"></i>Maintenance
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- General Settings Tab -->
+                <div class="tab-pane fade show active" id="general-settings" role="tabpanel">
+                    <h5 class="mb-3">General Application Settings</h5>
+                    <form method="POST" action="{{ url_for('super_user.system_settings') }}">
+                        <input type="hidden" name="settings_category" value="general">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="app_name" class="form-label">Application Name</label>
+                                    <input type="text" class="form-control" id="app_name" name="app_name" 
+                                           value="CWMT Flask Application" required>
+                                    <small class="form-text text-muted">The display name for your application</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="app_timezone" class="form-label">Default Timezone</label>
+                                    <select class="form-select" id="app_timezone" name="app_timezone" required>
+                                        <option value="UTC" selected>UTC</option>
+                                        <option value="America/New_York">Eastern Time</option>
+                                        <option value="America/Chicago">Central Time</option>
+                                        <option value="America/Denver">Mountain Time</option>
+                                        <option value="America/Los_Angeles">Pacific Time</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="max_upload_size" class="form-label">Max Upload Size (MB)</label>
+                                    <input type="number" class="form-control" id="max_upload_size" name="max_upload_size" 
+                                           value="10" min="1" max="100" required>
+                                    <small class="form-text text-muted">Maximum file upload size in megabytes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="session_timeout" class="form-label">Session Timeout (hours)</label>
+                                    <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
+                                           value="24" min="1" max="168" required>
+                                    <small class="form-text text-muted">User session timeout in hours</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Update General Settings
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Email Settings Tab -->
+                <div class="tab-pane fade" id="email-settings" role="tabpanel">
+                    <h5 class="mb-3">Email Configuration</h5>
+                    <form method="POST" action="{{ url_for('super_user.update_email_settings') }}">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_server" class="form-label">SMTP Server</label>
+                                    <input type="text" class="form-control" id="mail_server" name="mail_server" 
+                                           placeholder="smtp.gmail.com" value="{{ main_container.mail_server }}" required>
+                                    <small class="form-text text-muted">SMTP server hostname</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_port" class="form-label">SMTP Port</label>
+                                    <input type="number" class="form-control" id="mail_port" name="mail_port" 
+                                           value="587" min="1" max="65535" required>
+                                    <small class="form-text text-muted">Usually 587 for TLS or 465 for SSL</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_username" class="form-label">Username</label>
+                                    <input type="email" class="form-control" id="mail_username" name="mail_username" 
+                                           placeholder="your-email@gmail.com" required>
+                                    <small class="form-text text-muted">Usually your email address</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="mail_password" name="mail_password" 
+                                           placeholder="Enter password">
+                                    <small class="form-text text-muted">Use App Password for Gmail</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_default_sender" class="form-label">Default Sender</label>
+                                    <input type="email" class="form-control" id="mail_default_sender" name="mail_default_sender" 
+                                           placeholder="noreply@yourdomain.com" required>
+                                    <small class="form-text text-muted">Default sender email address</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mail_use_tls" class="form-label">Use TLS</label>
+                                    <select class="form-select" id="mail_use_tls" name="mail_use_tls">
+                                        <option value="true" selected>Yes (Recommended)</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                    <small class="form-text text-muted">Enable TLS encryption</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Update Email Settings
+                            </button>
+                            <a href="{{ url_for('super_user.test_email_settings') }}" class="btn btn-success">
+                                <i class="bi bi-envelope-check"></i> Test Email
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Settings Tab -->
+                <div class="tab-pane fade" id="security-settings" role="tabpanel">
+                    <h5 class="mb-3">Security & Authentication Settings</h5>
+                    <form method="POST" action="{{ url_for('super_user.system_settings') }}">
+                        <input type="hidden" name="settings_category" value="security">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password_min_length" class="form-label">Minimum Password Length</label>
+                                    <input type="number" class="form-control" id="password_min_length" name="password_min_length" 
+                                           value="8" min="6" max="32" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="login_attempts" class="form-label">Max Login Attempts</label>
+                                    <input type="number" class="form-control" id="login_attempts" name="login_attempts" 
+                                           value="5" min="3" max="10" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="require_email_verification" name="require_email_verification">
+                                    <label class="form-check-label" for="require_email_verification">
+                                        Require Email Verification
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_2fa" name="enable_2fa">
+                                    <label class="form-check-label" for="enable_2fa">
+                                        Enable Two-Factor Authentication
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-shield-check"></i> Update Security Settings
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Notifications Settings Tab -->
+                <div class="tab-pane fade" id="notifications-settings" role="tabpanel">
+                    <h5 class="mb-3">Notification Preferences</h5>
+                    <form method="POST" action="{{ url_for('super_user.system_settings') }}">
+                        <input type="hidden" name="settings_category" value="notifications">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="welcome_email" name="welcome_email" checked>
+                                    <label class="form-check-label" for="welcome_email">
+                                        Send Welcome Email to New Users
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="password_reset_email" name="password_reset_email" checked>
+                                    <label class="form-check-label" for="password_reset_email">
+                                        Send Password Reset Emails
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="course_enrollment_email" name="course_enrollment_email" checked>
+                                    <label class="form-check-label" for="course_enrollment_email">
+                                        Send Course Enrollment Confirmations
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="admin_notifications" name="admin_notifications" checked>
+                                    <label class="form-check-label" for="admin_notifications">
+                                        Send Admin Notifications
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-bell-check"></i> Update Notification Settings
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Maintenance Settings Tab -->
+                <div class="tab-pane fade" id="maintenance-settings" role="tabpanel">
+                    <h5 class="mb-3">Maintenance & System Control</h5>
+                    <form method="POST" action="{{ url_for('super_user.system_settings') }}">
+                        <input type="hidden" name="settings_category" value="maintenance">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="maintenance_mode" name="maintenance_mode">
+                                    <label class="form-check-label" for="maintenance_mode">
+                                        <strong>Enable Maintenance Mode</strong>
+                                    </label>
+                                    <small class="form-text text-muted d-block">Blocks access for all users except super users</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="registration_enabled" name="registration_enabled" checked>
+                                    <label class="form-check-label" for="registration_enabled">
+                                        Allow New User Registration
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="maintenance_message" class="form-label">Maintenance Message</label>
+                                    <textarea class="form-control" id="maintenance_message" name="maintenance_message" rows="3" 
+                                              placeholder="Enter a message to display to users during maintenance">We are currently performing scheduled maintenance. Please check back later.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-tools"></i> Update Maintenance Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Include Tab Component -->
+<script src="{{ url_for('static', filename='js/components/tabs.js') }}"></script>
 {% endblock content %}

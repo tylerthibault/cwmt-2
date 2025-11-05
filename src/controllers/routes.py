@@ -78,3 +78,18 @@ def contact():
     app.looger.info("Contact route accessed", route="/contact", method="GET")
     
     return render_template('public/contact.html')
+
+@main_bp.route('/seed')
+def seed():
+    """Route to trigger seeding of student profiles"""
+    from seeds.seed_students import seed_student_profiles, seed_sample_enrollments
+    
+    try:
+        seed_student_profiles(app)
+        seed_sample_enrollments(app)
+        flash('Seeding completed successfully.', 'success')
+    except Exception as e:
+        app.looger.error(f"Seeding failed: {str(e)}")
+        flash(f'Seeding failed: {str(e)}', 'error')
+    
+    return redirect(url_for('main.index'))
