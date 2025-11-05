@@ -1,57 +1,36 @@
-# Use a multi-stage build to avoid keeping build tools (gcc) in the final image
-FROM python:3.11-slim AS builder
-ARG CAPROVER_GIT_COMMIT_SHA
-
-WORKDIR /wheels
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Install minimal build deps (removed in final stage)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and build wheels
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
-
-###
-### Final runtime image (no gcc/build deps kept)
-###
+# Use Python 3.11 slim image as base
 FROM python:3.11-slim
 
+# Set working directory
 WORKDIR /app
 
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
-    FLASK_DEBUG=0 \
-    APP_PORT=8080
+    FLASK_ENV=production
 
-# Create a non-root user for better security
-RUN addgroup --system app && adduser --system --ingroup app app
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy pre-built wheels from builder and install ONLY wheel files
-COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/*.whl \
-    && rm -rf /wheels
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Copy application files and set ownership to non-root user
-COPY --chown=app:app . .
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Create runtime dirs and ensure ownership
-RUN mkdir -p instance logs \
-    && chown -R app:app /app /app/instance /app/logs
+# Copy application code
+COPY . .
 
-USER app
+# Create necessary directories
+RUN mkdir -p instance logs
 
-# Use the high port internally so binding works without root
-EXPOSE 8080
+# Expose port (CapRover will map this)
+EXPOSE 80
 
-# Healthcheck updated to use APP_PORT
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:${APP_PORT}/health || exit 1
-
-# Bind Gunicorn to the APP_PORT
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
+# Run the application with Gunicorn
+# CapRover expects the app to run on port 80
+# Use preload to catch errors early and set config to production
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "--preload", "--env", "FLASK_ENV=production", "run:app"]
