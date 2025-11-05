@@ -26,7 +26,8 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
-    FLASK_DEBUG=0
+    FLASK_DEBUG=0 \
+    APP_PORT=8080
 
 # Create a non-root user for better security
 RUN addgroup --system app && adduser --system --ingroup app app
@@ -45,10 +46,12 @@ RUN mkdir -p instance logs \
 
 USER app
 
-EXPOSE 80
+# Use the high port internally so binding works without root
+EXPOSE 8080
 
-# Optional healthcheck — update the path if your app exposes a different health endpoint
+# Healthcheck updated to use APP_PORT
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:80/health || exit 1
+  CMD wget -qO- http://127.0.0.1:${APP_PORT}/health || exit 1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
+# Bind Gunicorn to the APP_PORT
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
