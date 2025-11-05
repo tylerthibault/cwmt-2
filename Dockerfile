@@ -30,8 +30,8 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p instance logs
 
-EXPOSE 80
+# CapRover expects port 3000 by default
+EXPOSE 3000
 
-# Run with Gunicorn (no --preload). Capture output and set debug logging while we troubleshoot.
-# updating the dockerfile
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "--capture-output", "run:app"]
+# Update Gunicorn to bind to port 3000
+CMD ["gunicorn", "--bind", "0.0.0.0:3000", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "run:app"]
