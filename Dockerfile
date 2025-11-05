@@ -1,24 +1,20 @@
 # Use Python 3.11 slim image as base
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
     FLASK_ENV=production
 
-# Install system dependencies
+# Install system deps needed for some wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# Copy requirements and install
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
@@ -27,11 +23,7 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p instance logs
 
-# Expose port (CapRover will map this)
 EXPOSE 80
 
-# Run the application with Gunicorn
-# Removed --preload to avoid master-process import-time crashes.
-# Added --capture-output so worker stdout/stderr get forwarded into Gunicorn error log (visible in CapRover).
-# Set log-level=debug temporarily to surface issues; change back to info in production after debugging.
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "--capture-output", "--env", "FLASK_ENV=production", "run:app"]
+# Run with Gunicorn (no --preload). Capture output and set debug logging while we troubleshoot.
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "--capture-output", "run:app"]
