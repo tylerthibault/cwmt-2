@@ -33,11 +33,30 @@
         main {
             margin-top: 5rem;
         }
+        .sidebanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffcc00;
+            color: #000;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            z-index: 2000;
+            font-size: 0.675rem;
+        }
+        .sidebanner p {
+            margin: 0;
+        }
     </style>
 </head>
 
-<body>
+<body class="text-primary">
     {% include 'components/flash_messages.html' %}
+
+    <div class="sidebanner">
+        <p>FYI: Website in development, all copy is placeholder text.</p>
+    </div>
 
     {% block page_wrapper %}
     <div class="d-flex flex-column min-vh-100">

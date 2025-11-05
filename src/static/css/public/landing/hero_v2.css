@@ -194,7 +194,7 @@
 }
 
 .hero-v2-text {
-    color: var(--bs-light);
+    color: white;
 }
 
 /* Label */
@@ -232,7 +232,6 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: var(--bs-light);
 }
 
 /* Title */
@@ -279,9 +278,28 @@
 }
 
 .hero-v2-brand {
-    color: var(--bs-light);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     font-weight: 900;
+
+    /* background: linear-gradient(135deg, #3a7d44 0%, #13495e 100%); */
+    /* -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent; */
+    color: var(--bs-light);
+    
+    /* font outline */
+    -webkit-text-stroke: 1px var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .hero-v2-brand {
+    /* background: linear-gradient(135deg, #181d27 0%, #3a7d44 100%); */
+    /* -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent; */
+    color: var(--bs-light);
+    
+    text-shadow: 1px 1px 7px var(--bs-dark);
+    /* -webkit-text-stroke: 1px var(--bs-dark); */
 }
 
 @keyframes fadeInUp {
@@ -312,7 +330,6 @@
     line-height: 1.7;
     margin-bottom: 2.5rem;
     max-width: 500px;
-    color: var(--bs-light);
     opacity: 0;
     animation: fadeInUp 0.6s ease 1.45s forwards;
 }

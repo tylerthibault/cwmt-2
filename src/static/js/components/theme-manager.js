@@ -30,7 +30,7 @@
         },
 
         /**
-         * Get saved theme from localStorage or system preference
+         * Get saved theme from localStorage or default to light theme
          */
         getSavedTheme: function() {
             // Check localStorage first
@@ -39,11 +39,7 @@
                 return savedTheme;
             }
 
-            // Fall back to system preference
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                return this.THEMES.DARK;
-            }
-
+            // Default to light theme
             return this.THEMES.LIGHT;
         },
 
