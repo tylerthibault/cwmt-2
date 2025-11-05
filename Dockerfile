@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+# Use Python 3.13 slim image as base
+FROM python:3.13-slim
 
 # Accept build argument from CapRover (eliminates warning)
 ARG CAPROVER_GIT_COMMIT_SHA=unknown
