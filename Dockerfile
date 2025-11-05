@@ -1,36 +1,57 @@
-# Use Python 3.11 slim image as base
+# Use a multi-stage build to avoid keeping build tools (gcc) in the final image
+FROM python:3.11-slim AS builder
+# consume build-arg to silence warnings from CapRover or CI
+ARG CAPROVER_GIT_COMMIT_SHA
+
+WORKDIR /wheels
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install minimal build deps (removed in final stage)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and build wheels for a clean final image
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
+###
+### Final runtime image (no gcc/build deps kept)
+###
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
-    FLASK_ENV=production
+    FLASK_DEBUG=0
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# Create a non-root user for better security
+RUN addgroup --system app && adduser --system --ingroup app app
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy pre-built wheels from builder and install them
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir /wheels/* \
+    && rm -rf /wheels
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy application files and set ownership to non-root user
+COPY --chown=app:app . .
 
-# Copy application code
-COPY . .
+# Create runtime dirs and ensure ownership
+RUN mkdir -p instance logs \
+    && chown -R app:app /app /app/instance /app/logs
 
-# Create necessary directories
-RUN mkdir -p instance logs
+USER app
 
-# Expose port (CapRover will map this)
 EXPOSE 80
 
-# Run the application with Gunicorn
-# CapRover expects the app to run on port 80
-# Use preload to catch errors early and set config to production
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "--preload", "--env", "FLASK_ENV=production", "run:app"]
+# Optional healthcheck — update the path if your app exposes a different health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:80/health || exit 1
+
+# Run Gunicorn; removed --env FLASK_ENV and --preload by default to avoid surprising behavior.
+# If you want preload for memory savings, re-add --preload after verifying app startup works reliably.
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
