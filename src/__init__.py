@@ -61,7 +61,7 @@ def init_blueprints(app):
     try:
         # Register main routes blueprint
         from src.controllers.routes import main_bp
-        app.register_blueprint(main_bp)\
+        app.register_blueprint(main_bp)
         
         from src.controllers.auth_controller import auth_bp
         app.register_blueprint(auth_bp)
