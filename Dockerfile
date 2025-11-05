@@ -1,6 +1,5 @@
 # Use a multi-stage build to avoid keeping build tools (gcc) in the final image
 FROM python:3.11-slim AS builder
-# consume build-arg to silence warnings from CapRover or CI
 ARG CAPROVER_GIT_COMMIT_SHA
 
 WORKDIR /wheels
@@ -13,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and build wheels for a clean final image
+# Copy requirements and build wheels
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
@@ -32,9 +31,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Create a non-root user for better security
 RUN addgroup --system app && adduser --system --ingroup app app
 
-# Copy pre-built wheels from builder and install them
+# Copy pre-built wheels from builder and install ONLY wheel files
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/* \
+RUN pip install --no-cache-dir /wheels/*.whl \
     && rm -rf /wheels
 
 # Copy application files and set ownership to non-root user
@@ -52,6 +51,4 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1:80/health || exit 1
 
-# Run Gunicorn; removed --env FLASK_ENV and --preload by default to avoid surprising behavior.
-# If you want preload for memory savings, re-add --preload after verifying app startup works reliably.
 CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
