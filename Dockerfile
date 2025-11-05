@@ -1,12 +1,19 @@
 # Use Python 3.11 slim image as base
 FROM python:3.11-slim
 
+# Accept build arguments
+ARG CAPROVER_GIT_COMMIT_SHA
+ARG SETTINGS_ENCRYPTION_KEY
+
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
     FLASK_ENV=production
+
+# Set environment variable from build arg if provided
+ENV SETTINGS_ENCRYPTION_KEY=${SETTINGS_ENCRYPTION_KEY}
 
 # Install system deps needed for some wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
