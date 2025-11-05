@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+# Use Python 3.13.7 slim image as base
+FROM python:3.13.7
 
 # Set working directory
 WORKDIR /app
@@ -33,5 +33,4 @@ EXPOSE 80
 # Run the application with Gunicorn
 # CapRover expects the app to run on port 80
 # Use preload to catch errors early and set config to production
-# update to see change
 CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "--preload", "--env", "FLASK_ENV=production", "run:app"]
