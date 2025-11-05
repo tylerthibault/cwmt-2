@@ -25,13 +25,13 @@ def create_app(config_name='development'):
     # Initialize database
     init_database(app)
 
-    with app.app_context():
-        # Initialize default settings
-        SettingsLogic.initialize_default_mail_settings()
+    # with app.app_context():
+    #     # Initialize default settings
+    #     SettingsLogic.initialize_default_mail_settings()
         
-        # Load email config from database
-        mail_config = SettingsLogic.get_flask_mail_config()
-        app.config.update(mail_config)
+    #     # Load email config from database
+    #     mail_config = SettingsLogic.get_flask_mail_config()
+    #     app.config.update(mail_config)
     
     # Initialize blueprints
     init_blueprints(app)
