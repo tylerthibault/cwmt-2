@@ -1,5 +1,8 @@
-# Use Python 3.13.7 slim image as base
-FROM python:3.13.7
+# Use Python 3.11 slim image as base
+FROM python:3.11-slim
+
+# Accept build argument from CapRover (eliminates warning)
+ARG CAPROVER_GIT_COMMIT_SHA=unknown
 
 # Set working directory
 WORKDIR /app
@@ -8,7 +11,8 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
-    FLASK_ENV=production
+    FLASK_ENV=production \
+    GIT_COMMIT_SHA=${CAPROVER_GIT_COMMIT_SHA}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
