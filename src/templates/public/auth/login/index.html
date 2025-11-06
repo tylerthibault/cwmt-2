@@ -49,12 +49,60 @@
                         <div>
                             <h5>All User Emails</h5>
                             <p class="fs-6">All emails use the password "Pass123!!"</p>
-                            <ul>
-                                <li>superuser@cwmt.test</li>
-                                <li>admin@cwmt.test</li>
-                                <li>instructor@cwmt.test</li>
-                                <li>student@cwmt.test</li>
-                            </ul>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Role</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Login</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Super User</td>
+                                        <td>jennifer.mitchell@cwmt.test</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('auth.login') }}" style="display: inline;">
+                                                <input type="hidden" name="email" value="jennifer.mitchell@cwmt.test">
+                                                <input type="hidden" name="password" value="Pass123!!">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Admin</td>
+                                        <td>robert.thompson@cwmt.test</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('auth.login') }}" style="display: inline;">
+                                                <input type="hidden" name="email" value="robert.thompson@cwmt.test">
+                                                <input type="hidden" name="password" value="Pass123!!">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Instructor</td>
+                                        <td>sarah.chen@cwmt.test</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('auth.login') }}" style="display: inline;">
+                                                <input type="hidden" name="email" value="sarah.chen@cwmt.test">
+                                                <input type="hidden" name="password" value="Pass123!!">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Student</td>
+                                        <td>david.garcia@cwmt.test</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('auth.login') }}" style="display: inline;">
+                                                <input type="hidden" name="email" value="david.garcia@cwmt.test">
+                                                <input type="hidden" name="password" value="Pass123!!">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                            </table>
                         </div>
                     </div>
                 </div>

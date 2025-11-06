@@ -22,6 +22,9 @@ def create_app(config_name='development'):
     # Initialize Bcrypt
     app.bcrypt = Bcrypt(app)
     
+    # Initialize Flask-Mail
+    mail.init_app(app)
+    
     # Initialize database
     init_database(app)
 

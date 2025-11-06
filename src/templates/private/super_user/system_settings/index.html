@@ -109,74 +109,11 @@
                         </button>
                     </form>
                 </div>
-
+                
                 <!-- Email Settings Tab -->
                 <div class="tab-pane fade" id="email-settings" role="tabpanel">
                     <h5 class="mb-3">Email Configuration</h5>
-                    <form method="POST" action="{{ url_for('super_user.update_email_settings') }}">
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_server" class="form-label">SMTP Server</label>
-                                    <input type="text" class="form-control" id="mail_server" name="mail_server" 
-                                           placeholder="smtp.gmail.com" value="{{ main_container.mail_server }}" required>
-                                    <small class="form-text text-muted">SMTP server hostname</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_port" class="form-label">SMTP Port</label>
-                                    <input type="number" class="form-control" id="mail_port" name="mail_port" 
-                                           value="587" min="1" max="65535" required>
-                                    <small class="form-text text-muted">Usually 587 for TLS or 465 for SSL</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_username" class="form-label">Username</label>
-                                    <input type="email" class="form-control" id="mail_username" name="mail_username" 
-                                           placeholder="your-email@gmail.com" required>
-                                    <small class="form-text text-muted">Usually your email address</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="mail_password" name="mail_password" 
-                                           placeholder="Enter password">
-                                    <small class="form-text text-muted">Use App Password for Gmail</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_default_sender" class="form-label">Default Sender</label>
-                                    <input type="email" class="form-control" id="mail_default_sender" name="mail_default_sender" 
-                                           placeholder="noreply@yourdomain.com" required>
-                                    <small class="form-text text-muted">Default sender email address</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="mail_use_tls" class="form-label">Use TLS</label>
-                                    <select class="form-select" id="mail_use_tls" name="mail_use_tls">
-                                        <option value="true" selected>Yes (Recommended)</option>
-                                        <option value="false">No</option>
-                                    </select>
-                                    <small class="form-text text-muted">Enable TLS encryption</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg"></i> Update Email Settings
-                            </button>
-                            <a href="{{ url_for('super_user.test_email_settings') }}" class="btn btn-success">
-                                <i class="bi bi-envelope-check"></i> Test Email
-                            </a>
-                        </div>
-                    </form>
+                    {% include 'private/super_user/system_settings/components/email_settings.html' %}
                 </div>
 
                 <!-- Security Settings Tab -->

@@ -81,13 +81,33 @@ def contact():
 
 @main_bp.route('/seed')
 def seed():
-    """Route to trigger seeding of student profiles"""
-    from seeds.seed_students import seed_student_profiles, seed_sample_enrollments
+    """Route to trigger seeding of all data (roles, users, email settings, courses, students)"""
+    from seeds.seed_roles import seed_default_roles
+    from seeds.seed_users import seed_default_users
+    from seeds.seed_email_settings import seed_email_settings
+    from seeds.seed_courses import seed_default_course_templates
+    from seeds.seed_students import seed_all_students
     
     try:
-        seed_student_profiles(app)
-        seed_sample_enrollments(app)
-        flash('Seeding completed successfully.', 'success')
+        app.looger.info("Starting full database seeding via web route...")
+        
+        # Seed in the correct order
+        seed_default_roles(app)
+        app.looger.info("✓ Roles seeded")
+        
+        seed_default_users(app)
+        app.looger.info("✓ Users seeded")
+        
+        seed_email_settings(app)
+        app.looger.info("✓ Email settings seeded")
+        
+        seed_default_course_templates(app)
+        app.looger.info("✓ Courses seeded")
+        
+        seed_all_students(app)
+        app.looger.info("✓ Students seeded")
+        
+        flash('All seeding completed successfully! (Roles, Users, Email Settings, Courses, Students)', 'success')
     except Exception as e:
         app.looger.error(f"Seeding failed: {str(e)}")
         flash(f'Seeding failed: {str(e)}', 'error')

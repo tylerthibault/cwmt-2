@@ -27,6 +27,7 @@ from seeds.seed_roles import seed_default_roles
 from seeds.seed_users import seed_default_users
 from seeds.seed_courses import seed_default_course_templates
 from seeds.seed_students import seed_all_students
+from seeds.seed_email_settings import seed_email_settings
 
 
 def run_all_seeds(app):
@@ -54,6 +55,11 @@ def run_all_seeds(app):
     print("→ Seeding users...")
     seed_default_users(app)
     print("✓ Users seeding completed\n")
+    
+    # Seed email settings
+    print("→ Seeding email settings...")
+    seed_email_settings(app)
+    print("✓ Email settings seeding completed\n")
     
     # Seed courses
     print("→ Seeding courses...")
@@ -98,6 +104,13 @@ def run_students_seed(app):
     print("✓ Students seeding completed\n")
 
 
+def run_email_settings_seed(app):
+    """Run only the email settings seed file"""
+    print("\n→ Seeding email settings...")
+    seed_email_settings(app)
+    print("✓ Email settings seeding completed\n")
+
+
 def main():
     """Main entry point for command line usage"""
     parser = argparse.ArgumentParser(
@@ -123,6 +136,8 @@ Note: Running --users requires roles to exist first.
                       help='Run only roles seed')
     group.add_argument('--users', action='store_true',
                       help='Run only users seed (requires roles to exist)')
+    group.add_argument('--email', action='store_true',
+                      help='Run only email settings seed')
     group.add_argument('--courses', action='store_true',
                       help='Run only courses seed')
     group.add_argument('--students', action='store_true',
@@ -141,6 +156,8 @@ Note: Running --users requires roles to exist first.
                 run_roles_seed(app)
             elif args.users:
                 run_users_seed(app)
+            elif args.email:
+                run_email_settings_seed(app)
             elif args.courses:
                 run_courses_seed(app)
             elif args.students:

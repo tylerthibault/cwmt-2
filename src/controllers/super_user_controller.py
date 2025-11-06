@@ -386,10 +386,12 @@ def system_settings():
         pass
     
     # Get current settings
+    email_settings = SettingsLogic.get_settings_by_category('email')
+    
     context = UserLogic.get_context(view_as='super-user')
     context.update({
         'page_title': 'System Settings',
-        'main_container': SettingsLogic.get_settings_by_category('email')
+        'settings': email_settings  # Pass email settings to the template
     })
     return render_template('private/super_user/system_settings/index.html', **context)
 
@@ -526,33 +528,101 @@ def email_settings():
 @super_user_required
 def update_email_settings():
     """Update email settings."""
-    data = request.get_json()
+    # Get form data
+    data = request.form.to_dict()
     
     for key, value in data.items():
         if key.startswith('mail_'):
             is_encrypted = key == 'mail_password'
+            # Skip empty password fields (don't update if blank)
+            if key == 'mail_password' and not value:
+                continue
             SettingsLogic.set_setting(key, value, category='email', is_encrypted=is_encrypted)
     
     # Reload mail config
     mail_config = SettingsLogic.get_flask_mail_config()
     current_app.config.update(mail_config)
     
-    return jsonify({'message': 'Settings updated successfully'})
+    flash('Email settings updated successfully', 'success')
+    # super/system-settings#email
+    return redirect(url_for('super_user.system_settings', ))
 
 @super_user_bp.route('/settings/email/test', methods=['POST'])
 @super_user_required
 def test_email_settings():
-    """Test email configuration."""
+    """Test email configuration by sending a test email to the current user."""
     try:
-        from flask_mail import Message
-        from run import mail  # Import mail from main app
+        current_app.logger.info('Starting test email process...')
         
+        from flask_mail import Message
+        from src import mail  # Import mail from src module
+        
+        current_app.logger.info('Imports successful')
+        
+        # Get current user from session
+        token = session.get('token')
+        current_app.logger.info(f'Token from session: {token}')
+        
+        logbook_page = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        current_app.logger.info(f'Logbook page found: {logbook_page is not None}')
+        
+        user = logbook_page.user if logbook_page else None
+        current_app.logger.info(f'User found: {user is not None}')
+        
+        if not user or not user.email:
+            current_app.logger.error(f'User validation failed - user exists: {user is not None}, has email: {user.email if user else None}')
+            return jsonify({'error': 'No valid email address found for current user'}), 400
+        
+        current_app.logger.info(f'Sending test email to: {user.email}')
+        
+        # Get mail config for debugging
+        mail_config = SettingsLogic.get_flask_mail_config()
+        current_app.logger.info(f'Mail config loaded: {list(mail_config.keys())}')
+        current_app.logger.info(f'MAIL_SERVER: {mail_config.get("MAIL_SERVER")}')
+        current_app.logger.info(f'MAIL_PORT: {mail_config.get("MAIL_PORT")}')
+        current_app.logger.info(f'MAIL_USE_TLS: {mail_config.get("MAIL_USE_TLS")}')
+        current_app.logger.info(f'MAIL_USERNAME: {mail_config.get("MAIL_USERNAME")}')
+        current_app.logger.info(f'MAIL_PASSWORD length: {len(mail_config.get("MAIL_PASSWORD", "")) if mail_config.get("MAIL_PASSWORD") else 0}')
+        current_app.logger.info(f'MAIL_PASSWORD first 4 chars: {mail_config.get("MAIL_PASSWORD", "")[:4] if mail_config.get("MAIL_PASSWORD") else "None"}')
+        
+        # Update the app config with the loaded mail settings
+        current_app.config.update(mail_config)
+        
+        # Reinitialize mail with updated config
+        mail.init_app(current_app)
+        current_app.logger.info(f'Mail reinitialized with server: {current_app.config.get("MAIL_SERVER")}, port: {current_app.config.get("MAIL_PORT")}')
+        
+        # Use the configured default sender email address for testing
+        test_recipient = mail_config.get('MAIL_DEFAULT_SENDER')
+        if not test_recipient:
+            current_app.logger.error('No MAIL_DEFAULT_SENDER configured')
+            return jsonify({'error': 'MAIL_DEFAULT_SENDER is not configured. Please set it in email settings.'}), 400
+        
+        # Create and send test message
         msg = Message(
-            subject='Test Email',
-            recipients=[SettingsLogic.get_setting('mail_default_sender')],
-            body='This is a test email.'
+            subject='CWMT - Test Email Configuration',
+            recipients=[test_recipient],
+            body=f'Hello,\n\nThis is a test email from CWMT to verify your email configuration is working correctly.\n\nIf you received this message, your email settings are properly configured!\n\nBest regards,\nCWMT System'
         )
+        
+        current_app.logger.info(f'Message object created for {test_recipient}, attempting to send...')
         mail.send(msg)
-        return jsonify({'message': 'Test email sent successfully'})
+        current_app.logger.info('Email sent successfully!')
+        
+        return jsonify({'message': f'Test email sent successfully to {test_recipient}'})
+    except ConnectionRefusedError as e:
+        current_app.logger.error(f'SMTP connection refused: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Cannot connect to email server. Please verify your MAIL_SERVER and MAIL_PORT settings are correct and the server is accessible.'}), 500
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f'Error sending test email: {str(e)}', exc_info=True)
+        
+        # Provide more helpful error messages for common issues
+        error_msg = str(e)
+        if 'authentication' in error_msg.lower():
+            error_msg = 'Email authentication failed. Please check your MAIL_USERNAME and MAIL_PASSWORD.'
+        elif 'timeout' in error_msg.lower():
+            error_msg = 'Connection to email server timed out. Please check your MAIL_SERVER and network settings.'
+        else:
+            error_msg = f'Failed to send test email: {error_msg}'
+            
+        return jsonify({'error': error_msg}), 500
