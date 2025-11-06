@@ -75,7 +75,7 @@
                                     {% if rendered.body_html %}
                                         <iframe id="htmlPreviewFrame" 
                                                 srcdoc="{{ rendered.body_html|e }}" 
-                                                style="width: 100%; min-height: 400px; border: 1px solid #dee2e6; border-radius: 4px;">
+                                                class="iframe-preview">
                                         </iframe>
                                     {% else %}
                                         <div class="alert alert-warning">
@@ -96,7 +96,7 @@
                                 </div>
                                 <hr>
                                 <div class="email-body">
-                                    <pre class="p-3 bg-light border rounded" style="white-space: pre-wrap;">{{ rendered.body_text }}</pre>
+                                    <pre class="p-3 bg-light border rounded whitespace-pre-wrap">{{ rendered.body_text }}</pre>
                                 </div>
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                         <div class="tab-pane fade" id="raw-preview" role="tabpanel">
                             <div class="email-preview-container">
                                 <h5 class="mb-3">Raw HTML Source:</h5>
-                                <pre class="p-3 bg-dark text-light border rounded" style="max-height: 500px; overflow-y: auto;"><code>{{ rendered.body_html|e }}</code></pre>
+                                <pre class="p-3 bg-dark text-light border rounded code-display"><code>{{ rendered.body_html|e }}</code></pre>
                             </div>
                         </div>
                     </div>

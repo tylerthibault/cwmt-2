@@ -226,8 +226,8 @@
         <div class="card-body">
             <div class="roster-section">
                 {% if course.instructor1 %}
-                <div class="roster-item" style="border-left-color: #198754;">
-                    <i class="fas fa-user-tie fa-lg" style="color: #198754;"></i>
+                <div class="roster-item instructor">
+                    <i class="fas fa-user-tie fa-lg icon-success"></i>
                     <div class="flex-grow-1">
                         <div class="fw-bold">{{ course.instructor1.first_name }} {{ course.instructor1.last_name }}</div>
                         <div class="text-muted small">
@@ -245,8 +245,8 @@
                 {% endif %}
                 
                 {% if course.instructor2 %}
-                <div class="roster-item mt-2" style="border-left-color: #0dcaf0;">
-                    <i class="fas fa-user-tie fa-lg" style="color: #0dcaf0;"></i>
+                <div class="roster-item assistant mt-2">
+                    <i class="fas fa-user-tie fa-lg icon-info"></i>
                     <div class="flex-grow-1">
                         <div class="fw-bold">{{ course.instructor2.first_name }} {{ course.instructor2.last_name }}</div>
                         <div class="text-muted small">

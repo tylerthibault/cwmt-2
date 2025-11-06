@@ -84,7 +84,7 @@
                                 
                                 <!-- Action Buttons -->
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-success" id="convertMjmlBtn" style="display: none;">
+                                    <button type="button" class="btn btn-success d-none" id="convertMjmlBtn">
                                         <i class="bi bi-magic"></i> Convert to HTML
                                     </button>
                                     <button type="button" class="btn btn-info" id="loadMjmlTemplate">
@@ -98,7 +98,7 @@
 
                             <!-- Rich Text Editor (Quill) -->
                             <div id="richTextContainer" class="border rounded">
-                                <div id="quillEditor" style="height: 350px; background-color: white;"></div>
+                                <div id="quillEditor" class="quill-editor-container"></div>
                             </div>
 
                             <!-- MJML Editor -->
@@ -108,11 +108,10 @@
                                         <span><i class="bi bi-file-earmark-code"></i> MJML Editor</span>
                                         <span class="badge bg-info">Responsive Email Framework</span>
                                     </div>
-                                    <textarea class="form-control border-0 rounded-0" 
+                                    <textarea class="form-control border-0 rounded-0 code-preview" 
                                               id="body_mjml" 
                                               name="body_mjml" 
                                               rows="18" 
-                                              style="font-family: 'Courier New', monospace; font-size: 0.9rem; resize: vertical;"
                                               placeholder="<mjml>&#10;  <mj-body>&#10;    <mj-section>&#10;      <mj-column>&#10;        <mj-text>Hello {user_name}!</mj-text>&#10;      </mj-column>&#10;    </mj-section>&#10;  </mj-body>&#10;</mjml>">{{ template.body_mjml if template else '' }}</textarea>
                                 </div>
                             </div>
@@ -126,10 +125,9 @@
                                                 <span><i class="bi bi-code-slash"></i> HTML Editor</span>
                                                 <span class="badge bg-secondary">Raw Code</span>
                                             </div>
-                                            <textarea class="form-control border-0 rounded-0" 
+                                            <textarea class="form-control border-0 rounded-0 code-preview" 
                                                       id="body_html_code" 
                                                       rows="18" 
-                                                      style="font-family: 'Courier New', monospace; font-size: 0.9rem; resize: vertical;"
                                                       placeholder="<p>Your HTML code here...</p>"></textarea>
                                         </div>
                                     </div>
@@ -138,9 +136,9 @@
                                             <div class="card-header bg-primary text-white">
                                                 <i class="bi bi-eye"></i> Live Preview
                                             </div>
-                                            <div class="card-body p-4" id="htmlPreview" style="min-height: 350px; max-height: 600px; overflow-y: auto; background-color: #f8f9fa;">
+                                            <div class="card-body p-4 html-preview" id="htmlPreview">
                                                 <div class="text-center text-muted">
-                                                    <i class="bi bi-file-earmark-text" style="font-size: 2rem;"></i>
+                                                    <i class="bi bi-file-earmark-text icon-2rem"></i>
                                                     <p class="mt-2">No HTML to preview</p>
                                                 </div>
                                             </div>

@@ -5,6 +5,7 @@
 @import url('bootstrap_addons/colors.css');
 @import url('components/cards.css');
 @import url('components/tables.css');
+@import url('components/utilities.css');
 @import url('private/super_user_dashboard.css');
 
 /* Light mode (default) */

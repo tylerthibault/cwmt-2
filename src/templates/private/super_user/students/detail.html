@@ -93,7 +93,7 @@
                         </div>
                         <p class="text-muted mb-0">Overall Score</p>
                     </div>
-                    <div class="progress mb-2" style="height: 10px;">
+                    <div class="progress mb-2 progress-thin">
                         <div class="progress-bar 
                             {% if student.overall_score >= 90 %}bg-success
                             {% elif student.overall_score >= 80 %}bg-primary
@@ -280,7 +280,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-5">
-                            <i class="bi bi-book" style="font-size: 3rem; color: #ccc;"></i>
+                            <i class="bi bi-book empty-state-icon"></i>
                             <p class="text-muted mt-2">No course enrollments found</p>
                         </div>
                     {% endif %}

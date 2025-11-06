@@ -89,7 +89,7 @@
                         </div>
                     {% else %}
                         <div class="text-center py-5">
-                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                            <i class="bi bi-inbox empty-state-icon"></i>
                             <p class="text-muted mt-3 mb-3">No email templates found.</p>
                             <a href="{{ url_for('user_admin.create_email_template') }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle"></i> Create Your First Template
@@ -115,11 +115,11 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th style="width: 15%;">Action</th>
-                                        <th style="width: 25%;">Description</th>
-                                        <th style="width: 25%;">Available Variables</th>
-                                        <th style="width: 15%;">Assigned Template</th>
-                                        <th class="text-end" style="width: 20%;">Manage</th>
+                                        <th class="col-w-15">Action</th>
+                                        <th class="col-w-25">Description</th>
+                                        <th class="col-w-25">Available Variables</th>
+                                        <th class="col-w-15">Assigned Template</th>
+                                        <th class="text-end col-w-20">Manage</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -132,7 +132,7 @@
                                         </td>
                                         <td class="small">{{ action.description or 'No description' }}</td>
                                         <td>
-                                            <small class="text-muted" style="word-break: break-word;">
+                                            <small class="text-muted word-break-all">
                                                 {{ action.available_variables or 'None' }}
                                             </small>
                                         </td>
@@ -238,7 +238,7 @@
                         
                         <div class="alert alert-info small">
                             <strong>Available Variables for this action:</strong><br>
-                            <code style="word-break: break-word;">{{ action.available_variables or 'None specified' }}</code>
+                            <code class="word-break-all">{{ action.available_variables or 'None specified' }}</code>
                             <br><small class="text-muted mt-1 d-block">Make sure your template uses these variables</small>
                         </div>
                     </div>
