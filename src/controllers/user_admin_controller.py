@@ -627,3 +627,256 @@ def complete_enrollment(student_id, enrollment_id):
             'success': False,
             'message': f'Failed to complete course: {str(e)}'
         }), 500
+
+
+# ============================================================================
+# EMAIL TEMPLATE MANAGEMENT ROUTES
+# ============================================================================
+
+@user_admin_bp.route('/email-templates', methods=['GET'])
+@admin_required
+def email_templates():
+    """
+    Display email template management dashboard.
+    Admin can view, create, edit, and assign email templates.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    # Get context for admin view
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    # Get all templates and actions
+    templates = EmailTemplateLogic.get_all_templates(include_inactive=True)
+    actions = EmailTemplateLogic.get_all_actions()
+    
+    context = {
+        **user_context,
+        'templates': templates,
+        'actions': actions,
+        'page_title': 'Email Template Management'
+    }
+    
+    return render_template('private/admin/email_templates/index.html', **context)
+
+
+@user_admin_bp.route('/email-templates/create', methods=['GET', 'POST'])
+@admin_required
+def create_email_template():
+    """
+    Create new email template.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    if request.method == 'POST':
+        try:
+            # Extract form data
+            data = {
+                'name': request.form.get('name'),
+                'subject': request.form.get('subject'),
+                'body_text': request.form.get('body_text'),
+                'body_html': request.form.get('body_html', ''),
+                'body_mjml': request.form.get('body_mjml', ''),
+                'description': request.form.get('description', ''),
+                'is_active': request.form.get('is_active') == 'on'
+            }
+            
+            # Create template via logic layer
+            template = EmailTemplateLogic.create_template(data)
+            
+            flash(f'Email template "{template.name}" created successfully', 'success')
+            return redirect(url_for('user_admin.email_templates'))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f'Failed to create template: {str(e)}', 'error')
+    
+    # GET request - show form
+    user_context = UserLogic.get_context(view_as='admin')
+    actions = EmailTemplateLogic.get_all_actions()
+    
+    context = {
+        **user_context,
+        'actions': actions,
+        'page_title': 'Create Email Template'
+    }
+    
+    return render_template('private/admin/email_templates/form.html', **context)
+
+
+@user_admin_bp.route('/email-templates/<int:template_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_email_template(template_id):
+    """
+    Edit existing email template.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    template = EmailTemplateLogic.get_template_by_id(template_id)
+    if not template:
+        flash('Template not found', 'error')
+        return redirect(url_for('user_admin.email_templates'))
+    
+    if request.method == 'POST':
+        try:
+            # Extract form data
+            data = {
+                'name': request.form.get('name'),
+                'subject': request.form.get('subject'),
+                'body_text': request.form.get('body_text'),
+                'body_html': request.form.get('body_html', ''),
+                'body_mjml': request.form.get('body_mjml', ''),
+                'description': request.form.get('description', ''),
+                'is_active': request.form.get('is_active') == 'on'
+            }
+            
+            # Update template via logic layer
+            template = EmailTemplateLogic.update_template(template_id, data)
+            
+            flash(f'Email template "{template.name}" updated successfully', 'success')
+            return redirect(url_for('user_admin.email_templates'))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f'Failed to update template: {str(e)}', 'error')
+    
+    # GET request - show form
+    user_context = UserLogic.get_context(view_as='admin')
+    actions = EmailTemplateLogic.get_all_actions()
+    
+    context = {
+        **user_context,
+        'template': template,
+        'actions': actions,
+        'page_title': f'Edit Email Template: {template.name}'
+    }
+    
+    return render_template('private/admin/email_templates/form.html', **context)
+
+
+@user_admin_bp.route('/email-templates/<int:template_id>/delete', methods=['POST'])
+@admin_required
+def delete_email_template(template_id):
+    """
+    Delete (deactivate) email template.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    try:
+        EmailTemplateLogic.delete_template(template_id)
+        flash('Email template deleted successfully', 'success')
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash(f'Failed to delete template: {str(e)}', 'error')
+    
+    return redirect(url_for('user_admin.email_templates'))
+
+
+@user_admin_bp.route('/email-templates/actions/<int:action_id>/assign', methods=['POST'])
+@admin_required
+def assign_template_to_action(action_id):
+    """
+    Assign a template to an email action.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    try:
+        template_id = request.form.get('template_id')
+        if template_id:
+            template_id = int(template_id)
+        else:
+            template_id = None
+        
+        action = EmailTemplateLogic.assign_template_to_action(action_id, template_id)
+        
+        if template_id:
+            flash(f'Template assigned to action "{action.name}" successfully', 'success')
+        else:
+            flash(f'Template unassigned from action "{action.name}"', 'success')
+            
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash(f'Failed to assign template: {str(e)}', 'error')
+    
+    return redirect(url_for('user_admin.email_templates'))
+
+
+@user_admin_bp.route('/email-templates/<int:template_id>/preview', methods=['GET'])
+@admin_required
+def preview_email_template(template_id):
+    """
+    Preview email template with sample variables.
+    """
+    from src.logic.email_template_logic import EmailTemplateLogic
+    
+    template = EmailTemplateLogic.get_template_by_id(template_id)
+    if not template:
+        flash('Template not found', 'error')
+        return redirect(url_for('user_admin.email_templates'))
+    
+    # Get sample variables from query string or use defaults
+    sample_vars = {
+        'user_name': request.args.get('user_name', 'John Doe'),
+        'user_email': request.args.get('user_email', 'john.doe@example.com'),
+        'reset_link': request.args.get('reset_link', 'https://example.com/reset/abc123'),
+        'expiry_time': request.args.get('expiry_time', '1 hour'),
+        'course_name': request.args.get('course_name', 'Sample Course'),
+        'app_name': request.args.get('app_name', 'CWMT'),
+    }
+    
+    try:
+        # Render template with sample variables
+        rendered = EmailTemplateLogic.render_template(template, sample_vars)
+        
+        user_context = UserLogic.get_context(view_as='admin')
+        
+        context = {
+            **user_context,
+            'template': template,
+            'rendered': rendered,
+            'sample_vars': sample_vars,
+            'page_title': f'Preview: {template.name}'
+        }
+        
+        return render_template('private/admin/email_templates/preview.html', **context)
+        
+    except ValueError as e:
+        flash(f'Template preview error: {str(e)}', 'error')
+        return redirect(url_for('user_admin.email_templates'))
+
+
+@user_admin_bp.route('/email-templates/convert-mjml', methods=['POST'])
+@admin_required
+def convert_mjml_to_html():
+    """
+    Convert MJML markup to HTML.
+    AJAX endpoint for the template editor.
+    """
+    from flask import jsonify
+    from src.utils.mjml_service import MJMLService
+    
+    data = request.get_json()
+    mjml_content = data.get('mjml', '')
+    
+    if not mjml_content:
+        return jsonify({
+            'success': False,
+            'error': 'No MJML content provided'
+        }), 400
+    
+    # Convert MJML to HTML
+    result = MJMLService.mjml_to_html(mjml_content)
+    
+    if result['success']:
+        return jsonify({
+            'success': True,
+            'html': result['html']
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': result.get('error', 'Unknown error')
+        }), 400

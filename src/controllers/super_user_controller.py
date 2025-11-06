@@ -550,69 +550,48 @@ def update_email_settings():
 @super_user_bp.route('/settings/email/test', methods=['POST'])
 @super_user_required
 def test_email_settings():
-    """Test email configuration by sending a test email to the current user."""
+    """Test email configuration by sending a test email using EmailLogic."""
     try:
+        from src.logic.email_logic import EmailLogic
+        
         current_app.logger.info('Starting test email process...')
-        
-        from flask_mail import Message
-        from src import mail  # Import mail from src module
-        
-        current_app.logger.info('Imports successful')
         
         # Get current user from session
         token = session.get('token')
-        current_app.logger.info(f'Token from session: {token}')
-        
         logbook_page = Logbook.query.filter_by(token=token, has_logged_out=False).first()
-        current_app.logger.info(f'Logbook page found: {logbook_page is not None}')
-        
         user = logbook_page.user if logbook_page else None
-        current_app.logger.info(f'User found: {user is not None}')
         
         if not user or not user.email:
-            current_app.logger.error(f'User validation failed - user exists: {user is not None}, has email: {user.email if user else None}')
+            current_app.logger.error('User validation failed - no valid email found')
             return jsonify({'error': 'No valid email address found for current user'}), 400
         
-        current_app.logger.info(f'Sending test email to: {user.email}')
-        
-        # Get mail config for debugging
+        # Get the configured default sender for the test recipient
         mail_config = SettingsLogic.get_flask_mail_config()
-        current_app.logger.info(f'Mail config loaded: {list(mail_config.keys())}')
-        current_app.logger.info(f'MAIL_SERVER: {mail_config.get("MAIL_SERVER")}')
-        current_app.logger.info(f'MAIL_PORT: {mail_config.get("MAIL_PORT")}')
-        current_app.logger.info(f'MAIL_USE_TLS: {mail_config.get("MAIL_USE_TLS")}')
-        current_app.logger.info(f'MAIL_USERNAME: {mail_config.get("MAIL_USERNAME")}')
-        current_app.logger.info(f'MAIL_PASSWORD length: {len(mail_config.get("MAIL_PASSWORD", "")) if mail_config.get("MAIL_PASSWORD") else 0}')
-        current_app.logger.info(f'MAIL_PASSWORD first 4 chars: {mail_config.get("MAIL_PASSWORD", "")[:4] if mail_config.get("MAIL_PASSWORD") else "None"}')
-        
-        # Update the app config with the loaded mail settings
-        current_app.config.update(mail_config)
-        
-        # Reinitialize mail with updated config
-        mail.init_app(current_app)
-        current_app.logger.info(f'Mail reinitialized with server: {current_app.config.get("MAIL_SERVER")}, port: {current_app.config.get("MAIL_PORT")}')
-        
-        # Use the configured default sender email address for testing
         test_recipient = mail_config.get('MAIL_DEFAULT_SENDER')
+        
         if not test_recipient:
-            current_app.logger.error('No MAIL_DEFAULT_SENDER configured')
             return jsonify({'error': 'MAIL_DEFAULT_SENDER is not configured. Please set it in email settings.'}), 400
         
-        # Create and send test message
-        msg = Message(
-            subject='CWMT - Test Email Configuration',
-            recipients=[test_recipient],
-            body=f'Hello,\n\nThis is a test email from CWMT to verify your email configuration is working correctly.\n\nIf you received this message, your email settings are properly configured!\n\nBest regards,\nCWMT System'
+        # Use EmailLogic to send test email
+        current_app.logger.info(f'Sending test email to: {test_recipient}')
+        
+        EmailLogic.send_test_email(
+            recipient_email=test_recipient,
+            test_message='If you received this message, your email settings are properly configured!'
         )
         
-        current_app.logger.info(f'Message object created for {test_recipient}, attempting to send...')
-        mail.send(msg)
-        current_app.logger.info('Email sent successfully!')
-        
+        current_app.logger.info('Test email sent successfully!')
         return jsonify({'message': f'Test email sent successfully to {test_recipient}'})
+        
+    except ValueError as e:
+        # Handle validation errors (missing template, etc.)
+        current_app.logger.error(f'Validation error: {str(e)}')
+        return jsonify({'error': str(e)}), 400
+        
     except ConnectionRefusedError as e:
         current_app.logger.error(f'SMTP connection refused: {str(e)}', exc_info=True)
         return jsonify({'error': 'Cannot connect to email server. Please verify your MAIL_SERVER and MAIL_PORT settings are correct and the server is accessible.'}), 500
+        
     except Exception as e:
         current_app.logger.error(f'Error sending test email: {str(e)}', exc_info=True)
         

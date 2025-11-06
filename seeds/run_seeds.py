@@ -28,6 +28,8 @@ from seeds.seed_users import seed_default_users
 from seeds.seed_courses import seed_default_course_templates
 from seeds.seed_students import seed_all_students
 from seeds.seed_email_settings import seed_email_settings
+from seeds.seed_email_actions import seed_email_actions
+from seeds.seed_email_templates import seed_email_templates
 
 
 def run_all_seeds(app):
@@ -60,6 +62,16 @@ def run_all_seeds(app):
     print("→ Seeding email settings...")
     seed_email_settings(app)
     print("✓ Email settings seeding completed\n")
+    
+    # Seed email actions
+    print("→ Seeding email actions...")
+    seed_email_actions(app)
+    print("✓ Email actions seeding completed\n")
+    
+    # Seed email templates
+    print("→ Seeding email templates...")
+    seed_email_templates(app)
+    print("✓ Email templates seeding completed\n")
     
     # Seed courses
     print("→ Seeding courses...")
@@ -111,6 +123,13 @@ def run_email_settings_seed(app):
     print("✓ Email settings seeding completed\n")
 
 
+def run_email_actions_seed(app):
+    """Run only the email actions seed file"""
+    print("\n→ Seeding email actions...")
+    seed_email_actions(app)
+    print("✓ Email actions seeding completed\n")
+
+
 def main():
     """Main entry point for command line usage"""
     parser = argparse.ArgumentParser(
@@ -138,6 +157,8 @@ Note: Running --users requires roles to exist first.
                       help='Run only users seed (requires roles to exist)')
     group.add_argument('--email', action='store_true',
                       help='Run only email settings seed')
+    group.add_argument('--email-actions', action='store_true',
+                      help='Run only email actions seed')
     group.add_argument('--courses', action='store_true',
                       help='Run only courses seed')
     group.add_argument('--students', action='store_true',
@@ -158,6 +179,8 @@ Note: Running --users requires roles to exist first.
                 run_users_seed(app)
             elif args.email:
                 run_email_settings_seed(app)
+            elif args.email_actions:
+                run_email_actions_seed(app)
             elif args.courses:
                 run_courses_seed(app)
             elif args.students:

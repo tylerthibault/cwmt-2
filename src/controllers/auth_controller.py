@@ -1,5 +1,6 @@
 from flask import Blueprint, request, render_template, session, redirect, url_for, flash
 from src.logic.auth_logic import AuthLogic
+from src.logic.email_logic import EmailLogic
 from functools import wraps
 from src.models.logbook import Logbook
 
@@ -83,17 +84,64 @@ def logout():
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
-        # Add logic to send password reset email
-        flash('Password reset instructions sent to your email', 'success')
+        
+        if not email:
+            flash('Email is required', 'error')
+            return render_template('auth/forgot_password.html')
+        
+        # Create password reset token
+        token_info = AuthLogic.create_password_reset_token(email)
+        
+        # Always show success message for security (don't reveal if email exists)
+        if token_info:
+            # Generate reset link
+            reset_link = url_for('auth.reset_password', token=token_info['token'], _external=True)
+            
+            # Send password reset email
+            try:
+                EmailLogic.send_password_reset_email(
+                    user_email=email,
+                    user_name=token_info['user'].first_name or token_info['user'].username,
+                    reset_link=reset_link,
+                    expiry_time="24 hours"
+                )
+                flash('Password reset instructions have been sent to your email', 'success')
+            except Exception as e:
+                # Log error but still show success message for security
+                flash('Password reset instructions have been sent to your email if it exists in our system', 'success')
+        else:
+            # Show same message even if user doesn't exist (security)
+            flash('Password reset instructions have been sent to your email if it exists in our system', 'success')
+        
         return redirect(url_for('auth.login'))
-    return render_template('auth/forgot_password.html')
+    
+    return render_template('public/auth/forgot_password/index.html')
 
 
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    # Verify token is valid
+    user = AuthLogic.verify_reset_token(token)
+    
+    if not user:
+        flash('Invalid or expired password reset link. Please request a new one.', 'error')
+        return redirect(url_for('main.index'))
+    
     if request.method == 'POST':
         new_password = request.form.get('password')
-        # Add logic to verify token and update password
-        flash('Password reset successful', 'success')
-        return redirect(url_for('auth.login'))
-    return render_template('auth/reset_password.html', token=token)
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate passwords match
+        if new_password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('public/auth/reset_password/index.html', token=token, user=user)
+        
+        # Reset password using token
+        if AuthLogic.reset_password_with_token(token, new_password):
+            flash('Password reset successful! You can now log in with your new password.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Password reset failed. Please try again.', 'error')
+            return render_template('public/auth/reset_password/index.html', token=token, user=user)
+    
+    return render_template('public/auth/reset_password/index.html', token=token, user=user)

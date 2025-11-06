@@ -87,6 +87,8 @@ def seed():
     from seeds.seed_email_settings import seed_email_settings
     from seeds.seed_courses import seed_default_course_templates
     from seeds.seed_students import seed_all_students
+    from seeds.seed_email_actions import seed_email_actions
+    from seeds.seed_email_templates import seed_email_templates
     
     try:
         app.looger.info("Starting full database seeding via web route...")
@@ -106,6 +108,12 @@ def seed():
         
         seed_all_students(app)
         app.looger.info("✓ Students seeded")
+
+        seed_email_actions(app)
+        app.looger.info("✓ Email actions seeded")
+
+        seed_email_templates(app)
+        app.looger.info("✓ Email templates seeded")
         
         flash('All seeding completed successfully! (Roles, Users, Email Settings, Courses, Students)', 'success')
     except Exception as e:

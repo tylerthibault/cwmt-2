@@ -25,6 +25,9 @@ def init_db(app):
         from src.models.courses_model import CourseTemplate, Course
         from src.models.student_profile import StudentProfile
         from src.models.course_enrollment import CourseEnrollment
+        from src.models.email_template_model import EmailTemplate
+        from src.models.email_action_model import EmailAction
+        from src.models.password_reset_token import PasswordResetToken
         
         # Create all tables if they don't exist
         db.create_all()

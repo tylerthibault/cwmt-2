@@ -44,7 +44,7 @@
                             <span class="sidenav-btn-text">Schedule</span>
                         </a>
                     </li>
-                    <li><a href="{{ url_for('instructor.students_list') }}">
+                    <li><a href="#">
                             <span class="icon">&#128100;</span>
                             <span class="sidenav-btn-text">Students</span>
                         </a>
@@ -74,6 +74,11 @@
                     <li><a href="{{ url_for('user_admin.announcements') }}">
                             <span class="icon">&#128276;</span>
                             <span class="sidenav-btn-text">Announcements</span>
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('user_admin.email_templates') }}">
+                            <span class="icon">&#9993;</span>
+                            <span class="sidenav-btn-text">Email Templates</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.students_list') }}">

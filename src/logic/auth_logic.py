@@ -1,6 +1,10 @@
 from flask import flash, current_app as app
 from src.models.user import User
 from src.models.roles import Role, UserHasRoles
+from src.models.password_reset_token import PasswordResetToken
+from src.models import db
+from datetime import datetime, timedelta
+import secrets
 
 
 class AuthLogic:
@@ -78,3 +82,129 @@ class AuthLogic:
     @staticmethod
     def check_password_hash(password_hash, password):
         return app.bcrypt.check_password_hash(password_hash, password)
+    
+    @staticmethod
+    def create_password_reset_token(email):
+        """
+        Create a password reset token for the given email.
+        
+        Args:
+            email (str): User's email address
+            
+        Returns:
+            dict: Token information with token string and expiry, or None if user not found
+            
+        Business Logic:
+        - Validates user exists and is active
+        - Generates secure random token
+        - Sets 24-hour expiration
+        - Invalidates any existing unused tokens for this user
+        """
+        # Find user by email
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            # Don't reveal if email exists or not for security
+            app.looger.warning(f"Password reset requested for non-existent email: {email}")
+            return None
+        
+        if not user.is_active:
+            app.looger.warning(f"Password reset requested for inactive user: {email}")
+            return None
+        
+        # Invalidate any existing unused tokens for this user
+        existing_tokens = PasswordResetToken.query.filter_by(
+            user_id=user.id,
+            is_used=False
+        ).all()
+        
+        for token in existing_tokens:
+            token.is_used = True
+            token.updated_at = datetime.utcnow()
+        
+        # Generate secure random token
+        token_string = secrets.token_urlsafe(32)
+        
+        # Set expiration to 24 hours from now
+        expiry_time = datetime.utcnow() + timedelta(hours=24)
+        
+        # Create new token record
+        reset_token = PasswordResetToken(
+            token=token_string,
+            email=email,
+            user_id=user.id,
+            expires_at=expiry_time
+        )
+        
+        db.session.add(reset_token)
+        db.session.commit()
+        
+        app.looger.info(f"Password reset token created for user: {email}")
+        
+        return {
+            'token': token_string,
+            'expires_at': expiry_time,
+            'user': user
+        }
+    
+    @staticmethod
+    def verify_reset_token(token):
+        """
+        Verify a password reset token is valid.
+        
+        Args:
+            token (str): Reset token string
+            
+        Returns:
+            User: User object if token is valid, None otherwise
+        """
+        reset_token = PasswordResetToken.query.filter_by(token=token).first()
+        
+        if not reset_token:
+            app.looger.warning(f"Invalid password reset token attempted: {token[:10]}...")
+            return None
+        
+        if not reset_token.is_valid():
+            app.looger.warning(f"Expired or used password reset token attempted: {token[:10]}...")
+            return None
+        
+        return reset_token.user
+    
+    @staticmethod
+    def reset_password_with_token(token, new_password):
+        """
+        Reset user password using a valid token.
+        
+        Args:
+            token (str): Reset token string
+            new_password (str): New password to set
+            
+        Returns:
+            bool: True if password was reset successfully, False otherwise
+        """
+        # Verify token
+        user = AuthLogic.verify_reset_token(token)
+        
+        if not user:
+            return False
+        
+        # Validate new password
+        if not new_password or len(new_password) < 6:
+            flash('Password must be at least 6 characters', 'error')
+            return False
+        
+        # Update password
+        user.password_hash = AuthLogic.generate_password_hash(new_password)
+        user.updated_at = datetime.utcnow()
+        
+        # Mark token as used
+        reset_token = PasswordResetToken.query.filter_by(token=token).first()
+        reset_token.is_used = True
+        reset_token.used_at = datetime.utcnow()
+        reset_token.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        app.looger.info(f"Password reset successful for user: {user.email}")
+        
+        return True
