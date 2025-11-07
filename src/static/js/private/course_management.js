@@ -8,12 +8,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdownMenu = document.getElementById('dropdownMenu');
     const closeMenu = document.getElementById('closeMenu');
     
-    // Toggle dropdown menu
+    // Toggle modal
     if (menuToggle && dropdownMenu) {
         menuToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            const isVisible = dropdownMenu.style.display === 'block';
-            dropdownMenu.style.display = isVisible ? 'none' : 'block';
+            dropdownMenu.style.display = 'flex';
         });
         
         // Close menu button
@@ -24,9 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!menuToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        // Close modal when clicking on overlay
+        dropdownMenu.addEventListener('click', function(e) {
+            if (e.target === dropdownMenu || e.target.classList.contains('cm-modal-overlay')) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && dropdownMenu.style.display === 'flex') {
                 dropdownMenu.style.display = 'none';
             }
         });
@@ -39,25 +45,35 @@ document.addEventListener('DOMContentLoaded', function() {
 // Filter courses by status
 function filterCourses(status) {
     currentFilter = status;
-    const allCourseItems = document.querySelectorAll('.card[data-course-id]');
+    const allCourseItems = document.querySelectorAll('.cm-course-item[data-course-id]');
     let firstVisibleCourse = null;
     
     // Update button states
-    document.getElementById('filterAll').className = status === 'all' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
-    document.getElementById('filterActive').className = status === 'active' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
-    document.getElementById('filterInactive').className = status === 'inactive' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
+    const filterAll = document.getElementById('filterAll');
+    const filterActive = document.getElementById('filterActive');
+    const filterInactive = document.getElementById('filterInactive');
+    
+    if (filterAll) {
+        filterAll.className = status === 'all' ? 'cm-filter-pill cm-filter-pill-active' : 'cm-filter-pill';
+    }
+    if (filterActive) {
+        filterActive.className = status === 'active' ? 'cm-filter-pill cm-filter-pill-active' : 'cm-filter-pill';
+    }
+    if (filterInactive) {
+        filterInactive.className = status === 'inactive' ? 'cm-filter-pill cm-filter-pill-active' : 'cm-filter-pill';
+    }
     
     // Filter course items
     allCourseItems.forEach(item => {
         const courseStatus = item.getAttribute('data-status');
         
         if (status === 'all' || courseStatus === status) {
-            item.style.display = 'block';
+            item.classList.remove('d-none');
             if (!firstVisibleCourse) {
                 firstVisibleCourse = item;
             }
         } else {
-            item.style.display = 'none';
+            item.classList.add('d-none');
         }
     });
     
@@ -67,9 +83,10 @@ function filterCourses(status) {
         showCourseDetails(courseId);
     } else {
         // Hide all course details if no courses match the filter
-        const allDetails = document.querySelectorAll('.card[id^="course-"]');
+        const allDetails = document.querySelectorAll('.cm-detail-card[id^="course-"]');
         allDetails.forEach(detail => {
-            detail.style.display = 'none';
+            detail.classList.add('d-none');
+            detail.classList.remove('d-block');
         });
     }
 }
@@ -77,33 +94,35 @@ function filterCourses(status) {
 // Show course details when clicking on sidebar item
 function showCourseDetails(courseId) {
     // Hide all course details
-    const allDetails = document.querySelectorAll('.card[id^="course-"]');
+    const allDetails = document.querySelectorAll('.cm-detail-card[id^="course-"]');
     allDetails.forEach(detail => {
-        detail.style.display = 'none';
+        detail.classList.add('d-none');
+        detail.classList.remove('d-block');
     });
     
     // Remove active class from all sidebar items
-    const allItems = document.querySelectorAll('.card[data-course-id]');
+    const allItems = document.querySelectorAll('.cm-course-item[data-course-id]');
     allItems.forEach(item => {
-        item.classList.remove('card-gradient-primary');
+        item.classList.remove('cm-course-item-active');
     });
     
     // Show selected course details
     const selectedDetails = document.getElementById('course-' + courseId);
     if (selectedDetails) {
-        selectedDetails.style.display = 'block';
+        selectedDetails.classList.remove('d-none');
+        selectedDetails.classList.add('d-block');
     }
     
     // Add active class to clicked sidebar item
-    const selectedItem = document.querySelector('.card[data-course-id="' + courseId + '"]');
+    const selectedItem = document.querySelector('.cm-course-item[data-course-id="' + courseId + '"]');
     if (selectedItem) {
-        selectedItem.classList.add('card-gradient-primary');
+        selectedItem.classList.add('cm-course-item-active');
     }
 }
 
 // Edit course template
 function editCourse(courseId) {
-    const detailsBody = document.querySelector('#course-' + courseId + ' > .card-body');
+    const detailsBody = document.querySelector('#course-' + courseId + ' .cm-detail-body');
     const editForm = document.getElementById('edit-form-' + courseId);
     
     if (detailsBody && editForm) {
@@ -114,7 +133,7 @@ function editCourse(courseId) {
 
 // Cancel edit
 function cancelEdit(courseId) {
-    const detailsBody = document.querySelector('#course-' + courseId + ' > .card-body');
+    const detailsBody = document.querySelector('#course-' + courseId + ' .cm-detail-body');
     const editForm = document.getElementById('edit-form-' + courseId);
     
     if (detailsBody && editForm) {

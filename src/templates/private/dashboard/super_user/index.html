@@ -1,361 +1,66 @@
 {% extends 'bases/private.html' %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Super User Dashboard</h1>
-        <div>
-            <button class="btn btn-outline-secondary" id="refreshStats">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-        </div>
-    </div>
-    
-    <!-- System Overview Stats -->
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stat-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-subtitle mb-2">Total Users</h6>
-                            <h2 class="card-title mb-0">{{ total_users|default(0) }}</h2>
-                        </div>
-                        <i class="fas fa-users fa-2x opacity-50"></i>
-                    </div>
-                    <small class="mt-2 d-block">
-                        <i class="fas fa-user-check"></i> {{ active_users|default(0) }} active
-                    </small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stat-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-subtitle mb-2">Total Roles</h6>
-                            <h2 class="card-title mb-0">{{ total_roles|default(0) }}</h2>
-                        </div>
-                        <i class="fas fa-user-tag fa-2x opacity-50"></i>
-                    </div>
-                    <small class="mt-2 d-block">
-                        <i class="fas fa-shield-alt"></i> System roles
-                    </small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stat-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-subtitle mb-2">System Health</h6>
-                            <h2 class="card-title mb-0">{{ system_health|default('Good') }}</h2>
-                        </div>
-                        <i class="fas fa-heartbeat fa-2x opacity-50"></i>
-                    </div>
-                    <small class="mt-2 d-block">
-                        <i class="fas fa-server"></i> All systems operational
-                    </small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stat-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-subtitle mb-2">Pending Actions</h6>
-                            <h2 class="card-title mb-0">{{ pending_actions|default(0) }}</h2>
-                        </div>
-                        <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
-                    </div>
-                    <small class="mt-2 d-block">
-                        <i class="fas fa-tasks"></i> Requires attention
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Apple Style 1: Minimalist Cards with Graphs -->
+<div class="container-fluid dashboard-style-1">
+    {% include 'private/dashboard/super_user/components/header.html' %}
 
-    <!-- Main Management Actions -->
-    <div class="row mb-4">
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card management-card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-users-cog"></i> User Management
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <p class="card-text text-muted">
-                        Manage all system users, permissions, and access controls.
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-outline-primary">
-                            <i class="fas fa-list"></i> View All Users
-                        </a>
-                        <a href="#" class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i> Create New User
-                        </a>
-                        <a href="#" class="btn btn-outline-secondary">
-                            <i class="fas fa-user-shield"></i> Manage Permissions
-                        </a>
-                    </div>
-                </div>
-                <div class="card-footer text-muted">
-                    <small>Last user created: {{ last_user_created|default('N/A') }}</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card management-card h-100">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-tag"></i> Role Management
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <p class="card-text text-muted">
-                        Configure system roles and role-based access control.
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-outline-success">
-                            <i class="fas fa-list-ul"></i> View All Roles
-                        </a>
-                        <a href="#" class="btn btn-success">
-                            <i class="fas fa-plus-circle"></i> Create New Role
-                        </a>
-                        <a href="#" class="btn btn-outline-secondary">
-                            <i class="fas fa-edit"></i> Edit Role Permissions
-                        </a>
-                    </div>
-                </div>
-                <div class="card-footer text-muted">
-                    <small>Last role updated: {{ last_role_updated|default('N/A') }}</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card management-card h-100">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-cogs"></i> System Settings
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <p class="card-text text-muted">
-                        Configure global application settings and preferences.
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-outline-info">
-                            <i class="fas fa-sliders-h"></i> Global Settings
-                        </a>
-                        <a href="#" class="btn btn-info">
-                            <i class="fas fa-database"></i> Database Management
-                        </a>
-                        <a href="#" class="btn btn-outline-secondary">
-                            <i class="fas fa-envelope"></i> Email Configuration
-                        </a>
-                    </div>
-                </div>
-                <div class="card-footer text-muted">
-                    <small>Last config change: {{ last_config_change|default('N/A') }}</small>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview-tab" role="tabpanel" aria-labelledby="overview-tab">
+            <!-- Stats Grid -->
+            {% include 'private/dashboard/super_user/components/stats_cards.html' %}
 
-    <!-- System Monitoring & Logs -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-chart-line"></i> System Activity
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <canvas id="activityChart" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-file-alt"></i> Recent System Logs
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="log-container">
-                        {% if recent_logs %}
-                            {% for log in recent_logs %}
-                            <div class="log-entry mb-2 pb-2 border-bottom">
-                                <span class="badge bg-{{ log.level_class|default('secondary') }}">
-                                    {{ log.level|default('INFO') }}
-                                </span>
-                                <small class="text-muted ms-2">{{ log.timestamp|default('N/A') }}</small>
-                                <p class="mb-0 mt-1 small">{{ log.message|default('') }}</p>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted text-center py-4">No recent logs available</p>
-                        {% endif %}
-                    </div>
-                    <div class="mt-3">
-                        <a href="#" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-eye"></i> View All Logs
-                        </a>
-                        <a href="#" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-download"></i> Export Logs
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <!-- Charts Section -->
+            <div class="charts-section-1">
+                <!-- Enrollment Trends -->
+                {% include 'private/dashboard/super_user/components/enrollment_trends.html' %}
 
-    <!-- Recent User Activity Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-history"></i> Recent User Activity
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Timestamp</th>
-                                    <th>User</th>
-                                    <th>Action</th>
-                                    <th>Details</th>
-                                    <th>IP Address</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if recent_user_activity %}
-                                    {% for activity in recent_user_activity %}
-                                    <tr>
-                                        <td>{{ activity.timestamp|default('N/A') }}</td>
-                                        <td>
-                                            <strong>{{ activity.username|default('Unknown') }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ activity.email|default('') }}</small>
-                                        </td>
-                                        <td>{{ activity.action|default('N/A') }}</td>
-                                        <td>{{ activity.details|default('') }}</td>
-                                        <td><code>{{ activity.ip_address|default('N/A') }}</code></td>
-                                        <td>
-                                            <span class="badge bg-{{ activity.status_class|default('secondary') }}">
-                                                {{ activity.status|default('Unknown') }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            No recent activity to display
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        <a href="#" class="btn btn-primary">
-                            <i class="fas fa-list"></i> View All Activity
-                        </a>
-                    </div>
-                </div>
+                <!-- Course Distribution -->
+                {% include 'private/dashboard/super_user/components/course_distribution.html' %}
+            </div>
+
+            <!-- Quick Actions & Recent Activity -->
+            <div class="bottom-section-1">
+                <!-- Quick Actions -->
+                {% include 'private/dashboard/super_user/components/quick_actions.html' %}
+
+                <!-- Recent Activity -->
+                {% include 'private/dashboard/super_user/components/recent_activity.html' %}
             </div>
         </div>
-    </div>
 
-    <!-- Advanced Tools -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Advanced System Tools
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <p class="text-danger">
-                        <strong>Warning:</strong> These tools can affect system functionality. Use with caution.
-                    </p>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <button class="btn btn-outline-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#clearCacheModal">
-                                <i class="fas fa-trash"></i> Clear Cache
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="btn btn-outline-warning w-100 mb-2">
-                                <i class="fas fa-database"></i> Backup Database
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="btn btn-outline-info w-100 mb-2">
-                                <i class="fas fa-sync"></i> System Migration
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="btn btn-outline-secondary w-100 mb-2">
-                                <i class="fas fa-chart-pie"></i> Generate Reports
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        <!-- Activity Tab -->
+        <div class="tab-pane fade" id="activity-tab" role="tabpanel" aria-labelledby="activity-tab">
+            <div class="card-1">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; font-weight: 600; color: #1D1D1F;">System Activity</h3>
+                <p style="color: #86868B; margin: 0;">Detailed activity tracking coming soon...</p>
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div class="tab-pane fade" id="logs-tab" role="tabpanel" aria-labelledby="logs-tab">
+            <div class="card-1">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; font-weight: 600; color: #1D1D1F;">System Logs</h3>
+                <p style="color: #86868B; margin: 0;">Log viewer integration coming soon...</p>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-pane fade" id="analytics-tab" role="tabpanel" aria-labelledby="analytics-tab">
+            <div class="card-1">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; font-weight: 600; color: #1D1D1F;">Advanced Analytics</h3>
+                <p style="color: #86868B; margin: 0;">Deep analytics and insights coming soon...</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Clear Cache Modal -->
-<div class="modal fade" id="clearCacheModal" tabindex="-1" aria-labelledby="clearCacheModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="clearCacheModalLabel">
-                    <i class="fas fa-exclamation-triangle"></i> Clear System Cache
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to clear the system cache? This action will:</p>
-                <ul>
-                    <li>Remove all cached data</li>
-                    <li>Force users to re-authenticate</li>
-                    <li>Temporarily slow down the system</li>
-                </ul>
-                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmClearCache">
-                    <i class="fas fa-trash"></i> Clear Cache
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'private/dashboard/super_user/components/dashboard_styles.html' %}
 {% endblock content %}
 
 {% block custom_js %}
+<script src="{{ url_for('static', filename='js/components/tabs.js') }}"></script>
 <script src="{{ url_for('static', filename='js/private/super_user_dashboard.js') }}"></script>
 {% endblock custom_js %}

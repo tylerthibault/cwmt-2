@@ -1,5 +1,6 @@
 from src.models.user import User
 from src.models.logbook import Logbook
+from src.models import db
 from flask import session, flash
 from flask import current_app as app
 
@@ -170,16 +171,54 @@ class UserLogic:
     def _build_superuser_context(user, current_role):
         """Build context for super-user dashboard"""
         from src.models.roles import Role
+        from src.models.courses_model import Course, CourseTemplate
+        from src.models.student_profile import StudentProfile
+        from src.models.course_enrollment import CourseEnrollment
         from datetime import datetime, timedelta
         
         app.logger.info(f"Building context for super-user: {user.email}")
         
-        # Get system statistics
+        # ===== SYSTEM STATISTICS =====
         total_users = User.query.count()
         active_users = User.query.filter_by(is_active=True).count()
+        inactive_users = total_users - active_users
         total_roles = Role.query.count()
         
-        # Get recent user activity from logbook
+        # ===== COURSE STATISTICS =====
+        total_courses = Course.query.count()
+        total_course_templates = CourseTemplate.query.filter_by(is_active=True).count()
+        
+        # Upcoming courses (scheduled, not completed/cancelled)
+        upcoming_courses = Course.query.filter(
+            Course.status == 'scheduled',
+            Course.course_date >= datetime.utcnow().date()
+        ).order_by(Course.course_date.asc()).limit(5).all()
+        
+        # In-progress courses
+        in_progress_count = Course.query.filter_by(status='in_progress').count()
+        
+        # Completed courses (last 30 days)
+        completed_recent = Course.query.filter(
+            Course.status == 'completed',
+            Course.updated_at >= datetime.utcnow() - timedelta(days=30)
+        ).count()
+        
+        # ===== STUDENT STATISTICS =====
+        total_students = StudentProfile.query.count()
+        
+        # Active enrollments
+        active_enrollments = CourseEnrollment.query.filter_by(status='active').count()
+        
+        # Completed enrollments
+        completed_enrollments = CourseEnrollment.query.filter_by(status='completed').count()
+        
+        # Average course score
+        avg_score_result = db.session.query(db.func.avg(CourseEnrollment.course_score)).filter(
+            CourseEnrollment.status == 'completed'
+        ).scalar()
+        avg_course_score = round(avg_score_result, 1) if avg_score_result else 0.0
+        
+        # ===== RECENT ACTIVITY =====
         recent_cutoff = datetime.utcnow() - timedelta(days=7)
         recent_logbook_entries = Logbook.query.filter(
             Logbook.created_at >= recent_cutoff
@@ -191,32 +230,56 @@ class UserLogic:
             entry_user = User.query.get(entry.user_id)
             if entry_user:
                 recent_user_activity.append({
-                    'timestamp': entry.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'timestamp': entry.created_at,
                     'username': entry_user.username,
                     'email': entry_user.email,
-                    'action': 'Login' if not entry.has_logged_out else 'Logout',
+                    'action': 'Logout' if entry.has_logged_out else 'Login',
                     'details': f"Session: {entry.token[:8]}...",
                     'ip_address': 'N/A',  # IP address not tracked in current model
                     'status': 'Success',
                     'status_class': 'success'
                 })
         
-        # Get recent system logs (simplified)
-        recent_logs = [
-            {
-                'level': 'INFO',
-                'level_class': 'info',
-                'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
-                'message': 'System running normally'
-            }
-        ]
+        # ===== RECENT ENROLLMENTS =====
+        recent_enrollments = CourseEnrollment.query.order_by(
+            CourseEnrollment.enrollment_date.desc()
+        ).limit(5).all()
         
-        # Get last user and role updates
+        recent_enrollments_data = []
+        for enrollment in recent_enrollments:
+            student = StudentProfile.query.get(enrollment.student_id)
+            course = Course.query.get(enrollment.course_id)
+            if student and student.user and course:
+                recent_enrollments_data.append({
+                    'student_name': f"{student.user.first_name or ''} {student.user.last_name or ''}".strip() or student.user.username,
+                    'student_email': student.user.email,
+                    'course_name': course.template.name if course.template else 'N/A',
+                    'course_date': course.course_date.strftime('%b %d, %Y') if course.course_date else 'N/A',
+                    'enrollment_date': enrollment.enrollment_date.strftime('%b %d, %Y') if enrollment.enrollment_date else 'N/A',
+                    'status': enrollment.status,
+                    'course_score': enrollment.course_score,
+                    'attendance_percentage': enrollment.attendance_percentage
+                })
+        
+        # ===== LAST UPDATES =====
         last_user = User.query.order_by(User.created_at.desc()).first()
-        last_user_created = last_user.created_at.strftime('%Y-%m-%d %H:%M') if last_user else 'N/A'
+        last_user_created = last_user.created_at if last_user else None
         
         last_role = Role.query.order_by(Role.updated_at.desc()).first()
-        last_role_updated = last_role.updated_at.strftime('%Y-%m-%d %H:%M') if last_role else 'N/A'
+        last_role_updated = last_role.updated_at if last_role else None
+        
+        last_course = Course.query.order_by(Course.created_at.desc()).first()
+        last_course_created = last_course.created_at if last_course else None
+        
+        # ===== PENDING ACTIONS =====
+        # Courses without instructors
+        courses_needing_instructors = Course.query.filter(
+            Course.status == 'scheduled',
+            db.or_(Course.instructor1_id == None, Course.instructor2_id == None)
+        ).count()
+        
+        # Inactive users
+        pending_actions = inactive_users + courses_needing_instructors
         
         context = {
             'user': user,
@@ -226,17 +289,33 @@ class UserLogic:
             # System statistics
             'total_users': total_users,
             'active_users': active_users,
+            'inactive_users': inactive_users,
             'total_roles': total_roles,
-            'system_health': 'Good',
-            'pending_actions': 0,
+            'system_health': 'Operational',
+            'pending_actions': pending_actions,
+            
+            # Course statistics
+            'total_courses': total_courses,
+            'total_course_templates': total_course_templates,
+            'upcoming_courses': upcoming_courses,
+            'in_progress_count': in_progress_count,
+            'completed_recent': completed_recent,
+            'courses_needing_instructors': courses_needing_instructors,
+            
+            # Student statistics
+            'total_students': total_students,
+            'active_enrollments': active_enrollments,
+            'completed_enrollments': completed_enrollments,
+            'avg_course_score': avg_course_score,
             
             # Recent activity
             'recent_user_activity': recent_user_activity,
-            'recent_logs': recent_logs,
+            'recent_enrollments': recent_enrollments_data,
             
             # Last updates
             'last_user_created': last_user_created,
             'last_role_updated': last_role_updated,
+            'last_course_created': last_course_created,
             'last_config_change': 'N/A'
         }
         return context

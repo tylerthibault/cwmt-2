@@ -1,0 +1,59 @@
+<!-- Dashboard Header Component -->
+<div class="dashboard-header-1">
+    <div>
+        <h1 class="dashboard-title-1">Dashboard</h1>
+        <p class="dashboard-subtitle-1">System Overview</p>
+    </div>
+    <button class="btn-refresh-1" id="refreshStats">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C12.0711 2.5 13.9461 3.35714 15.3033 4.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 2V5H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Refresh</span>
+    </button>
+</div>
+
+<!-- Dashboard Navigation Tabs -->
+<div class="dashboard-tabs" data-tab-container="dashboard-view">
+    <ul class="nav nav-pills dashboard-nav-pills" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview-tab" 
+                    data-tab-id="overview" type="button" role="tab" aria-controls="overview-tab" aria-selected="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                    <path d="M2 4.5C2 3.67157 2.67157 3 3.5 3H6.5C7.32843 3 8 3.67157 8 4.5V6.5C8 7.32843 7.32843 8 6.5 8H3.5C2.67157 8 2 7.32843 2 6.5V4.5Z" fill="currentColor" opacity="0.8"/>
+                    <path d="M9 4.5C9 3.67157 9.67157 3 10.5 3H12.5C13.3284 3 14 3.67157 14 4.5V6.5C14 7.32843 13.3284 8 12.5 8H10.5C9.67157 8 9 7.32843 9 6.5V4.5Z" fill="currentColor" opacity="0.8"/>
+                    <path d="M2 10.5C2 9.67157 2.67157 9 3.5 9H6.5C7.32843 9 8 9.67157 8 10.5V12.5C8 13.3284 7.32843 14 6.5 14H3.5C2.67157 14 2 13.3284 2 12.5V10.5Z" fill="currentColor" opacity="0.8"/>
+                    <path d="M9 10.5C9 9.67157 9.67157 9 10.5 9H12.5C13.3284 9 14 9.67157 14 10.5V12.5C14 13.3284 13.3284 14 12.5 14H10.5C9.67157 14 9 13.3284 9 12.5V10.5Z" fill="currentColor" opacity="0.8"/>
+                </svg>
+                Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#activity-tab" 
+                    data-tab-id="activity" type="button" role="tab" aria-controls="activity-tab" aria-selected="false">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                    <path d="M2 8H4L6 4L10 12L12 8H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+                </svg>
+                Activity
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#logs-tab" 
+                    data-tab-id="logs" type="button" role="tab" aria-controls="logs-tab" aria-selected="false">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                    <path d="M3 4H13M3 8H13M3 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                </svg>
+                Logs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics-tab" 
+                    data-tab-id="analytics" type="button" role="tab" aria-controls="analytics-tab" aria-selected="false">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                    <path d="M3 13V9M8 13V3M13 13V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                </svg>
+                Analytics
+            </button>
+        </li>
+    </ul>
+</div>

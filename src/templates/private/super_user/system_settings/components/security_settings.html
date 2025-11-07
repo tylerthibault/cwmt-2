@@ -1,0 +1,48 @@
+<h3 class="st-section-title">Security & Authentication Settings</h3>
+<form method="POST" action="{{ url_for('super_user.system_settings') }}" class="st-form">
+    <input type="hidden" name="settings_category" value="security">
+
+    <div class="st-form-grid">
+        <div class="st-form-group">
+            <label for="password_min_length" class="st-label">Minimum Password Length</label>
+            <input type="number" class="st-input" id="password_min_length"
+                name="password_min_length" value="8" min="6" max="32" required>
+        </div>
+        <div class="st-form-group">
+            <label for="login_attempts" class="st-label">Max Login Attempts</label>
+            <input type="number" class="st-input" id="login_attempts" name="login_attempts"
+                value="5" min="3" max="10" required>
+        </div>
+    </div>
+
+    <div class="st-toggles-grid">
+        <div class="st-toggle-item">
+            <div class="st-toggle-header">
+                <label for="require_email_verification" class="st-toggle-label">
+                    Require Email Verification
+                </label>
+                <input class="st-toggle" type="checkbox" id="require_email_verification"
+                    name="require_email_verification">
+            </div>
+            <p class="st-toggle-desc">Users must verify their email address before accessing the
+                system</p>
+        </div>
+        <div class="st-toggle-item">
+            <div class="st-toggle-header">
+                <label for="enable_2fa" class="st-toggle-label">
+                    Enable Two-Factor Authentication
+                </label>
+                <input class="st-toggle" type="checkbox" id="enable_2fa" name="enable_2fa">
+            </div>
+            <p class="st-toggle-desc">Add an extra layer of security with 2FA</p>
+        </div>
+    </div>
+
+    <button type="submit" class="st-btn st-btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+            <path d="M8 1.5L13 4V8C13 11 11 13 8 15C5 13 3 11 3 8V4L8 1.5Z" stroke="currentColor"
+                stroke-width="1.5" stroke-linejoin="round" />
+        </svg>
+        Update Security Settings
+    </button>
+</form>

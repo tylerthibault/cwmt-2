@@ -6,8 +6,9 @@ user_bp = Blueprint('user', __name__, url_prefix='/user')
 
 
 @user_bp.route('/dashboard')
+@user_bp.route('/dashboard/<int:dashboard_id>')
 @login_required
-def dashboard():
+def dashboard(dashboard_id=1):
     """User dashboard page"""
     view_as = request.args.get('view_as', None)  # Get 'view_as' parameter from query string if needed
     context = UserLogic.get_context(view_as=view_as)
@@ -16,7 +17,9 @@ def dashboard():
         flash("Unable to load dashboard context.", "error")
         return redirect(url_for('main.index'))
     
-    return render_template(context.get('dashboard_template', 'private/dashboard/student/index.html'), **context)
+    html = context.get(f'dashboard_template', 'private/dashboard/student/index.html')
+
+    return render_template(html, **context)
 
 
 @user_bp.route('/enroll/<int:course_id>', methods=['POST'])

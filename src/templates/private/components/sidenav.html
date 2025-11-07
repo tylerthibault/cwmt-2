@@ -1,8 +1,8 @@
 
 <div class="sidenav-container">
-    <nav class="sidenav collapsed preload" id="sidenav">
-        <button class="sidenav-toggle">
-            <span class="icon">&#9776;</span>
+    <nav class="sidenav collapsed preload" id="sidenav" aria-label="Main navigation">
+        <button class="sidenav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidenavMenu">
+            <span class="icon" aria-hidden="true">&#9776;</span>
         </button>
 
 
@@ -11,7 +11,7 @@
             {% set user_roles = user.role_list | map(attribute='name') | list %}
             {% if user_roles | length > 1 %}
             <div class="role-switcher-container">
-                <select class="role-switcher" id="roleSwitcher" data-dashboard-url="{{ url_for('user.dashboard') }}">
+                <select class="role-switcher" id="roleSwitcher" data-dashboard-url="{{ url_for('user.dashboard') }}" aria-label="Switch role view">
                     {% for role in user_roles %}
                     <option value="{{ role }}" {% if role==current_role %}selected{% endif %}>{{ role | title }}
                     </option>
@@ -30,22 +30,22 @@
                 <div class="role-menu" data-role="instructor">
                     <p class="sidenav-title">Instructor</p>
                     <li><a href="{{ url_for('user.dashboard') }}?view_as=instructor">
-                            <span class="icon">&#128200;</span>
+                            <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('instructor.my_courses') }}">
-                            <span class="icon">&#128218;</span>
+                            <span class="icon" aria-hidden="true">&#128218;</span>
                             <span class="sidenav-btn-text">My Courses</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('instructor.schedule') }}">
-                            <span class="icon">&#128197;</span>
+                            <span class="icon" aria-hidden="true">&#128197;</span>
                             <span class="sidenav-btn-text">Schedule</span>
                         </a>
                     </li>
                     <li><a href="#">
-                            <span class="icon">&#128100;</span>
+                            <span class="icon" aria-hidden="true">&#128100;</span>
                             <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
@@ -57,32 +57,32 @@
                 <div class="role-menu" data-role="admin">
                     <p class="sidenav-title">Admin</p>
                     <li><a href="{{ url_for('user.dashboard') }}?view_as=admin">
-                            <span class="icon">&#128200;</span>
+                            <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.schedule_management') }}">
-                            <span class="icon">&#128218;</span>
+                            <span class="icon" aria-hidden="true">&#128218;</span>
                             <span class="sidenav-btn-text">Schedule Management</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.reports') }}">
-                            <span class="icon">&#128202;</span>
+                            <span class="icon" aria-hidden="true">&#128202;</span>
                             <span class="sidenav-btn-text">Reports</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.announcements') }}">
-                            <span class="icon">&#128276;</span>
+                            <span class="icon" aria-hidden="true">&#128276;</span>
                             <span class="sidenav-btn-text">Announcements</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.email_templates') }}">
-                            <span class="icon">&#9993;</span>
+                            <span class="icon" aria-hidden="true">&#9993;</span>
                             <span class="sidenav-btn-text">Email Templates</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('user_admin.students_list') }}">
-                            <span class="icon">&#128100;</span>
+                            <span class="icon" aria-hidden="true">&#128100;</span>
                             <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
@@ -94,27 +94,27 @@
                 <div class="role-menu" data-role="super-user">
                     <p class="sidenav-title">Super User</p>
                     <li><a href="{{ url_for('user.dashboard') }}?view_as=super-user">
-                            <span class="icon">&#128200;</span>
+                            <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('super_user.user_management') }}">
-                            <span class="icon">&#128101;</span>
+                            <span class="icon" aria-hidden="true">&#128101;</span>
                             <span class="sidenav-btn-text">User Management</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('super_user.course_management') }}">
-                            <span class="icon">&#128218;</span>
+                            <span class="icon" aria-hidden="true">&#128218;</span>
                             <span class="sidenav-btn-text">Course Management</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('super_user.system_settings') }}">
-                            <span class="icon">&#128295;</span>
+                            <span class="icon" aria-hidden="true">&#128295;</span>
                             <span class="sidenav-btn-text">System Settings</span>
                         </a>
                     </li>
                     <li><a href="{{ url_for('super_user.students_list') }}">
-                            <span class="icon">&#128100;</span>
+                            <span class="icon" aria-hidden="true">&#128100;</span>
                             <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
@@ -125,17 +125,17 @@
                 <div class="role-menu common-menu" data-role="common">
                     <p class="sidenav-title">Account</p>
                     <li><a href="{{ url_for('user.settings') }}">
-                            <span class="icon">&#9881;</span>
+                            <span class="icon" aria-hidden="true">&#9881;</span>
                             <span class="sidenav-btn-text">Settings</span>
                         </a>
                     </li>
                     <li><a href="#">
-                            <span class="icon">&#9993;</span>
+                            <span class="icon" aria-hidden="true">&#9993;</span>
                             <span class="sidenav-btn-text">Messages</span>
                         </a>
                     </li>
                     <li><a href="#">
-                            <span class="icon">&#128276;</span>
+                            <span class="icon" aria-hidden="true">&#128276;</span>
                             <span class="sidenav-btn-text">Notifications</span>
                         </a>
                     </li>
@@ -146,7 +146,7 @@
             <ul>
                 <li>
                     <a href="{{ url_for('auth.logout') }}">
-                        <span class="icon">&#10162;</span>
+                        <span class="icon" aria-hidden="true">&#10162;</span>
                         <span class="sidenav-btn-text">Logout</span>
                     </a>
                 </li>

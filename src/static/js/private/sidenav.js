@@ -35,7 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleSidenav() {
         const sidenav = document.querySelector('.sidenav');
-        sidenav.classList.toggle('collapsed');
+        const toggleButton = document.querySelector('.sidenav-toggle');
+        const isCollapsed = sidenav.classList.toggle('collapsed');
+        
+        // Update ARIA attribute
+        if (toggleButton) {
+            toggleButton.setAttribute('aria-expanded', !isCollapsed);
+        }
+        
         saveSidenavState();
     }
 
@@ -58,10 +65,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadSidenavState() {
         const isCollapsed = localStorage.getItem('sidenav-collapsed') === 'true';
         const sidenav = document.querySelector('.sidenav');
+        const toggleButton = document.querySelector('.sidenav-toggle');
+        
         if (isCollapsed) {
             sidenav.classList.add('collapsed');
         } else {
             sidenav.classList.remove('collapsed');
+        }
+        
+        // Update ARIA attribute to match state
+        if (toggleButton) {
+            toggleButton.setAttribute('aria-expanded', !isCollapsed);
         }
     }
 });
