@@ -1,0 +1,173 @@
+{# Admin Dashboard - Stats Overview Cards #}
+<div class="ad-stats-grid">
+    <div class="ad-stat-card ad-stat-primary">
+        <div class="ad-stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <div class="ad-stat-content">
+            <div class="ad-stat-label">Total Students</div>
+            <div class="ad-stat-value">{{ total_students|default(0) }}</div>
+            <div class="ad-stat-change">
+                <span class="ad-stat-change-positive">+{{ new_students_this_month|default(0) }}</span> this month
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-stat-card ad-stat-success">
+        <div class="ad-stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        </div>
+        <div class="ad-stat-content">
+            <div class="ad-stat-label">Active Courses</div>
+            <div class="ad-stat-value">{{ active_courses|default(0) }}</div>
+            <div class="ad-stat-change">
+                {{ courses_this_week|default(0) }} classes this week
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-stat-card ad-stat-info">
+        <div class="ad-stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div class="ad-stat-content">
+            <div class="ad-stat-label">Today's Classes</div>
+            <div class="ad-stat-value">{{ todays_classes|default(0) }}</div>
+            <div class="ad-stat-change">
+                {{ classes_in_progress|default(0) }} in progress now
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-stat-card ad-stat-warning">
+        <div class="ad-stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <div class="ad-stat-content">
+            <div class="ad-stat-label">Pending Items</div>
+            <div class="ad-stat-value">{{ pending_items|default(0) }}</div>
+            <div class="ad-stat-change">
+                {{ urgent_items|default(0) }} need attention
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.ad-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.ad-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ad-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--stat-color-start), var(--stat-color-end));
+}
+
+.ad-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.ad-stat-primary {
+    --stat-color-start: #007AFF;
+    --stat-color-end: #5AC8FA;
+}
+
+.ad-stat-success {
+    --stat-color-start: #34C759;
+    --stat-color-end: #30D158;
+}
+
+.ad-stat-info {
+    --stat-color-start: #5AC8FA;
+    --stat-color-end: #007AFF;
+}
+
+.ad-stat-warning {
+    --stat-color-start: #FF9500;
+    --stat-color-end: #FF3B30;
+}
+
+.ad-stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--stat-color-start), var(--stat-color-end));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.ad-stat-content {
+    flex: 1;
+}
+
+.ad-stat-label {
+    font-size: 0.875rem;
+    color: #86868B;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.ad-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.ad-stat-change {
+    font-size: 0.813rem;
+    color: #86868B;
+}
+
+.ad-stat-change-positive {
+    color: #34C759;
+    font-weight: 600;
+}
+
+.ad-stat-change-negative {
+    color: #FF3B30;
+    font-weight: 600;
+}
+</style>

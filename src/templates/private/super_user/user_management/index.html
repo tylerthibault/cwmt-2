@@ -105,7 +105,6 @@
                     <div class="um-form-group">
                         <label for="userSelect" class="um-label">Select User</label>
                         <select id="userSelect" name="user_id" class="um-select" required>
-                        <select id="userSelect" name="user_id" class="um-select" required>
                             <option value="">Select a user to add...</option>
                             {% for user in users_not_in_role %}
                             <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
@@ -729,7 +728,6 @@
 }
 </style>
 
-<script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Create User Modal

@@ -1,0 +1,195 @@
+{# Admin Dashboard - Upcoming Deadlines #}
+<div class="ad-card">
+    <div class="ad-card-header">
+        <h2 class="ad-card-title">Upcoming Deadlines</h2>
+        <p class="ad-card-subtitle">Important dates and reminders</p>
+    </div>
+    <div class="ad-card-body">
+        {% if upcoming_deadlines and upcoming_deadlines|length > 0 %}
+            <div class="ad-deadline-list">
+                {% for deadline in upcoming_deadlines %}
+                <div class="ad-deadline-item {% if deadline.is_overdue %}ad-deadline-overdue{% elif deadline.is_today %}ad-deadline-today{% endif %}">
+                    <div class="ad-deadline-date">
+                        <div class="ad-deadline-day">{{ deadline.day|default('--') }}</div>
+                        <div class="ad-deadline-month">{{ deadline.month|default('---') }}</div>
+                    </div>
+                    <div class="ad-deadline-content">
+                        <div class="ad-deadline-title">{{ deadline.title }}</div>
+                        <div class="ad-deadline-desc">{{ deadline.description }}</div>
+                        {% if deadline.is_overdue %}
+                            <span class="ad-deadline-badge ad-deadline-badge-danger">Overdue</span>
+                        {% elif deadline.is_today %}
+                            <span class="ad-deadline-badge ad-deadline-badge-warning">Today</span>
+                        {% else %}
+                            <span class="ad-deadline-badge ad-deadline-badge-info">{{ deadline.days_until }} days</span>
+                        {% endif %}
+                    </div>
+                    {% if deadline.action_url %}
+                        <a href="{{ deadline.action_url }}" class="ad-deadline-action">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="ad-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <p class="ad-empty-text">No upcoming deadlines</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.ad-deadline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ad-deadline-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #E5E5E7;
+    transition: all 0.2s ease;
+}
+
+.ad-deadline-item:last-child {
+    border-bottom: none;
+}
+
+.ad-deadline-item:hover {
+    background: #F5F5F7;
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.ad-deadline-today {
+    background: #FFF9E6;
+}
+
+.ad-deadline-today:hover {
+    background: #FFF3CC;
+}
+
+.ad-deadline-overdue {
+    background: #FFE5E5;
+}
+
+.ad-deadline-overdue:hover {
+    background: #FFD6D6;
+}
+
+.ad-deadline-date {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: white;
+    border: 2px solid #E5E5E7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ad-deadline-today .ad-deadline-date {
+    border-color: #FF9500;
+    background: #FFF9E6;
+}
+
+.ad-deadline-overdue .ad-deadline-date {
+    border-color: #FF3B30;
+    background: #FFE5E5;
+}
+
+.ad-deadline-day {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    line-height: 1;
+}
+
+.ad-deadline-month {
+    font-size: 0.688rem;
+    font-weight: 600;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ad-deadline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ad-deadline-title {
+    font-size: 0.938rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.25rem;
+}
+
+.ad-deadline-desc {
+    font-size: 0.875rem;
+    color: #86868B;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.ad-deadline-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ad-deadline-badge-info {
+    background: #D1ECFC;
+    color: #0071A4;
+}
+
+.ad-deadline-badge-warning {
+    background: #FFE5CC;
+    color: #B35900;
+}
+
+.ad-deadline-badge-danger {
+    background: #FFE5E5;
+    color: #D70015;
+}
+
+.ad-deadline-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #E5E5E7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #86868B;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.ad-deadline-action:hover {
+    background: #007AFF;
+    border-color: #007AFF;
+    color: white;
+}
+</style>
