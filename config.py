@@ -46,6 +46,7 @@ class ProductionConfig(Config):
     LOG_LEVEL = 'INFO'
     
     # Override with production database - also in instance folder
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
 
 class TestingConfig(Config):
@@ -54,7 +55,8 @@ class TestingConfig(Config):
     TESTING = True
     
     # Use in-memory database for testing
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
     LOG_LEVEL = 'WARNING'
 
 # Configuration mapping
