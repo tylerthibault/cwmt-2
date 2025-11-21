@@ -2,7 +2,29 @@
 
 This directory contains seed files for populating the database with default data for development and testing purposes.
 
-## Quick Start
+## ⚡ Auto-Seeding (Recommended)
+
+**The database now seeds automatically in development mode!**
+
+Just run:
+```bash
+python run.py
+```
+
+On first startup, the app will automatically seed all data. See [AUTO_SEED.md](./AUTO_SEED.md) for details.
+
+### Reset & Re-seed
+```bash
+# Windows
+reset_db.bat
+
+# Linux/Mac
+./reset_db.sh
+```
+
+## Manual Seeding
+
+You can still run seeds manually:
 
 ```bash
 # Run all seeds (easiest method)

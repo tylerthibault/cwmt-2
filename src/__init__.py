@@ -103,6 +103,10 @@ def create_app(config_name='development'):
         # Load email config from database
         mail_config = SettingsLogic.get_flask_mail_config()
         app.config.update(mail_config)
+        
+        # Auto-seed database if enabled (typically in development)
+        if app.config.get('AUTO_SEED', False):
+            run_auto_seed(app)
     
     # Initialize blueprints
     init_blueprints(app)
@@ -110,6 +114,49 @@ def create_app(config_name='development'):
     app.looger.info(f"Flask application created successfully - config={config_name}, debug={app.config['DEBUG']}")
     
     return app
+
+
+def run_auto_seed(app):
+    """Run database seeding if not already seeded"""
+    import os
+    from pathlib import Path
+    
+    # Check if database has been seeded using a flag file
+    instance_path = Path(app.instance_path)
+    seed_flag_file = instance_path / '.seeded'
+    
+    if seed_flag_file.exists():
+        app.looger.info("Database already seeded, skipping auto-seed")
+        return
+    
+    app.looger.info("AUTO_SEED enabled - Running database seeds...")
+    
+    try:
+        # Import seed functions
+        from seeds.seed_roles import seed_default_roles
+        from seeds.seed_users import seed_default_users
+        from seeds.seed_courses import seed_all_courses
+        from seeds.seed_students import seed_all_students
+        from seeds.seed_email_settings import seed_email_settings
+        from seeds.seed_email_actions import seed_email_actions
+        from seeds.seed_email_templates import seed_email_templates
+        
+        # Run seeds in order
+        seed_default_roles(app)
+        seed_default_users(app)
+        seed_all_courses(app)
+        seed_all_students(app)
+        seed_email_settings(app)
+        seed_email_actions(app)
+        seed_email_templates(app)
+        
+        # Create flag file to mark database as seeded
+        seed_flag_file.write_text('seeded')
+        app.looger.info("✓ Auto-seed completed successfully")
+        
+    except Exception as e:
+        app.looger.error(f"Auto-seed failed: {e}")
+        # Don't raise - allow app to continue even if seeding fails
 
 
 def init_logger(app):

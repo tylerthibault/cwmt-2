@@ -25,6 +25,9 @@ class Config:
     APP_NAME = 'CWMT Flask Application'
     APP_VERSION = '1.0.0'
     
+    # Auto-seeding configuration
+    AUTO_SEED = False  # Set to True in development to auto-seed on startup
+    
     # Logging configuration
     LOG_FILE = None  # Set in environment-specific configs
 
@@ -32,6 +35,9 @@ class DevelopmentConfig(Config):
     """Development environment configuration"""
     DEBUG = True
     TESTING = False
+    
+    # Enable auto-seeding in development
+    AUTO_SEED = True
     
     # Development-specific logging
     LOG_LEVEL = 'DEBUG'
