@@ -265,6 +265,15 @@ class CourseLogic:
         db.session.add(course)
         db.session.commit()
         
+        # Copy payable items from template to course (price snapshot pattern)
+        try:
+            from src.logic.payable_item_logic import CoursePayableItemLogic
+            CoursePayableItemLogic.copy_items_from_template(course.id, data['course_template_id'])
+        except Exception as e:
+            # Log but don't fail course creation if payable items aren't set up yet
+            # This maintains backward compatibility
+            pass
+        
         # If a student_id was provided in the data, enroll them
         # This maintains backward compatibility with old forms
         student_id = data.get('student_id') or None
@@ -279,9 +288,6 @@ class CourseLogic:
                 # For now, we'll let the course exist without a student
                 db.session.rollback()
                 raise CourseBusinessError(f"Course created but failed to enroll student: {str(e)}")
-        
-        return course
-        db.session.commit()
         
         return course
     

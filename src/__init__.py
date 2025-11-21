@@ -197,6 +197,9 @@ def init_blueprints(app):
         from src.controllers.student_controller import student_bp
         app.register_blueprint(student_bp)
 
+        from src.controllers.payable_items import payable_items_bp
+        app.register_blueprint(payable_items_bp)
+
     except ImportError as e:
         app.looger.warning(f"Failed to import routes: {e}")
     except Exception as e:

@@ -108,6 +108,13 @@
                             <span class="sidenav-btn-text">Course Management</span>
                         </a>
                     </li>
+                    <li>
+                        <!-- payable items -->
+                        <a href="{{ url_for('payables.payable_items') }}">
+                            <span class="icon" aria-hidden="true">&#128179;</span>
+                            <span class="sidenav-btn-text">Payable Items</span>
+                        </a>
+                    </li>
                     <li><a href="{{ url_for('super_user.system_settings') }}">
                             <span class="icon" aria-hidden="true">&#128295;</span>
                             <span class="sidenav-btn-text">System Settings</span>

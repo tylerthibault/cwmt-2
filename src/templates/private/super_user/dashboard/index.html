@@ -3,31 +3,31 @@
 {% block content %}
 <!-- Apple Style 1: Minimalist Cards with Graphs -->
 <div class="container-fluid dashboard-style-1">
-    {% include 'private/dashboard/super_user/components/header.html' %}
+    {% include 'private/super_user/dashboard/components/header.html' %}
 
     <!-- Tab Content -->
     <div class="tab-content">
         <!-- Overview Tab -->
         <div class="tab-pane fade show active" id="overview-tab" role="tabpanel" aria-labelledby="overview-tab">
             <!-- Stats Grid -->
-            {% include 'private/dashboard/super_user/components/stats_cards.html' %}
+            {% include 'private/super_user/dashboard/components/stats_cards.html' %}
 
             <!-- Charts Section -->
             <div class="charts-section-1">
                 <!-- Enrollment Trends -->
-                {% include 'private/dashboard/super_user/components/enrollment_trends.html' %}
+                {% include 'private/super_user/dashboard/components/enrollment_trends.html' %}
 
                 <!-- Course Distribution -->
-                {% include 'private/dashboard/super_user/components/course_distribution.html' %}
+                {% include 'private/super_user/dashboard/components/course_distribution.html' %}
             </div>
 
             <!-- Quick Actions & Recent Activity -->
             <div class="bottom-section-1">
                 <!-- Quick Actions -->
-                {% include 'private/dashboard/super_user/components/quick_actions.html' %}
+                {% include 'private/super_user/dashboard/components/quick_actions.html' %}
 
                 <!-- Recent Activity -->
-                {% include 'private/dashboard/super_user/components/recent_activity.html' %}
+                {% include 'private/super_user/dashboard/components/recent_activity.html' %}
             </div>
         </div>
 
@@ -57,7 +57,7 @@
     </div>
 </div>
 
-{% include 'private/dashboard/super_user/components/dashboard_styles.html' %}
+{% include 'private/super_user/dashboard/components/dashboard_styles.html' %}
 {% endblock content %}
 
 {% block custom_js %}

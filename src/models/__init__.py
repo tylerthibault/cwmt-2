@@ -28,6 +28,7 @@ def init_db(app):
         from src.models.email_template_model import EmailTemplate
         from src.models.email_action_model import EmailAction
         from src.models.password_reset_token import PasswordResetToken
+        from src.models.payable_item_model import PayableItemTemplate, CourseTemplatePayableItem, CoursePayableItem
         
         # Create all tables if they don't exist
         db.create_all()
