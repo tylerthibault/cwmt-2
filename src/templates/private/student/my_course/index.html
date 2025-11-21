@@ -1,0 +1,405 @@
+{% extends 'bases/student.html' %}
+
+{% block title %}{{ course.template.name }} - Course Details{% endblock title %}
+
+{% block content %}
+<div class="course-details-container">
+    
+    <div class="cd-content">
+        <div class="cd-header">
+            <div>
+                <h1 class="cd-title">{{ course.template.name }}</h1>
+                <p class="cd-subtitle">{{ course.template.experience_level | title }} Level</p>
+            </div>
+            <span class="cd-status cd-status-{{ enrollment.status }}">
+                {{ enrollment.status | title }}
+            </span>
+        </div>
+        
+        <div class="cd-info-grid">
+            <div class="cd-info-card">
+                <div class="cd-info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="cd-info-label">Course Date</div>
+                    <div class="cd-info-value">{{ course.course_date.strftime('%B %d, %Y') if course.course_date else 'Date TBD' }}</div>
+                </div>
+            </div>
+            
+            <div class="cd-info-card">
+                <div class="cd-info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="cd-info-label">Course Time</div>
+                    <div class="cd-info-value">{{ course.course_time.strftime('%I:%M %p') if course.course_time else 'Time TBD' }}</div>
+                </div>
+            </div>
+            
+            <div class="cd-info-card">
+                <div class="cd-info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="cd-info-label">Location</div>
+                    <div class="cd-info-value">{{ course.location or 'Location TBD' }}</div>
+                </div>
+            </div>
+            
+            <div class="cd-info-card">
+                <div class="cd-info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="cd-info-label">Duration</div>
+                    <div class="cd-info-value">{{ course.template.duration_days }} day{% if course.template.duration_days != 1 %}s{% endif %}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cd-section">
+            <h2 class="cd-section-title">Course Description</h2>
+            <p class="cd-description">{{ course.template.description or 'No description available.' }}</p>
+        </div>
+        
+        <div class="cd-section">
+            <h2 class="cd-section-title">Instructors</h2>
+            <div class="cd-instructors">
+                {% if course.instructor1 %}
+                <div class="cd-instructor">
+                    <div class="cd-instructor-avatar">{{ course.instructor1.first_name[0] }}{{ course.instructor1.last_name[0] }}</div>
+                    <div>
+                        <div class="cd-instructor-name">{{ course.instructor1.first_name }} {{ course.instructor1.last_name }}</div>
+                        <div class="cd-instructor-role">Primary Instructor</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if course.instructor2 %}
+                <div class="cd-instructor">
+                    <div class="cd-instructor-avatar">{{ course.instructor2.first_name[0] }}{{ course.instructor2.last_name[0] }}</div>
+                    <div>
+                        <div class="cd-instructor-name">{{ course.instructor2.first_name }} {{ course.instructor2.last_name }}</div>
+                        <div class="cd-instructor-role">Secondary Instructor</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if not course.instructor1 and not course.instructor2 %}
+                <p class="cd-no-data">Instructors will be assigned soon.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if enrollment.brings_motorcycle or enrollment.brings_car %}
+        <div class="cd-section">
+            <h2 class="cd-section-title">Your Vehicle Information</h2>
+            <div class="cd-vehicles">
+                {% if enrollment.brings_motorcycle %}
+                <div class="cd-vehicle">
+                    <div class="cd-vehicle-icon">🏍️</div>
+                    <div>
+                        <div class="cd-vehicle-title">Motorcycle</div>
+                        <div class="cd-vehicle-details">
+                            {{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}
+                            {% if enrollment.motorcycle_license_plate %}
+                            <br>Plate: {{ enrollment.motorcycle_license_plate }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if enrollment.brings_car %}
+                <div class="cd-vehicle">
+                    <div class="cd-vehicle-icon">🚗</div>
+                    <div>
+                        <div class="cd-vehicle-title">Car</div>
+                        <div class="cd-vehicle-details">
+                            {{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}
+                            {% if enrollment.car_license_plate %}
+                            <br>Plate: {{ enrollment.car_license_plate }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="cd-actions">
+            <a href="{{ url_for('student.my_courses') }}" class="cd-btn cd-btn-secondary">← Back to My Courses</a>
+            {% if enrollment.status == 'active' %}
+            <button onclick="openWithdrawModal()" class="cd-btn cd-btn-danger">Withdraw from Course</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.course-details-container {
+    background: #F5F5F7;
+    min-height: 100vh;
+}
+
+.cd-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.cd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.cd-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.5px;
+}
+
+.cd-subtitle {
+    font-size: 1.125rem;
+    color: #86868B;
+    margin: 0;
+}
+
+.cd-status {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cd-status-active {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.cd-status-completed {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
+.cd-status-withdrawn {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.cd-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.cd-info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cd-info-icon {
+    flex-shrink: 0;
+    color: #0071E3;
+}
+
+.cd-info-label {
+    font-size: 0.75rem;
+    color: #86868B;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.cd-info-value {
+    font-size: 1rem;
+    color: #1D1D1F;
+    font-weight: 500;
+}
+
+.cd-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cd-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0 0 1rem 0;
+}
+
+.cd-description {
+    font-size: 1rem;
+    color: #6E6E73;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.cd-instructors {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cd-instructor {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #F5F5F7;
+    border-radius: 8px;
+}
+
+.cd-instructor-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #0071E3;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.cd-instructor-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1D1D1F;
+}
+
+.cd-instructor-role {
+    font-size: 0.875rem;
+    color: #86868B;
+}
+
+.cd-vehicles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.cd-vehicle {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #F5F5F7;
+    border-radius: 8px;
+}
+
+.cd-vehicle-icon {
+    font-size: 2rem;
+}
+
+.cd-vehicle-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.25rem;
+}
+
+.cd-vehicle-details {
+    font-size: 0.875rem;
+    color: #6E6E73;
+}
+
+.cd-no-data {
+    font-size: 0.875rem;
+    color: #86868B;
+    font-style: italic;
+    margin: 0;
+}
+
+.cd-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.cd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.cd-btn-secondary {
+    background: #E5E5E7;
+    color: #1D1D1F;
+}
+
+.cd-btn-secondary:hover {
+    background: #D2D2D7;
+}
+
+.cd-btn-danger {
+    background: #FF3B30;
+    color: white;
+}
+
+.cd-btn-danger:hover {
+    background: #E02020;
+}
+
+@media (max-width: 768px) {
+    .cd-header {
+        flex-direction: column;
+    }
+    
+    .cd-title {
+        font-size: 2rem;
+    }
+    
+    .cd-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cd-actions {
+        flex-direction: column;
+    }
+    
+    .cd-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock content %}

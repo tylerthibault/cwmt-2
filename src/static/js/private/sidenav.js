@@ -24,12 +24,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Role Switcher functionality
     const roleSwitcher = document.getElementById('roleSwitcher');
     if (roleSwitcher) {
-        // Listen for role changes - reload dashboard with view_as parameter
+        // Listen for role changes - navigate to role-specific dashboard
         roleSwitcher.addEventListener('change', function() {
             const selectedRole = this.value;
-            const dashboardUrl = new URL(window.location.origin + roleSwitcher.dataset.dashboardUrl);
-            dashboardUrl.searchParams.set('view_as', selectedRole);
-            window.location.href = dashboardUrl.toString();
+            // Map role to dashboard endpoint
+            const dashboardMap = {
+                'student': '/student/dashboard',
+                'instructor': '/instructor/dashboard',
+                'admin': '/admin/dashboard',
+                'super-user': '/super-user/dashboard'
+            };
+            const dashboardPath = dashboardMap[selectedRole];
+            if (dashboardPath) {
+                window.location.href = dashboardPath;
+            }
         });
     }
 

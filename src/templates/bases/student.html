@@ -1,60 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'bases/public.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block page_wrapper %}
+    
+{% block header %}
+{% include 'private/student/components/header.html' %}
+{% endblock header %}
 
-    <!-- bootstrap css -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrapcss/bootstrap.min.css') }}">
+{% block content %}
+    
+{% endblock content %}
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- custom css -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-
-    {% block custom_head %}
-
-    {% endblock custom_head %}
-
-    <title>{% block title %}Student Portal - CWMT{% endblock title %}</title>
-</head>
-
-<body class="text-primary bg-light">
-    {% include 'components/flash_messages.html' %}
-
-    <div class="d-flex flex-column min-vh-100">
-        <!-- Top Navigation -->
-        <header>
-            {% block header %}
-            {% include 'private/dashboard/student/components/topnav.html' %}
-            {% endblock header %}
-        </header>
-        
-        <!-- Main Content -->
-        <main class="flex-grow-1">
-            {% block content %}
-            
-            {% endblock content %}
-        </main>
-        
-        <!-- Footer -->
-        <footer class="mt-auto bg-dark text-white py-3">
-            {% block footer %}
-            <div class="container text-center">
-                <p class="mb-0">&copy; 2025 CWMT. All rights reserved.</p>
-            </div>
-            {% endblock footer %}
-        </footer>
-    </div>
-
-    <!-- bootstrap js -->
-    <script src="{{ url_for('static', filename='js/bootstrapjs/bootstrap.bundle.min.js') }}"></script>
-
-    {% block custom_js %}
-
-    {% endblock custom_js %}
-</body>
-
-</html>
+{% endblock page_wrapper %}

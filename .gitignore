@@ -64,3 +64,6 @@ htmlcov/
 *.tmp
 
 # dev branch test
+
+.github
+.guardians

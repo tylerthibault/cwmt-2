@@ -148,7 +148,7 @@ class UserLogic:
             'user': user,
             'current_user': user,  # Add current_user for template compatibility
             'current_role': current_role,
-            'dashboard_template': 'private/dashboard/student/index.html',
+            'dashboard_template': 'private/student/index.html',
             'available_courses': available_courses,
             'course_templates': course_templates,
             'locations': locations,

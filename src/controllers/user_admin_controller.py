@@ -55,6 +55,46 @@ def admin_required(f):
 
 
 # ============================================================================
+# DASHBOARD ROUTE
+# ============================================================================
+
+@user_admin_bp.route('/')
+@user_admin_bp.route('/dashboard')
+@admin_required
+def dashboard():
+    """
+    Admin dashboard - main landing page for admin users.
+    Shows quick stats and recent activity.
+    """
+    # Get context for admin view
+    user_context = UserLogic.get_context(view_as='admin')
+    
+    # Get quick stats
+    from datetime import date, timedelta
+    today = date.today()
+    week_from_now = today + timedelta(days=7)
+    
+    upcoming_courses = Course.query.filter(
+        Course.course_date >= today,
+        Course.course_date <= week_from_now,
+        Course.status == 'scheduled'
+    ).count()
+    
+    total_templates = CourseTemplate.query.filter_by(is_active=True).count()
+    total_courses = Course.query.filter_by(status='scheduled').count()
+    
+    context = {
+        **user_context,
+        'upcoming_courses': upcoming_courses,
+        'total_templates': total_templates,
+        'total_courses': total_courses,
+        'page_title': 'Admin Dashboard'
+    }
+    
+    return render_template('private/admin/dashboard/index.html', **context)
+
+
+# ============================================================================
 # SCHEDULE MANAGEMENT ROUTES
 # ============================================================================
 

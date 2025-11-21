@@ -1,6 +1,18 @@
+<style>
+    .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold" href="{{ url_for('user.dashboard') }}">
+        <a class="navbar-brand fw-bold" href="{{ url_for('student.dashboard') }}">
             <i class="fas fa-motorcycle me-2"></i>
             CWMT Rider Portal
         </a>
@@ -12,7 +24,7 @@
         <div class="collapse navbar-collapse" id="studentNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}" href="{{ url_for('user.dashboard') }}">
+                    <a class="nav-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}" href="{{ url_for('student.dashboard') }}">
                         <i class="fas fa-home me-1"></i> Dashboard
                     </a>
                 </li>
@@ -32,7 +44,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle me-1"></i>
-                        {% if current_user %}{{ current_user.first_name }}{% else %}Account{% endif %}
+                        {% if user %}{{ user.first_name }}{% else %}Account{% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li>

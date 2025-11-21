@@ -44,10 +44,67 @@ def instructor_required(f):
         instructor_role = Role.query.filter_by(name='instructor').first()
         if instructor_role not in user.role_list:
             flash('You must be an instructor to access this page.', 'danger')
-            return redirect(url_for('user.dashboard'))
+            return redirect(url_for('main.index'))
         
         return f(*args, **kwargs)
     return decorated_function
+
+
+@instructor_bp.route('/')
+@instructor_bp.route('/dashboard')
+@login_required
+@instructor_required
+def dashboard():
+    """
+    Instructor dashboard - main landing page for instructors.
+    Shows upcoming courses and instructor schedule overview.
+    """
+    try:
+        current_user = get_current_user()
+        
+        # Get instructor's assigned courses
+        today = date.today()
+        my_courses = Course.query.filter(
+            db.or_(
+                Course.instructor1_id == current_user.id,
+                Course.instructor2_id == current_user.id
+            ),
+            Course.course_date >= today
+        ).order_by(
+            Course.course_date,
+            Course.course_time
+        ).limit(5).all()
+        
+        # Get available courses (no instructor assigned yet)
+        available_courses = Course.query.filter(
+            Course.instructor1_id == None,
+            Course.course_date >= today,
+            Course.status == 'scheduled'
+        ).order_by(
+            Course.course_date,
+            Course.course_time
+        ).limit(5).all()
+        
+        return render_template(
+            'private/instructor/dashboard/index.html',
+            my_courses=my_courses,
+            available_courses=available_courses,
+            current_user=current_user,
+            user=current_user,
+            current_role='instructor'
+        )
+        
+    except Exception as e:
+        flash(f'Error loading dashboard: {str(e)}', 'danger')
+        current_user = get_current_user()
+        return render_template(
+            'private/instructor/dashboard/index.html',
+            my_courses=[],
+            available_courses=[],
+            current_user=current_user,
+            user=current_user,
+            current_role='instructor'
+        )
 
 
 @instructor_bp.route('/schedule')

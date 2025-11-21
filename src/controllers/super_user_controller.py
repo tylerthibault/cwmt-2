@@ -34,6 +34,44 @@ def super_user_required(f):
     return decorated_function
 
 
+@super_user_bp.route('/')
+@super_user_bp.route('/dashboard')
+@super_user_required
+def dashboard():
+    """
+    Super User dashboard - main landing page for super users.
+    Shows system overview and quick access to management tools.
+    """
+    user_context = UserLogic.get_context(view_as='super-user')
+    
+    # Get system stats
+    total_users = User.query.count()
+    active_users = User.query.filter_by(is_active=True).count()
+    total_roles = Role.query.count()
+    total_course_templates = CourseTemplate.query.count()
+    total_courses = Course.query.count()
+    
+    # Get recent users
+    from datetime import datetime, timedelta
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    recent_users = User.query.filter(
+        User.created_at >= week_ago
+    ).order_by(User.created_at.desc()).limit(5).all()
+    
+    context = {
+        **user_context,
+        'total_users': total_users,
+        'active_users': active_users,
+        'total_roles': total_roles,
+        'total_course_templates': total_course_templates,
+        'total_courses': total_courses,
+        'recent_users': recent_users,
+        'page_title': 'Super User Dashboard'
+    }
+    
+    return render_template('private/super_user/dashboard/index.html', **context)
+
+
 @super_user_bp.route('/user-management', methods=['GET', 'POST'])
 @super_user_required
 def user_management():

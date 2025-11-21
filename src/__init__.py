@@ -46,51 +46,6 @@ def create_app(config_name='development'):
     return app
 
 
-def init_logger(app):
-    """Initialize and attach the custom logger to the Flask app"""
-    # Determine log level based on configuration
-    logger = Logger(
-        name="CWMT",
-        log_file=app.config.get('LOG_FILE'),
-        level="DEBUG"
-    )
-    app.looger = logger
-
-
-def init_blueprints(app):
-    """Register all application blueprints"""
-    app.looger.info("Blueprints initialization started")
-    
-    try:
-        # Register main routes blueprint
-        from src.controllers.routes import main_bp
-        app.register_blueprint(main_bp)
-        
-        from src.controllers.auth_controller import auth_bp
-        app.register_blueprint(auth_bp)
-                
-        from src.controllers.user_controller import user_bp
-        app.register_blueprint(user_bp)
-
-        from src.controllers.super_user_controller import super_user_bp
-        app.register_blueprint(super_user_bp)
-
-        from src.controllers.user_admin_controller import user_admin_bp
-        app.register_blueprint(user_admin_bp)
-
-        from src.controllers.instructor_controller import instructor_bp
-        app.register_blueprint(instructor_bp)
-
-
-        
-    except ImportError as e:
-        app.looger.warning("Failed to import routes", error=str(e))
-    except Exception as e:
-        app.looger.error("Blueprint registration failed", error=str(e))
-    
-    app.looger.info("Blueprints initialization completed")
-
-
 # def init_database(app):
 #     """Initialize database connections and create tables"""
 #     app.looger.info("Database initialization started")
@@ -191,6 +146,9 @@ def init_blueprints(app):
 
         from src.controllers.instructor_controller import instructor_bp
         app.register_blueprint(instructor_bp)
+
+        from src.controllers.student_controller import student_bp
+        app.register_blueprint(student_bp)
 
     except ImportError as e:
         app.looger.warning(f"Failed to import routes: {e}")

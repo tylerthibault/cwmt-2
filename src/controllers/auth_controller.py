@@ -7,6 +7,32 @@ from src.models.logbook import Logbook
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+def get_user_dashboard_url(user):
+    """
+    Determine the appropriate dashboard URL based on user's highest role.
+    Priority: super-user > admin > instructor > student
+    
+    Args:
+        user: User object with role_list
+        
+    Returns:
+        str: URL for the appropriate dashboard
+    """
+    role_names = [role.name for role in user.role_list]
+    
+    if 'super-user' in role_names:
+        return url_for('super_user.dashboard')
+    elif 'admin' in role_names:
+        return url_for('user_admin.dashboard')
+    elif 'instructor' in role_names:
+        return url_for('instructor.dashboard')
+    elif 'student' in role_names:
+        return url_for('student.dashboard')
+    else:
+        # Default to main index if no recognized role
+        return url_for('main.index')
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -63,7 +89,8 @@ def login():
             token = Logbook.sign_logbook(user.id)
             session['token'] = token
             flash('Login successful', 'success')
-            return redirect(url_for('user.dashboard'))  # or wherever you want to redirect after login
+            # Redirect to appropriate dashboard based on user role
+            return redirect(get_user_dashboard_url(user))
         
         flash('Login failed. Please check your credentials and try again.', 'error')
     return render_template('public/auth/login/index.html')

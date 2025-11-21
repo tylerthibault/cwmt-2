@@ -5,23 +5,6 @@ from src.logic.user_logic import UserLogic
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
 
-@user_bp.route('/dashboard')
-@user_bp.route('/dashboard/<int:dashboard_id>')
-@login_required
-def dashboard(dashboard_id=1):
-    """User dashboard page"""
-    view_as = request.args.get('view_as', None)  # Get 'view_as' parameter from query string if needed
-    context = UserLogic.get_context(view_as=view_as)
-    
-    if not context:
-        flash("Unable to load dashboard context.", "error")
-        return redirect(url_for('main.index'))
-    
-    html = context.get(f'dashboard_template', 'private/dashboard/student/index.html')
-
-    return render_template(html, **context)
-
-
 @user_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll_in_course(course_id):
@@ -36,7 +19,7 @@ def enroll_in_course(course_id):
         
         if not logbook_entry or not logbook_entry.user_id:
             flash("You must be logged in to enroll in a course.", "error")
-            return redirect(url_for('user.dashboard'))
+            return redirect(url_for('student.dashboard'))
         
         user_id = logbook_entry.user_id
         
@@ -49,7 +32,7 @@ def enroll_in_course(course_id):
     except Exception as e:
         flash(f"An error occurred during enrollment: {str(e)}", "error")
     
-    return redirect(url_for('user.dashboard'))
+    return redirect(url_for('student.dashboard'))
 
 
 @user_bp.route('/settings')
