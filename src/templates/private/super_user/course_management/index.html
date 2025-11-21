@@ -30,7 +30,7 @@
                 </button>
             </div>
             <div class="cm-modal-body">
-                <form method="POST" action="{{ url_for('super_user.create_course_template') }}" id="addTemplateForm">
+                <form method="POST" action="{{ url_for('course_management.create_course_template') }}" id="addTemplateForm">
                     <div class="cm-form-group">
                         <label for="templateName" class="cm-label">Course Name</label>
                         <input type="text" id="templateName" name="name" class="cm-input" required placeholder="e.g., Get Riding">
@@ -166,7 +166,7 @@
                                 Edit
                             </button>
                             {% if course.is_active %}
-                            <form method="POST" action="{{ url_for('super_user.deactivate_course_template') }}" style="display: inline;">
+                            <form method="POST" action="{{ url_for('course_management.deactivate_course_template') }}" style="display: inline;">
                                 <input type="hidden" name="template_id" value="{{ course.id }}">
                                 <button type="submit" class="cm-action-btn cm-action-btn-danger">
                                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -177,7 +177,7 @@
                                 </button>
                             </form>
                             {% else %}
-                            <form method="POST" action="{{ url_for('super_user.activate_course_template') }}" style="display: inline;">
+                            <form method="POST" action="{{ url_for('course_management.activate_course_template') }}" style="display: inline;">
                                 <input type="hidden" name="template_id" value="{{ course.id }}">
                                 <button type="submit" class="cm-action-btn cm-action-btn-success">
                                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -282,7 +282,7 @@
                     <div class="cm-edit-form" id="edit-form-{{ course.id }}" style="display: none;">
                         <div class="cm-section">
                             <h3 class="cm-section-title">Edit Course Template</h3>
-                            <form method="POST" action="{{ url_for('super_user.update_course_template') }}">
+                            <form method="POST" action="{{ url_for('course_management.update_course_template') }}">
                                 <input type="hidden" name="template_id" value="{{ course.id }}">
                                 <div class="cm-form-group">
                                     <label for="editName{{ course.id }}" class="cm-label">Course Name</label>
@@ -315,6 +315,58 @@
                                     <button type="button" class="cm-btn cm-btn-secondary" onclick="cancelEdit({{ course.id }})">Cancel</button>
                                 </div>
                             </form>
+                        </div>
+
+                        <!-- Payable Items Section -->
+                        <div class="cm-section" style="margin-top: 1.5rem;">
+                            <div class="cm-payables-header">
+                                <h3 class="cm-section-title">Attached Payable Items</h3>
+                                <button type="button" class="cm-btn cm-btn-secondary cm-btn-small" onclick="openAttachItemModal({{ course.id }})">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right: 4px;">
+                                        <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    Attach Item
+                                </button>
+                            </div>
+                            
+                            {% set attached_items = template_items.get(course.id, []) %}
+                            {% if attached_items %}
+                            <div class="cm-payables-list">
+                                {% for attachment in attached_items %}
+                                <div class="cm-payable-item">
+                                    <div class="cm-payable-info">
+                                        <div class="cm-payable-name">{{ attachment.payable_item_template.name }}</div>
+                                        <div class="cm-payable-meta">
+                                            <span class="cm-payable-price">${{ "%.2f"|format(attachment.payable_item_template.base_price) }}</span>
+                                            <span class="cm-payable-type cm-payable-type-{{ attachment.payable_item_template.item_type }}">
+                                                {{ attachment.payable_item_template.item_type|title }}
+                                            </span>
+                                            {% if attachment.is_required %}
+                                            <span class="cm-payable-badge cm-payable-required">Required</span>
+                                            {% else %}
+                                            <span class="cm-payable-badge cm-payable-optional">Optional</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('payables.detach_from_template', template_id=course.id, item_id=attachment.payable_item_template.id) }}" style="display: inline;">
+                                        <button type="submit" class="cm-btn-icon cm-btn-danger" title="Remove item" onclick="return confirm('Remove this item from the template?')">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="cm-payables-empty">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                    <rect x="6" y="8" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M16 13V19M13 16H19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <p>No payable items attached to this template</p>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -968,7 +1020,291 @@
         gap: 1.5rem;
     }
 }
+
+/* Payable Items Styles */
+.cm-payables-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.cm-btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.cm-payables-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cm-payable-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #E5E5EA;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.cm-payable-item:hover {
+    border-color: #0071E3;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.1);
+}
+
+.cm-payable-info {
+    flex: 1;
+}
+
+.cm-payable-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.375rem;
+}
+
+.cm-payable-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.cm-payable-price {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0071E3;
+}
+
+.cm-payable-type {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.cm-payable-type-tuition { background: rgba(175, 82, 222, 0.1); color: #af52de; }
+.cm-payable-type-rental { background: rgba(0, 113, 227, 0.1); color: #0071e3; }
+.cm-payable-type-equipment { background: rgba(52, 199, 89, 0.1); color: #34c759; }
+.cm-payable-type-misc { background: rgba(142, 142, 147, 0.1); color: #8e8e93; }
+
+.cm-payable-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.cm-payable-required {
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff3b30;
+}
+
+.cm-payable-optional {
+    background: rgba(142, 142, 147, 0.1);
+    color: #8e8e93;
+}
+
+.cm-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.cm-btn-icon.cm-btn-danger {
+    color: #ff3b30;
+}
+
+.cm-btn-icon.cm-btn-danger:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.cm-payables-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #86868b;
+}
+
+.cm-payables-empty svg {
+    margin: 0 auto 0.75rem;
+}
+
+.cm-payables-empty p {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Attach Item Modal */
+.cm-attach-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.cm-attach-modal.active {
+    display: flex;
+}
+
+.cm-attach-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.cm-attach-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.cm-attach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #E5E5EA;
+}
+
+.cm-attach-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0;
+}
+
+.cm-attach-close {
+    background: none;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #86868b;
+    transition: all 0.2s ease;
+}
+
+.cm-attach-close:hover {
+    background: #F5F5F7;
+    color: #1D1D1F;
+}
+
+.cm-attach-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.cm-attach-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid #E5E5EA;
+    background: #F5F5F7;
+}
 </style>
 
+<!-- Attach Item Modal -->
+<div id="attachItemModal" class="cm-attach-modal">
+    <div class="cm-attach-backdrop" onclick="closeAttachItemModal()"></div>
+    <div class="cm-attach-content">
+        <div class="cm-attach-header">
+            <h2 class="cm-attach-title">Attach Payable Item</h2>
+            <button type="button" class="cm-attach-close" onclick="closeAttachItemModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form method="POST" id="attachItemForm" action="">
+            <div class="cm-attach-body">
+                <div class="cm-form-group">
+                    <label for="attachItemSelect" class="cm-label">Select Item *</label>
+                    <select id="attachItemSelect" name="item_id" class="cm-select" required>
+                        <option value="">Choose a payable item</option>
+                        {% for item in all_payable_items %}
+                        <option value="{{ item.id }}">{{ item.name }} - ${{ "%.2f"|format(item.base_price) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="cm-form-group">
+                    <label class="cm-checkbox-label">
+                        <input type="checkbox" name="is_required" value="on">
+                        <span>Required Item</span>
+                    </label>
+                    <p class="cm-help-text">Students must purchase this item when enrolling</p>
+                </div>
+                
+                <div class="cm-form-group">
+                    <label for="attachDisplayOrder" class="cm-label">Display Order</label>
+                    <input type="number" id="attachDisplayOrder" name="display_order" class="cm-input" min="0" value="0" placeholder="0">
+                    <p class="cm-help-text">Lower numbers appear first</p>
+                </div>
+            </div>
+            
+            <div class="cm-attach-footer">
+                <button type="button" class="cm-btn cm-btn-secondary" onclick="closeAttachItemModal()">Cancel</button>
+                <button type="submit" class="cm-btn cm-btn-primary">Attach Item</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/private/course_management.js') }}"></script>
+<script>
+let currentTemplateId = null;
+
+function openAttachItemModal(templateId) {
+    currentTemplateId = templateId;
+    const form = document.getElementById('attachItemForm');
+    form.action = `/super/payable-items/templates/${templateId}/attach`;
+    document.getElementById('attachItemModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAttachItemModal() {
+    document.getElementById('attachItemModal').classList.remove('active');
+    document.body.style.overflow = '';
+    currentTemplateId = null;
+}
+
+// Close modal on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAttachItemModal();
+    }
+});
+</script>
 {% endblock custom_js %}

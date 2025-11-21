@@ -317,7 +317,8 @@ def template_management():
         'page_title': 'Course Template Items'
     }
     
-    return render_template('private/super_user/payables/templates.html', **context)
+    return redirect(url_for('course_management.course_management'))
+    # return render_template('private/super_user/payables/templates.html', **context)
 
 
 @payable_items_bp.route('/templates/<int:template_id>/attach', methods=['GET', 'POST'])
