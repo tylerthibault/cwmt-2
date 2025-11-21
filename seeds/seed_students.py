@@ -2,61 +2,64 @@
 Seed student profiles and enrollments
 Creates example students with profiles and course enrollments
 """
-from datetime import datetime, timedelta
+from datetime import datetime
 from src.models import db
 from src.models.user import User
 from src.models.student_profile import StudentProfile
 from src.models.course_enrollment import CourseEnrollment
 from src.models.courses_model import Course
-from src.logic.student_logic import StudentLogic
+from src.models.roles import Role
 
 
 def seed_student_profiles(app):
     """
-    Seed student profiles for existing users.
+    Seed student profiles for existing users with student role.
     
     Args:
         app: Flask application instance
     """
-    with app.app_context():
-        app.looger.info("Seeding student profiles...")
+    # Get all users with student role who don't have student profiles yet
+    students = User.query.join(User.role_list).filter(Role.name == 'student').all()
+    
+    if not students:
+        print("  ⚠ No users with student role found")
+        return
+    
+    profiles_created = 0
+    profiles_existing = 0
+    
+    for user in students:
+        # Check if user already has a student profile
+        existing_profile = StudentProfile.query.filter_by(user_id=user.id).first()
+        if existing_profile:
+            profiles_existing += 1
+            continue
         
+        # Create student profile
+        student_data = {
+            'user_id': user.id,
+            'student_number': f'STU{user.id:05d}',
+            'grade_level': 'Beginner',
+            'overall_score': 0.0,
+            'emergency_contact_name': f'{user.first_name} Contact',
+            'emergency_contact_phone': f'555-010{user.id}'
+        }
+        
+        profile = StudentProfile(**student_data)
+        db.session.add(profile)
+        profiles_created += 1
+        print(f"  ✓ Created student profile for {user.username}")
+    
+    if profiles_created > 0:
         try:
-            # Get all users who don't have student profiles yet
-            users = User.query.all()
-            students_created = 0
-            
-            for user in users:
-                # Check if user already has a student profile
-                existing_profile = StudentProfile.query.filter_by(user_id=user.id).first()
-                if existing_profile:
-                    continue
-                
-                # Create student profile for users who aren't admins
-                if not user.is_admin:
-                    try:
-                        student_data = {
-                            'student_number': f'STU{user.id:05d}',
-                            'grade_level': 'Beginner',
-                            'overall_score': 0.0,
-                            'emergency_contact_name': f'{user.first_name or "Parent"} Contact',
-                            'emergency_contact_phone': '555-0100'
-                        }
-                        
-                        StudentLogic.create_student_profile(user.id, student_data)
-                        students_created += 1
-                        app.looger.info(f"Created student profile for user {user.username}")
-                    except Exception as e:
-                        app.looger.error(f"Failed to create student profile for user {user.username}: {str(e)}")
-            
-            if students_created > 0:
-                app.looger.info(f"Successfully created {students_created} student profiles")
-            else:
-                app.looger.info("No new student profiles created (all users already have profiles or are admins)")
-                
+            db.session.commit()
+            print(f"\n✓ Seeded {profiles_created} profile(s), {profiles_existing} already existed")
         except Exception as e:
-            app.looger.error(f"Error seeding student profiles: {str(e)}")
             db.session.rollback()
+            print(f"  ✗ Error seeding student profiles: {str(e)}")
+            raise
+    else:
+        print(f"\n✓ All {profiles_existing} profile(s) already exist")
 
 
 def seed_sample_enrollments(app):
@@ -66,81 +69,70 @@ def seed_sample_enrollments(app):
     Args:
         app: Flask application instance
     """
-    with app.app_context():
-        app.looger.info("Seeding sample course enrollments...")
-        
+    # Get some students and courses
+    students = StudentProfile.query.limit(5).all()
+    courses = Course.query.filter_by(status='scheduled').all()
+    
+    if not students:
+        print("  ⚠ No student profiles found, skipping enrollment seeding")
+        return
+    
+    if not courses:
+        print("  ⚠ No scheduled courses found, skipping enrollment seeding")
+        return
+    
+    enrollments_created = 0
+    enrollments_existing = 0
+    
+    # Enroll each student in first 2 courses with different vehicle configurations
+    for i, student in enumerate(students):
+        for j, course in enumerate(courses[:2] if len(courses) >= 2 else courses):
+            # Check if already enrolled
+            existing = CourseEnrollment.query.filter_by(
+                student_id=student.id,
+                course_id=course.id
+            ).first()
+            
+            if existing:
+                enrollments_existing += 1
+                continue
+            
+            # Create enrollment with different vehicle configurations
+            enrollment_data = {
+                'student_id': student.id,
+                'course_id': course.id,
+                'status': 'active',
+                'enrollment_date': datetime.utcnow(),
+                'course_score': 0.0,
+                'attendance_percentage': 0.0,
+                'notes': f'Sample enrollment for testing'
+            }
+            
+            # Every other student brings a motorcycle
+            if i % 2 == 0:
+                enrollment_data.update({
+                    'brings_motorcycle': True,
+                    'motorcycle_make': 'Honda' if i % 4 == 0 else 'Yamaha',
+                    'motorcycle_model': 'CBR500R' if i % 4 == 0 else 'YZF-R3',
+                    'motorcycle_year': 2020 + i,
+                    'motorcycle_license_plate': f'MC{i}{j}123'
+                })
+            
+            enrollment = CourseEnrollment(**enrollment_data)
+            db.session.add(enrollment)
+            enrollments_created += 1
+            print(f"  ✓ Enrolled {student.student_number} in course {course.id}")
+    
+    if enrollments_created > 0:
         try:
-            # Get some students and courses
-            students = StudentProfile.query.limit(5).all()
-            courses = Course.query.filter_by(status='scheduled').limit(3).all()
-            
-            if not students:
-                app.looger.info("No students found, skipping enrollment seeding")
-                return
-            
-            if not courses:
-                app.looger.info("No scheduled courses found, skipping enrollment seeding")
-                return
-            
-            enrollments_created = 0
-            
-            # Create sample enrollments
-            for i, student in enumerate(students):
-                for j, course in enumerate(courses):
-                    # Check if already enrolled
-                    existing = CourseEnrollment.query.filter_by(
-                        student_id=student.id,
-                        course_id=course.id
-                    ).first()
-                    
-                    if existing:
-                        continue
-                    
-                    # Create enrollment with different vehicle configurations
-                    enrollment_data = {}
-                    
-                    # Every other student brings a motorcycle
-                    if i % 2 == 0:
-                        enrollment_data.update({
-                            'brings_motorcycle': True,
-                            'motorcycle_make': 'Honda' if i % 4 == 0 else 'Yamaha',
-                            'motorcycle_model': 'CBR500R' if i % 4 == 0 else 'YZF-R3',
-                            'motorcycle_year': 2020 + i,
-                            'motorcycle_license_plate': f'MC{i}{j}123'
-                        })
-                    
-                    # Some students bring cars
-                    if i % 3 == 0:
-                        enrollment_data.update({
-                            'brings_car': True,
-                            'car_make': 'Toyota',
-                            'car_model': 'Corolla',
-                            'car_year': 2019 + i,
-                            'car_license_plate': f'CAR{i}{j}456'
-                        })
-                    
-                    # Add some notes
-                    enrollment_data['notes'] = f'Sample enrollment for testing - Student {i+1} in Course {j+1}'
-                    
-                    try:
-                        StudentLogic.enroll_in_course(
-                            student.id,
-                            course.id,
-                            enrollment_data
-                        )
-                        enrollments_created += 1
-                        app.looger.info(f"Enrolled student {student.student_number} in course {course.id}")
-                    except Exception as e:
-                        app.looger.error(f"Failed to enroll student {student.student_number}: {str(e)}")
-            
-            if enrollments_created > 0:
-                app.looger.info(f"Successfully created {enrollments_created} course enrollments")
-            else:
-                app.looger.info("No new enrollments created (students already enrolled)")
-                
+            db.session.commit()
+            print(f"\n✓ Seeded {enrollments_created} enrollment(s), {enrollments_existing} already existed")
         except Exception as e:
-            app.looger.error(f"Error seeding enrollments: {str(e)}")
             db.session.rollback()
+            print(f"  ✗ Error seeding enrollments: {str(e)}")
+            raise
+    else:
+        print(f"\n✓ All {enrollments_existing} enrollment(s) already exist")
 
 
 def seed_completed_courses(app):
@@ -150,37 +142,33 @@ def seed_completed_courses(app):
     Args:
         app: Flask application instance
     """
-    with app.app_context():
-        app.looger.info("Seeding completed course enrollments...")
-        
+    # Get some active enrollments to mark as completed
+    active_enrollments = CourseEnrollment.query.filter_by(status='active').limit(2).all()
+    
+    if not active_enrollments:
+        print("  ⚠ No active enrollments found, skipping completion seeding")
+        return
+    
+    completions = 0
+    scores = [95.5, 87.0, 92.5, 78.0, 88.5]
+    
+    for i, enrollment in enumerate(active_enrollments):
+        final_score = scores[i % len(scores)]
+        enrollment.status = 'completed'
+        enrollment.course_score = final_score
+        enrollment.completion_date = datetime.utcnow()
+        enrollment.attendance_percentage = 100.0
+        completions += 1
+        print(f"  ✓ Marked enrollment {enrollment.id} as completed with score {final_score}")
+    
+    if completions > 0:
         try:
-            # Get some active enrollments to mark as completed
-            active_enrollments = CourseEnrollment.query.filter_by(status='active').limit(3).all()
-            
-            if not active_enrollments:
-                app.looger.info("No active enrollments found, skipping completion seeding")
-                return
-            
-            completions = 0
-            scores = [95.5, 87.0, 92.5, 78.0, 88.5]
-            
-            for i, enrollment in enumerate(active_enrollments):
-                try:
-                    final_score = scores[i % len(scores)]
-                    StudentLogic.complete_course(enrollment.id, final_score)
-                    completions += 1
-                    app.looger.info(f"Marked enrollment {enrollment.id} as completed with score {final_score}")
-                except Exception as e:
-                    app.looger.error(f"Failed to complete enrollment {enrollment.id}: {str(e)}")
-            
-            if completions > 0:
-                app.looger.info(f"Successfully completed {completions} enrollments")
-            else:
-                app.looger.info("No enrollments marked as completed")
-                
+            db.session.commit()
+            print(f"\n✓ Completed {completions} enrollment(s)")
         except Exception as e:
-            app.looger.error(f"Error seeding completed courses: {str(e)}")
             db.session.rollback()
+            print(f"  ✗ Error completing enrollments: {str(e)}")
+            raise
 
 
 def seed_all_students(app):
@@ -195,7 +183,9 @@ def seed_all_students(app):
     seed_completed_courses(app)
 
 
-# Auto-run seeding if this file is executed directly
 if __name__ == '__main__':
     from run import app
     seed_all_students(app)
+
+
+__all__ = ['seed_student_profiles', 'seed_sample_enrollments', 'seed_completed_courses', 'seed_all_students']

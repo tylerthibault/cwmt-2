@@ -43,18 +43,21 @@ def dashboard():
         # Get enrolled courses
         enrolled_courses = StudentLogic.get_student_courses(student_profile.id)
         
+        # Filter out withdrawn courses - only show active and completed
+        active_enrollments = [e for e in enrolled_courses if e.status not in ['withdrawn', 'cancelled']]
+        
         # Organize courses by status
-        active_courses = [e for e in enrolled_courses if e.status == 'active']
-        completed_courses = [e for e in enrolled_courses if e.status == 'completed']
+        active_courses = [e for e in active_enrollments if e.status == 'active']
+        completed_courses = [e for e in active_enrollments if e.status == 'completed']
         
         context = {
             'user': user,
             'current_role': 'student',
             'student_profile': student_profile,
-            'enrolled_courses': [enrollment.course for enrollment in enrolled_courses],
+            'enrolled_courses': [enrollment.course for enrollment in active_enrollments],
             'active_courses': active_courses,
             'completed_courses': completed_courses,
-            'total_enrollments': len(enrolled_courses),
+            'total_enrollments': len(active_enrollments),
             'active_count': len(active_courses),
             'completed_count': len(completed_courses)
         }
@@ -186,12 +189,21 @@ def available_courses():
         student_profile = StudentLogic.get_student_profile(user_id)
         
         # Get available courses (scheduled, not full, in the future)
-        available_courses = CourseLogic.get_available_courses()
+        all_available = CourseLogic.get_available_courses()
         
-        # Get student's current enrollments to filter out
+        # Debug: Log what we got
+        from flask import current_app
+        current_app.logger.info(f"Total available courses from CourseLogic: {len(all_available)}")
+        
+        # Get student's current ACTIVE enrollments to filter out (allow re-enrollment if withdrawn)
+        active_enrolled_course_ids = []
         if student_profile:
-            enrolled_course_ids = [e.course_id for e in StudentLogic.get_student_courses(student_profile.id)]
-            available_courses = [c for c in available_courses if c.id not in enrolled_course_ids]
+            enrollments = StudentLogic.get_student_courses(student_profile.id)
+            active_enrolled_course_ids = [e.course_id for e in enrollments if e.status not in ['withdrawn', 'cancelled']]
+            current_app.logger.info(f"Student has {len(active_enrolled_course_ids)} active enrollments to filter out")
+        
+        available_courses = [c for c in all_available if c.id not in active_enrolled_course_ids]
+        current_app.logger.info(f"Available courses for student after filtering: {len(available_courses)}")
         
         context = {
             'user': logbook_entry.user,
@@ -200,7 +212,7 @@ def available_courses():
             'student_profile': student_profile
         }
         
-        return render_template('private/student/available_courses.html', **context)
+        return render_template('private/student/available_courses/index.html', **context)
         
     except Exception as e:
         flash(f"Error loading available courses: {str(e)}", "error")
@@ -224,28 +236,33 @@ def enroll_in_course(course_id):
         
         user_id = logbook_entry.user_id
         
-        # Get enrollment data from form
-        enrollment_data = {
-            'brings_motorcycle': request.form.get('brings_motorcycle') == 'on',
-            'motorcycle_make': request.form.get('motorcycle_make'),
-            'motorcycle_model': request.form.get('motorcycle_model'),
-            'motorcycle_year': request.form.get('motorcycle_year'),
-            'motorcycle_license_plate': request.form.get('motorcycle_license_plate'),
-            'brings_car': request.form.get('brings_car') == 'on',
-            'car_make': request.form.get('car_make'),
-            'car_model': request.form.get('car_model'),
-            'car_year': request.form.get('car_year'),
-            'car_license_plate': request.form.get('car_license_plate'),
-            'notes': request.form.get('notes')
-        }
-        
         # Attempt enrollment
         course = CourseLogic.enroll_student(
             course_id=course_id,
-            user_id=user_id,
-            is_admin_override=False,
-            enrollment_data=enrollment_data
+            student_id=user_id,  # This is the user_id which enroll_student expects
+            is_admin_override=False
         )
+        
+        # After successful enrollment, update vehicle information if provided
+        student_profile = StudentLogic.get_student_profile(user_id)
+        if student_profile:
+            # Find the enrollment we just created
+            enrollment = CourseEnrollment.query.filter_by(
+                student_id=student_profile.id,
+                course_id=course_id
+            ).first()
+            
+            if enrollment:
+                # Update with vehicle information from form
+                vehicle_data = {
+                    'brings_motorcycle': request.form.get('brings_motorcycle') == 'on',
+                    'motorcycle_make': request.form.get('motorcycle_make'),
+                    'motorcycle_model': request.form.get('motorcycle_model'),
+                    'motorcycle_year': request.form.get('motorcycle_year'),
+                    'motorcycle_license_plate': request.form.get('motorcycle_license_plate'),
+                    'notes': request.form.get('notes')
+                }
+                StudentLogic.update_enrollment(enrollment.id, vehicle_data)
         
         flash(f"Successfully enrolled in {course.template.name}!", "success")
         return redirect(url_for('student.view_course', course_id=course_id))
@@ -293,12 +310,7 @@ def update_vehicle_info(course_id):
             'motorcycle_make': request.form.get('motorcycle_make'),
             'motorcycle_model': request.form.get('motorcycle_model'),
             'motorcycle_year': request.form.get('motorcycle_year'),
-            'motorcycle_license_plate': request.form.get('motorcycle_license_plate'),
-            'brings_car': request.form.get('brings_car') == 'true',
-            'car_make': request.form.get('car_make'),
-            'car_model': request.form.get('car_model'),
-            'car_year': request.form.get('car_year'),
-            'car_license_plate': request.form.get('car_license_plate')
+            'motorcycle_license_plate': request.form.get('motorcycle_license_plate')
         }
         
         StudentLogic.update_enrollment(enrollment.id, vehicle_data)

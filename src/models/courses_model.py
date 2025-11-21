@@ -146,20 +146,24 @@ class Course(BaseModel):
     def get_available_slots(self):
         """
         Get the number of available slots remaining for this course.
+        Only counts active enrollments (excludes withdrawn/cancelled).
         
         Returns:
             int: Number of slots available (can be negative if overbooked)
         """
-        return self.get_max_students() - len(self.enrollments)
+        active_enrollments = [e for e in self.enrollments if e.status not in ['withdrawn', 'cancelled']]
+        return self.get_max_students() - len(active_enrollments)
     
     def is_full(self):
         """
         Check if course is at or over capacity.
+        Only counts active enrollments (excludes withdrawn/cancelled).
         
         Returns:
             bool: True if course is full
         """
-        return len(self.enrollments) >= self.get_max_students()
+        active_enrollments = [e for e in self.enrollments if e.status not in ['withdrawn', 'cancelled']]
+        return len(active_enrollments) >= self.get_max_students()
     
     def __repr__(self):
         """String representation of course"""

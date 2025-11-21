@@ -234,7 +234,7 @@
                             </div>
 
                             <!-- Vehicle Information -->
-                            {% if enrollment.brings_motorcycle or enrollment.brings_car %}
+                            {% if enrollment.brings_motorcycle %}
                             <div class="st-vehicle-info">
                                 <div class="st-vehicle-header">
                                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -245,7 +245,6 @@
                                     <strong>Vehicle Information:</strong>
                                 </div>
                                 <div class="st-vehicle-list">
-                                    {% if enrollment.brings_motorcycle %}
                                     <div class="st-vehicle-item">
                                         <span class="st-badge st-badge-warning">Motorcycle</span>
                                         <span>{{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}</span>
@@ -253,16 +252,6 @@
                                             <span class="st-plate">Plate: {{ enrollment.motorcycle_license_plate }}</span>
                                         {% endif %}
                                     </div>
-                                    {% endif %}
-                                    {% if enrollment.brings_car %}
-                                    <div class="st-vehicle-item">
-                                        <span class="st-badge st-badge-info">Car</span>
-                                        <span>{{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}</span>
-                                        {% if enrollment.car_license_plate %}
-                                            <span class="st-plate">Plate: {{ enrollment.car_license_plate }}</span>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}

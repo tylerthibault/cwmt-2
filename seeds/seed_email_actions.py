@@ -90,36 +90,47 @@ def seed_email_actions(app):
         }
     ]
     
-    with app.app_context():
-        print("\nSeeding email actions...")
+    actions_created = 0
+    actions_updated = 0
+    
+    for action_data in email_actions:
+        # Check if action already exists
+        existing_action = EmailAction.query.filter_by(
+            action_key=action_data['action_key']
+        ).first()
         
-        for action_data in email_actions:
-            # Check if action already exists
-            existing_action = EmailAction.query.filter_by(
-                action_key=action_data['action_key']
-            ).first()
-            
-            if existing_action:
-                # Update existing action
-                existing_action.name = action_data['name']
-                existing_action.description = action_data['description']
-                existing_action.available_variables = action_data['available_variables']
-                print(f"  Updated: {action_data['name']} ({action_data['action_key']})")
-            else:
-                # Create new action
-                new_action = EmailAction(
-                    action_key=action_data['action_key'],
-                    name=action_data['name'],
-                    description=action_data['description'],
-                    available_variables=action_data['available_variables']
-                )
-                db.session.add(new_action)
-                print(f"  Created: {action_data['name']} ({action_data['action_key']})")
-        
+        if existing_action:
+            # Update existing action
+            existing_action.name = action_data['name']
+            existing_action.description = action_data['description']
+            existing_action.available_variables = action_data['available_variables']
+            actions_updated += 1
+            print(f"  - Updated: {action_data['name']} ({action_data['action_key']})")
+        else:
+            # Create new action
+            new_action = EmailAction(
+                action_key=action_data['action_key'],
+                name=action_data['name'],
+                description=action_data['description'],
+                available_variables=action_data['available_variables']
+            )
+            db.session.add(new_action)
+            actions_created += 1
+            print(f"  ✓ Created: {action_data['name']} ({action_data['action_key']})")
+    
+    try:
         db.session.commit()
-        print("✓ Email actions seeded successfully")
+        print(f"\n✓ Seeded {actions_created} action(s), updated {actions_updated}")
+    except Exception as e:
+        db.session.rollback()
+        print(f"  ✗ Error seeding email actions: {str(e)}")
+        raise
 
 
 if __name__ == '__main__':
     print("This script should be run through the main seeding process.")
     print("Use: python seeds/run_seeds.py")
+
+
+__all__ = ['seed_email_actions']
+

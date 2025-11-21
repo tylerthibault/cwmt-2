@@ -43,7 +43,7 @@ def seed_default_roles(app):
     
     for role_data in default_roles:
         # Check if role already exists
-        existing_role = Role.get_by_name(role_data['name'])
+        existing_role = Role.query.filter_by(name=role_data['name']).first()
         
         if not existing_role:
             # Create new role
@@ -53,20 +53,17 @@ def seed_default_roles(app):
             )
             db.session.add(role)
             roles_created += 1
-            app.looger.info(f"Created default role: {role_data['name']}")
+            print(f"  ✓ Created role: {role_data['name']}")
         else:
             roles_existing += 1
-            app.looger.debug(f"Role already exists: {role_data['name']}")
+            print(f"  - Role already exists: {role_data['name']}")
     
     # Commit all new roles at once
     if roles_created > 0:
         db.session.commit()
-        app.looger.info(f"Default roles seeded successfully", 
-                       created=roles_created, 
-                       existing=roles_existing)
+        print(f"\n✓ Seeded {roles_created} role(s), {roles_existing} already existed")
     else:
-        app.looger.debug(f"No new roles needed", 
-                        existing=roles_existing)
+        print(f"\n✓ All {roles_existing} role(s) already exist")
 
 
 __all__ = ['seed_default_roles']

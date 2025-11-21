@@ -60,11 +60,44 @@ def seed_default_users(app):
             'role_name': 'instructor'
         },
         {
+            'username': 'mlopez',
+            'email': 'maria.lopez@cwmt.test',
+            'password_hash': password_hash,
+            'first_name': 'Maria',
+            'last_name': 'Lopez',
+            'is_active': True,
+            'is_admin': False,
+            'email_confirmed': True,
+            'role_name': 'instructor'
+        },
+        {
             'username': 'dgarcia',
             'email': 'david.garcia@cwmt.test',
             'password_hash': password_hash,
             'first_name': 'David',
             'last_name': 'Garcia',
+            'is_active': True,
+            'is_admin': False,
+            'email_confirmed': True,
+            'role_name': 'student'
+        },
+        {
+            'username': 'ewilson',
+            'email': 'emily.wilson@cwmt.test',
+            'password_hash': password_hash,
+            'first_name': 'Emily',
+            'last_name': 'Wilson',
+            'is_active': True,
+            'is_admin': False,
+            'email_confirmed': True,
+            'role_name': 'student'
+        },
+        {
+            'username': 'jbrown',
+            'email': 'james.brown@cwmt.test',
+            'password_hash': password_hash,
+            'first_name': 'James',
+            'last_name': 'Brown',
             'is_active': True,
             'is_admin': False,
             'email_confirmed': True,
@@ -91,38 +124,32 @@ def seed_default_users(app):
             db.session.add(user)
             db.session.flush()  # Flush to get user.id for role assignment
             
-            # Assign role to user
-            role = Role.get_by_name(role_name)
+            # Assign role to user - manually add to avoid nested commit
+            role = Role.query.filter_by(name=role_name).first()
             if role:
-                UserHasRoles.assign_role(user.id, role.id)
-                app.looger.info(f"Created user: {user_data['username']} with role: {role_name}")
+                user_role = UserHasRoles(user_id=user.id, role_id=role.id)
+                db.session.add(user_role)
+                print(f"  ✓ Created user: {user.username} ({role_name})")
             else:
-                app.looger.warning(f"Created user: {user_data['username']} but role '{role_name}' not found")
+                print(f"  ⚠ Created user: {user.username} but role '{role_name}' not found")
             
             users_created += 1
         else:
             users_existing += 1
-            app.looger.debug(f"User already exists: {user_data['username']}")
+            print(f"  - User already exists: {existing_user.username}")
     
     # Commit all new users at once
     if users_created > 0:
         try:
             db.session.commit()
-            app.looger.info(
-                f"Default users seeded successfully",
-                created=users_created,
-                existing=users_existing
-            )
-            app.looger.info(f"Default password for all test users: {default_password}")
+            print(f"\n✓ Seeded {users_created} user(s), {users_existing} already existed")
+            print(f"  Default password for all test users: {default_password}")
         except Exception as e:
             db.session.rollback()
-            app.looger.error(f"Error seeding users: {str(e)}")
+            print(f"  ✗ Error seeding users: {str(e)}")
             raise
     else:
-        app.looger.debug(
-            f"No new users needed",
-            existing=users_existing
-        )
+        print(f"\n✓ All {users_existing} user(s) already exist")
 
 
 __all__ = ['seed_default_users']

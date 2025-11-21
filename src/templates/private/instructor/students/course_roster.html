@@ -118,14 +118,7 @@
                                     <br>
                                     <small>{{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}</small>
                                 {% endif %}
-                                {% if enrollment.brings_car %}
-                                    <span class="badge bg-info">
-                                        <i class="bi bi-car-front"></i> Car
-                                    </span>
-                                    <br>
-                                    <small>{{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}</small>
-                                {% endif %}
-                                {% if not enrollment.brings_motorcycle and not enrollment.brings_car %}
+                                {% if not enrollment.brings_motorcycle %}
                                     <span class="text-muted">No vehicle</span>
                                 {% endif %}
                             </td>
@@ -185,8 +178,7 @@
                 </div>
                 <div class="col-md-4">
                     <strong>Vehicles:</strong> 
-                    {{ enrollments|selectattr('brings_motorcycle')|list|length }} motorcycles, 
-                    {{ enrollments|selectattr('brings_car')|list|length }} cars
+                    {{ enrollments|selectattr('brings_motorcycle')|list|length }} motorcycles
                 </div>
             </div>
         </div>

@@ -91,7 +91,7 @@ def seed_email_settings(app):
                 category=category,
                 is_encrypted=is_encrypted
             )
-            app.looger.info(f"Created email setting: {key}")
+            print(f"  ✓ Created setting: {key}")
             settings_created += 1
         else:
             # Update existing setting (in case you want to refresh values)
@@ -102,19 +102,11 @@ def seed_email_settings(app):
                 category=category,
                 is_encrypted=is_encrypted
             )
-            app.looger.debug(f"Updated email setting: {key}")
+            print(f"  - Updated setting: {key}")
             settings_updated += 1
     
-    app.looger.info(
-        f"Email settings seeded successfully",
-        created=settings_created,
-        updated=settings_updated
-    )
-    
-    app.looger.warning(
-        "SECURITY WARNING: Email password is stored in seed file. "
-        "Remove or change this before production deployment!"
-    )
+    print(f"\n✓ Seeded {settings_created} setting(s), updated {settings_updated}")
+    print("  ⚠ SECURITY: Email password in seed file - change before production!")
 
 
 __all__ = ['seed_email_settings']

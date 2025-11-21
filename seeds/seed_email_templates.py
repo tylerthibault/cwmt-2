@@ -196,40 +196,51 @@ Best regards,
         }
     ]
     
-    with app.app_context():
-        print("\nSeeding email templates...")
+    templates_created = 0
+    templates_updated = 0
+    
+    for template_data in email_templates:
+        # Check if template already exists by name
+        existing_template = EmailTemplate.query.filter_by(
+            name=template_data['name']
+        ).first()
         
-        for template_data in email_templates:
-            # Check if template already exists by name
-            existing_template = EmailTemplate.query.filter_by(
-                name=template_data['name']
-            ).first()
-            
-            if existing_template:
-                # Update existing template
-                existing_template.subject = template_data['subject']
-                existing_template.body_text = template_data['body_text']
-                existing_template.body_html = template_data['body_html']
-                existing_template.description = template_data['description']
-                existing_template.is_active = template_data['is_active']
-                print(f"  Updated: {template_data['name']}")
-            else:
-                # Create new template
-                new_template = EmailTemplate(
-                    name=template_data['name'],
-                    subject=template_data['subject'],
-                    body_text=template_data['body_text'],
-                    body_html=template_data['body_html'],
-                    description=template_data['description'],
-                    is_active=template_data['is_active']
-                )
-                db.session.add(new_template)
-                print(f"  Created: {template_data['name']}")
-        
+        if existing_template:
+            # Update existing template
+            existing_template.subject = template_data['subject']
+            existing_template.body_text = template_data['body_text']
+            existing_template.body_html = template_data['body_html']
+            existing_template.description = template_data['description']
+            existing_template.is_active = template_data['is_active']
+            templates_updated += 1
+            print(f"  - Updated: {template_data['name']}")
+        else:
+            # Create new template
+            new_template = EmailTemplate(
+                name=template_data['name'],
+                subject=template_data['subject'],
+                body_text=template_data['body_text'],
+                body_html=template_data['body_html'],
+                description=template_data['description'],
+                is_active=template_data['is_active']
+            )
+            db.session.add(new_template)
+            templates_created += 1
+            print(f"  ✓ Created: {template_data['name']}")
+    
+    try:
         db.session.commit()
-        print("✓ Email templates seeded successfully")
+        print(f"\n✓ Seeded {templates_created} template(s), updated {templates_updated}")
+    except Exception as e:
+        db.session.rollback()
+        print(f"  ✗ Error seeding email templates: {str(e)}")
+        raise
 
 
 if __name__ == '__main__':
     print("This script should be run through the main seeding process.")
     print("Use: python seeds/run_seeds.py")
+
+
+__all__ = ['seed_email_templates']
+

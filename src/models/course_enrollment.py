@@ -35,12 +35,6 @@ class CourseEnrollment(BaseModel):
     motorcycle_year = db.Column(db.Integer, nullable=True)
     motorcycle_license_plate = db.Column(db.String(20), nullable=True)
     
-    brings_car = db.Column(db.Boolean, default=False)
-    car_make = db.Column(db.String(50), nullable=True)
-    car_model = db.Column(db.String(50), nullable=True)
-    car_year = db.Column(db.Integer, nullable=True)
-    car_license_plate = db.Column(db.String(20), nullable=True)
-    
     # Additional course-specific notes
     notes = db.Column(db.Text, nullable=True)
     
@@ -75,11 +69,6 @@ class CourseEnrollment(BaseModel):
             'motorcycle_model': self.motorcycle_model,
             'motorcycle_year': self.motorcycle_year,
             'motorcycle_license_plate': self.motorcycle_license_plate,
-            'brings_car': self.brings_car,
-            'car_make': self.car_make,
-            'car_model': self.car_model,
-            'car_year': self.car_year,
-            'car_license_plate': self.car_license_plate,
             'notes': self.notes
         })
         return data

@@ -25,7 +25,7 @@ sys.path.insert(0, str(project_root))
 from src import create_app
 from seeds.seed_roles import seed_default_roles
 from seeds.seed_users import seed_default_users
-from seeds.seed_courses import seed_default_course_templates
+from seeds.seed_courses import seed_all_courses
 from seeds.seed_students import seed_all_students
 from seeds.seed_email_settings import seed_email_settings
 from seeds.seed_email_actions import seed_email_actions
@@ -75,7 +75,7 @@ def run_all_seeds(app):
     
     # Seed courses
     print("→ Seeding courses...")
-    seed_default_course_templates(app)
+    seed_all_courses(app)
     print("✓ Courses seeding completed\n")
     
     # Seed students and enrollments
@@ -105,7 +105,7 @@ def run_users_seed(app):
 def run_courses_seed(app):
     """Run only the courses seed file"""
     print("\n→ Seeding courses...")
-    seed_default_course_templates(app)
+    seed_all_courses(app)
     print("✓ Courses seeding completed\n")
 
 

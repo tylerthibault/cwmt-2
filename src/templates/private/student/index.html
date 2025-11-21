@@ -346,7 +346,7 @@
             <p class="sd-page-subtitle">Your path to getting your Washington State motorcycle endorsement</p>
         </div>
         <div class="sd-page-actions">
-            <a href="#" class="sd-btn sd-btn-secondary">
+            <a href="{{ url_for('student.available_courses') }}" class="sd-btn sd-btn-secondary">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -442,7 +442,7 @@
                     </svg>
                     <p class="sd-empty-text">No enrolled courses yet</p>
                     <p class="sd-empty-subtext">Browse available courses and enroll in a class to get started</p>
-                    <a href="#" class="sd-btn sd-btn-primary">Browse Courses</a>
+                    <a href="{{ url_for('student.available_courses') }}" class="sd-btn sd-btn-primary">Browse Courses</a>
                 </div>
             {% endif %}
         </div>

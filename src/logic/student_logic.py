@@ -453,12 +453,9 @@ class StudentLogic:
         Raises:
             ValueError: If validation fails
         """
-        # Ensure vehicle info is provided if brings_motorcycle or brings_car is True
+        # Ensure vehicle info is provided if brings_motorcycle is True
         if data.get('brings_motorcycle') and not data.get('motorcycle_make'):
             raise ValueError("Motorcycle make required when bringing motorcycle")
-        
-        if data.get('brings_car') and not data.get('car_make'):
-            raise ValueError("Car make required when bringing car")
         
         # Validate scores if provided
         if 'course_score' in data:

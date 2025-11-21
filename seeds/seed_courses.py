@@ -2,8 +2,11 @@
 Utility to seed default course templates into the database
 Run this after initial database setup or to add sample course templates
 """
+from datetime import date, time
 from src.models import db
-from src.models.courses_model import CourseTemplate
+from src.models.courses_model import CourseTemplate, Course
+from src.models.user import User
+from src.models.roles import Role
 
 
 def seed_default_course_templates(app):
@@ -23,6 +26,14 @@ def seed_default_course_templates(app):
             'max_students': 12,
             'is_active': True
         },
+        {
+            'name': 'Basic Rider Course',
+            'description': 'Essential safety and riding skills for new motorcyclists. Covers basics of motorcycle operation, safety, and traffic strategies.',
+            'duration_days': 3,
+            'experience_level': 'beginner',
+            'max_students': 12,
+            'is_active': True
+        },
         
         # Intermediate Courses
         {
@@ -32,10 +43,19 @@ def seed_default_course_templates(app):
             'experience_level': 'intermediate',
             'max_students': 10,  
             'is_active': True
+        },
+        {
+            'name': 'Advanced Rider Course',
+            'description': 'For experienced riders looking to refine their skills. Covers advanced techniques, emergency maneuvers, and risk management.',
+            'duration_days': 1,
+            'experience_level': 'intermediate',
+            'max_students': 8,
+            'is_active': True
         }
     ]
     
     templates_created = 0
+    templates_existing = 0
     
     for template_data in default_templates:
         # Check if template already exists by name
@@ -45,17 +65,21 @@ def seed_default_course_templates(app):
             template = CourseTemplate(**template_data)
             db.session.add(template)
             templates_created += 1
-            app.looger.info(f"Created course template: {template_data['name']}")
+            print(f"  ✓ Created template: {template_data['name']}")
+        else:
+            templates_existing += 1
+            print(f"  - Template already exists: {template_data['name']}")
     
     if templates_created > 0:
         try:
             db.session.commit()
-            app.looger.info(f"Successfully seeded {templates_created} course template(s)")
+            print(f"\n✓ Seeded {templates_created} template(s), {templates_existing} already existed")
         except Exception as e:
             db.session.rollback()
-            app.looger.error(f"Error seeding course templates: {str(e)}")
+            print(f"  ✗ Error seeding course templates: {str(e)}")
+            raise
     else:
-        app.looger.info("Course templates already exist, skipping seed")
+        print(f"\n✓ All {templates_existing} template(s) already exist")
 
 
 def seed_sample_courses(app):
@@ -66,42 +90,52 @@ def seed_sample_courses(app):
     Args:
         app: Flask application instance with app context
     """
-    from datetime import date, time
-    from src.models.courses_model import Course
-    from src.models.user import User
-    
     # First check if we have course templates
     templates = CourseTemplate.query.all()
     if not templates:
-        app.looger.warning("No course templates found. Run seed_default_course_templates first.")
+        print("  ⚠ No course templates found. Run seed_default_course_templates first.")
         return
     
     # Check if we have users with appropriate roles
-    students = User.query.filter(User.role_list.any(name='student')).all()
-    instructors = User.query.filter(User.role_list.any(name='instructor')).all()
-    
-    if len(students) < 1:
-        app.looger.warning("Not enough students in database to seed sample courses.")
-        return
+    instructors = User.query.join(User.role_list).filter(Role.name == 'instructor').all()
     
     if len(instructors) < 2:
-        app.looger.warning("Not enough instructors in database to seed sample courses.")
+        print(f"  ⚠ Not enough instructors in database ({len(instructors)} found, need 2)")
         return
     
-    # Create sample courses
+    # Create sample courses for upcoming months
     sample_courses = [
         {
             'course_template_id': templates[0].id,
-            'course_date': date(2025, 11, 15),
+            'course_date': date(2025, 12, 15),
             'course_time': time(9, 0),
             'status': 'scheduled',
             'location': 'Seattle Training Center',
             'instructor1_id': instructors[0].id,
-            'instructor2_id': instructors[1].id if len(instructors) > 1 else instructors[0].id
+            'instructor2_id': instructors[1].id
+        },
+        {
+            'course_template_id': templates[0].id if len(templates) == 1 else templates[1].id,
+            'course_date': date(2025, 12, 22),
+            'course_time': time(9, 0),
+            'status': 'scheduled',
+            'location': 'Portland Training Facility',
+            'instructor1_id': instructors[0].id,
+            'instructor2_id': instructors[1].id
+        },
+        {
+            'course_template_id': templates[-1].id,
+            'course_date': date(2026, 1, 5),
+            'course_time': time(13, 0),
+            'status': 'scheduled',
+            'location': 'Seattle Training Center',
+            'instructor1_id': instructors[0].id,
+            'instructor2_id': instructors[1].id
         }
     ]
     
     courses_created = 0
+    courses_existing = 0
     
     for course_data in sample_courses:
         # Check if course already exists
@@ -112,36 +146,36 @@ def seed_sample_courses(app):
         ).first()
         
         if not existing:
-            # Remove student_id from course_data if present (use enrollment instead)
-            student_to_enroll = None
-            if 'student_id' in course_data:
-                student_to_enroll = course_data.pop('student_id')
-            
-            # Create the course without student
+            # Create the course
             course = Course(**course_data)
             db.session.add(course)
-            db.session.flush()  # Flush to get the course ID
-            
-            # Enroll student if specified - use CourseLogic to handle new enrollment system
-            if student_to_enroll:
-                from src.logic.course_logic import CourseLogic
-                try:
-                    CourseLogic.enroll_student(course.id, student_to_enroll, is_admin_override=True)
-                except Exception as e:
-                    app.looger.warning(f"Could not enroll student {student_to_enroll}: {str(e)}")
-            
             courses_created += 1
-            app.looger.info(f"Created sample course on {course_data['course_date']}")
+            template = CourseTemplate.query.get(course_data['course_template_id'])
+            print(f"  ✓ Created course: {template.name} on {course_data['course_date']}")
+        else:
+            courses_existing += 1
     
     if courses_created > 0:
         try:
             db.session.commit()
-            app.looger.info(f"Successfully seeded {courses_created} sample course(s)")
+            print(f"\n✓ Seeded {courses_created} course(s), {courses_existing} already existed")
         except Exception as e:
             db.session.rollback()
-            app.looger.error(f"Error seeding sample courses: {str(e)}")
+            print(f"  ✗ Error seeding sample courses: {str(e)}")
+            raise
     else:
-        app.looger.info("Sample courses already exist, skipping seed")
+        print(f"\n✓ All {courses_existing} course(s) already exist")
+
+
+def seed_all_courses(app):
+    """
+    Run all course-related seeding operations.
+    
+    Args:
+        app: Flask application instance
+    """
+    seed_default_course_templates(app)
+    seed_sample_courses(app)
 
 
 if __name__ == '__main__':
@@ -154,10 +188,10 @@ if __name__ == '__main__':
     
     app = create_app()
     with app.app_context():
-        print("Seeding course templates...")
-        seed_default_course_templates(app)
-        
-        print("\nSeeding sample courses...")
-        seed_sample_courses(app)
-        
+        print("Seeding courses...")
+        seed_all_courses(app)
         print("\nSeeding complete!")
+
+
+__all__ = ['seed_default_course_templates', 'seed_sample_courses', 'seed_all_courses']
+

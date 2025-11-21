@@ -213,12 +213,11 @@
                                 </div>
 
                                 <!-- Vehicle Information -->
-                                {% if enrollment.brings_motorcycle or enrollment.brings_car %}
+                                {% if enrollment.brings_motorcycle %}
                                 <div class="col-12">
                                     <div class="vehicle-info p-2 bg-light rounded">
                                         <strong><i class="bi bi-car-front-fill"></i> Vehicle Information:</strong>
                                         <div class="mt-2">
-                                            {% if enrollment.brings_motorcycle %}
                                             <div class="mb-1">
                                                 <span class="badge bg-warning text-dark">Motorcycle</span>
                                                 {{ enrollment.motorcycle_year }} {{ enrollment.motorcycle_make }} {{ enrollment.motorcycle_model }}
@@ -226,16 +225,6 @@
                                                     • Plate: {{ enrollment.motorcycle_license_plate }}
                                                 {% endif %}
                                             </div>
-                                            {% endif %}
-                                            {% if enrollment.brings_car %}
-                                            <div>
-                                                <span class="badge bg-info">Car</span>
-                                                {{ enrollment.car_year }} {{ enrollment.car_make }} {{ enrollment.car_model }}
-                                                {% if enrollment.car_license_plate %}
-                                                    • Plate: {{ enrollment.car_license_plate }}
-                                                {% endif %}
-                                            </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>

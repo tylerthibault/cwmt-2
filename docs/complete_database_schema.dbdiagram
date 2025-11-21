@@ -159,11 +159,6 @@ Table course_enrollments {
   motorcycle_model varchar(50)
   motorcycle_year integer
   motorcycle_license_plate varchar(20)
-  brings_car boolean [default: false]
-  car_make varchar(50)
-  car_model varchar(50)
-  car_year integer
-  car_license_plate varchar(20)
   notes text
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
