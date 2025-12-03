@@ -22,6 +22,17 @@
                 <h2 class="section-title">Available Items</h2>
                 
                 {% if items_with_status %}
+                {% set has_required = items_with_status | selectattr('payable_item.is_required', 'equalto', True) | list | length > 0 %}
+                {% if has_required %}
+                <div class="info-banner">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="9" stroke="#0071E3" stroke-width="2"/>
+                        <path d="M10 6v4M10 13h.01" stroke="#0071E3" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Required items are automatically selected and must be paid for enrollment.</span>
+                </div>
+                {% endif %}
+                
                 <form id="paymentForm">
                     <div class="items-list">
                         {% for item_data in items_with_status %}
@@ -30,8 +41,9 @@
                         {% set is_paid = item_data.is_paid %}
                         {% set is_pending = item_data.is_pending %}
                         {% set amount_due = item_data.amount_due %}
+                        {% set is_required = payable_item.is_required %}
                         
-                        <div class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% endif %}">
+                        <div class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% endif %} {% if is_required %}item-required{% endif %}">
                             <div class="item-checkbox">
                                 {% if not line_item %}
                                 <input 
@@ -39,8 +51,9 @@
                                     name="payable_items" 
                                     value="{{ payable_item.id }}"
                                     id="item-{{ payable_item.id }}"
-                                    class="item-select"
+                                    class="item-select{% if is_required %} required-item{% endif %}"
                                     data-price="{{ payable_item.price }}"
+                                    {% if is_required %}checked disabled{% endif %}
                                 >
                                 {% elif is_pending and amount_due > 0 %}
                                 <input 
@@ -48,8 +61,9 @@
                                     name="line_items" 
                                     value="{{ line_item.id }}"
                                     id="line-{{ line_item.id }}"
-                                    class="line-item-select"
+                                    class="line-item-select{% if is_required %} required-item{% endif %}"
                                     data-price="{{ amount_due }}"
+                                    {% if is_required %}checked disabled{% endif %}
                                 >
                                 {% else %}
                                 <div class="paid-checkmark">✓</div>
@@ -58,7 +72,10 @@
                             
                             <label for="{% if not line_item %}item-{{ payable_item.id }}{% elif is_pending %}line-{{ line_item.id }}{% endif %}" class="item-content">
                                 <div class="item-details">
-                                    <div class="item-name">{{ payable_item.payable_item_template.name }}</div>
+                                    <div class="item-name">
+                                        {{ payable_item.payable_item_template.name }}
+                                        {% if is_required %}<span class="required-badge">Required</span>{% endif %}
+                                    </div>
                                     {% if payable_item.payable_item_template.description %}
                                     <div class="item-description">{{ payable_item.payable_item_template.description }}</div>
                                     {% endif %}
@@ -228,6 +245,23 @@
     margin: 0;
 }
 
+.info-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #F0F8FF;
+    border: 1px solid #B3D9FF;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: #0051A8;
+}
+
+.info-banner svg {
+    flex-shrink: 0;
+}
+
 .items-list {
     display: flex;
     flex-direction: column;
@@ -254,6 +288,11 @@
     background: #F5F5F7;
 }
 
+.payment-item.item-required {
+    border: 2px solid #0071E3;
+    background: linear-gradient(135deg, #F0F8FF 0%, #FFFFFF 100%);
+}
+
 .item-checkbox {
     flex-shrink: 0;
     padding-top: 0.25rem;
@@ -264,6 +303,12 @@
     width: 20px;
     height: 20px;
     cursor: pointer;
+}
+
+.item-select:disabled,
+.line-item-select:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .paid-checkmark {
@@ -296,6 +341,21 @@
     font-weight: 600;
     color: #1D1D1F;
     margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.required-badge {
+    font-size: 0.625rem;
+    color: #0071E3;
+    padding: 0.2rem 0.5rem;
+    background: #E3F2FD;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .item-description {
@@ -520,19 +580,28 @@ let selectedLineItemIds = [];
 
 // Calculate and update totals
 function updateSummary() {
-    const newItemCheckboxes = document.querySelectorAll('.item-select:checked');
-    const lineItemCheckboxes = document.querySelectorAll('.line-item-select:checked');
+    // Get all checked items (including disabled/required ones)
+    const newItemCheckboxes = document.querySelectorAll('.item-select:checked:not(:disabled)');
+    const requiredNewItems = document.querySelectorAll('.item-select.required-item:disabled');
+    const lineItemCheckboxes = document.querySelectorAll('.line-item-select:checked:not(:disabled)');
+    const requiredLineItems = document.querySelectorAll('.line-item-select.required-item:disabled');
     
-    const totalSelected = newItemCheckboxes.length + lineItemCheckboxes.length;
+    const totalSelected = newItemCheckboxes.length + requiredNewItems.length + lineItemCheckboxes.length + requiredLineItems.length;
     let subtotal = 0;
     
-    // Calculate subtotal from new items
+    // Calculate subtotal from new items (including required)
     newItemCheckboxes.forEach(checkbox => {
         subtotal += parseFloat(checkbox.dataset.price);
     });
+    requiredNewItems.forEach(checkbox => {
+        subtotal += parseFloat(checkbox.dataset.price);
+    });
     
-    // Calculate subtotal from pending line items
+    // Calculate subtotal from pending line items (including required)
     lineItemCheckboxes.forEach(checkbox => {
+        subtotal += parseFloat(checkbox.dataset.price);
+    });
+    requiredLineItems.forEach(checkbox => {
         subtotal += parseFloat(checkbox.dataset.price);
     });
     
@@ -549,27 +618,31 @@ function updateSummary() {
     const addToCartBtn = document.getElementById('addToCartBtn');
     const proceedBtn = document.getElementById('proceedToPaymentBtn');
     
-    if (newItemCheckboxes.length > 0) {
+    const hasNewItems = newItemCheckboxes.length > 0 || requiredNewItems.length > 0;
+    const hasLineItems = lineItemCheckboxes.length > 0 || requiredLineItems.length > 0;
+    
+    if (hasNewItems) {
         addToCartBtn.style.display = 'block';
         proceedBtn.style.display = 'none';
     } else {
         addToCartBtn.style.display = 'none';
     }
     
-    if (lineItemCheckboxes.length > 0) {
+    if (hasLineItems && !hasNewItems) {
         proceedBtn.style.display = 'block';
-    } else {
+    } else if (!hasNewItems) {
         proceedBtn.style.display = 'none';
     }
 }
 
-// Add event listeners to checkboxes
-document.querySelectorAll('.item-select, .line-item-select').forEach(checkbox => {
+// Add event listeners to checkboxes (only non-disabled ones)
+document.querySelectorAll('.item-select:not(:disabled), .line-item-select:not(:disabled)').forEach(checkbox => {
     checkbox.addEventListener('change', updateSummary);
 });
 
 // Add items to cart (create line items)
 document.getElementById('addToCartBtn')?.addEventListener('click', async function() {
+    // Include both checked items and required (disabled) items
     const selectedItems = Array.from(document.querySelectorAll('.item-select:checked'))
         .map(cb => parseInt(cb.value));
     
@@ -607,6 +680,7 @@ document.getElementById('addToCartBtn')?.addEventListener('click', async functio
 
 // Proceed to payment
 document.getElementById('proceedToPaymentBtn')?.addEventListener('click', async function() {
+    // Include both checked items and required (disabled) items
     selectedLineItemIds = Array.from(document.querySelectorAll('.line-item-select:checked'))
         .map(cb => parseInt(cb.value));
     
@@ -631,9 +705,12 @@ document.getElementById('proceedToPaymentBtn')?.addEventListener('click', async 
         if (data.success) {
             clientSecret = data.client_secret;
             
-            // Initialize Stripe Elements
+            // Initialize Stripe Elements (card only)
             elements = stripe.elements({ clientSecret });
-            paymentElement = elements.create('payment');
+            paymentElement = elements.create('payment', {
+                layout: 'tabs',
+                paymentMethodOrder: ['card']
+            });
             paymentElement.mount('#payment-element');
             
             // Show payment form

@@ -191,22 +191,43 @@
     <div class="card card-shadow mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-users"></i> Student Roster</h5>
-            <span class="badge bg-primary">{{ course.students|length }} enrolled</span>
+            <span class="badge bg-primary">{{ course.enrollments|length }} enrolled</span>
         </div>
         <div class="card-body">
-            {% if course.students %}
+            {% if course.enrollments %}
                 <div class="roster-section">
-                    {% for student in course.students %}
+                    {% for enrollment in course.enrollments %}
+                    {% if enrollment.status not in ['withdrawn', 'cancelled'] %}
                     <div class="roster-item">
                         <i class="fas fa-user-graduate fa-lg"></i>
                         <div class="flex-grow-1">
-                            <div class="fw-bold">{{ student.first_name }} {{ student.last_name }}</div>
+                            <a href="{{ url_for('user_admin.student_detail', student_id=enrollment.student.id) }}" class="fw-bold text-decoration-none">
+                                {{ enrollment.student.user.first_name }} {{ enrollment.student.user.last_name }}
+                            </a>
                             <div class="text-muted small">
-                                <i class="fas fa-envelope"></i> {{ student.email }}
-                                <span class="ms-3"><i class="fas fa-user"></i> {{ student.username }}</span>
+                                <i class="fas fa-envelope"></i> {{ enrollment.student.user.email }}
+                                <span class="ms-3"><i class="fas fa-user"></i> {{ enrollment.student.user.username }}</span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="badge bg-success">{{ enrollment.status|title }}</span>
+                                {% set tuition_items = enrollment.line_items | selectattr('course_payable_item.item_type', 'equalto', 'tuition') | list %}
+                                {% if tuition_items %}
+                                    {% set total_tuition = tuition_items | sum(attribute='total') %}
+                                    {% set total_paid = tuition_items | sum(attribute='amount_paid') %}
+                                    {% if total_paid >= total_tuition %}
+                                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Tuition Paid</span>
+                                    {% elif total_paid > 0 %}
+                                        <span class="badge bg-warning"><i class="fas fa-exclamation-circle"></i> Partially Paid (${{ "%.2f"|format(total_paid) }}/${{ "%.2f"|format(total_tuition) }})</span>
+                                    {% else %}
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Tuition Unpaid</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-question-circle"></i> No Tuition Items</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
             {% else %}

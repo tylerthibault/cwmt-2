@@ -353,13 +353,20 @@
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <form method="POST" action="{{ url_for('payables.detach_from_template', template_id=course.id, item_id=attachment.payable_item_template.id) }}" style="display: inline;">
-                                        <button type="submit" class="cm-btn-icon cm-btn-danger" title="Remove item" onclick="return confirm('Remove this item from the template?')">
+                                    <div class="cm-payable-actions">
+                                        <button type="button" class="cm-btn-icon cm-btn-edit" title="Edit attachment" onclick="openEditAttachmentModal({{ course.id }}, {{ attachment.payable_item_template.id }}, {{ attachment.is_required|tojson }}, {{ attachment.display_order }}, '{{ attachment.payable_item_template.name }}')">
                                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <path d="M11 2L14 5M1.5 10.5L1 15L5.5 14.5L13.5 6.5L9.5 2.5L1.5 10.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </button>
-                                    </form>
+                                        <form method="POST" action="{{ url_for('payables.detach_from_template', template_id=course.id, item_id=attachment.payable_item_template.id) }}" style="display: inline;">
+                                            <button type="submit" class="cm-btn-icon cm-btn-danger" title="Remove item" onclick="return confirm('Remove this item from the template?')">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -1114,6 +1121,12 @@
     color: #8e8e93;
 }
 
+.cm-payable-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .cm-btn-icon {
     display: inline-flex;
     align-items: center;
@@ -1125,6 +1138,14 @@
     cursor: pointer;
     transition: all 0.2s ease;
     background: transparent;
+}
+
+.cm-btn-icon.cm-btn-edit {
+    color: #0071e3;
+}
+
+.cm-btn-icon.cm-btn-edit:hover {
+    background: rgba(0, 113, 227, 0.1);
 }
 
 .cm-btn-icon.cm-btn-danger {
@@ -1287,9 +1308,48 @@
     </div>
 </div>
 
+<!-- Edit Attachment Modal -->
+<div id="editAttachmentModal" class="cm-modal" style="display: none;">
+    <div class="cm-modal-overlay" onclick="closeEditAttachmentModal()"></div>
+    <div class="cm-modal-content">
+        <div class="cm-attach-header">
+            <h3 id="editAttachmentTitle">Edit Item Configuration</h3>
+            <button type="button" class="cm-attach-close" onclick="closeEditAttachmentModal()">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form method="POST" id="editAttachmentForm" action="">
+            <div class="cm-attach-body">
+                <div class="cm-form-group">
+                    <label class="cm-checkbox-label">
+                        <input type="checkbox" id="editIsRequired" name="is_required" value="on">
+                        <span>Required Item</span>
+                    </label>
+                    <p class="cm-help-text">Students must purchase this item when enrolling</p>
+                </div>
+                
+                <div class="cm-form-group">
+                    <label for="editDisplayOrder" class="cm-label">Display Order</label>
+                    <input type="number" id="editDisplayOrder" name="display_order" class="cm-input" min="0" value="0" placeholder="0">
+                    <p class="cm-help-text">Lower numbers appear first</p>
+                </div>
+            </div>
+            
+            <div class="cm-attach-footer">
+                <button type="button" class="cm-btn cm-btn-secondary" onclick="closeEditAttachmentModal()">Cancel</button>
+                <button type="submit" class="cm-btn cm-btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/private/course_management.js') }}"></script>
 <script>
 let currentTemplateId = null;
+let currentItemId = null;
 
 function openAttachItemModal(templateId) {
     currentTemplateId = templateId;
@@ -1305,10 +1365,38 @@ function closeAttachItemModal() {
     currentTemplateId = null;
 }
 
-// Close modal on ESC key
+function openEditAttachmentModal(templateId, itemId, isRequired, displayOrder, itemName) {
+    currentTemplateId = templateId;
+    currentItemId = itemId;
+    
+    // Update modal title
+    document.getElementById('editAttachmentTitle').textContent = `Edit: ${itemName}`;
+    
+    // Set form values
+    document.getElementById('editIsRequired').checked = isRequired;
+    document.getElementById('editDisplayOrder').value = displayOrder;
+    
+    // Set form action
+    const form = document.getElementById('editAttachmentForm');
+    form.action = `/super/payable-items/templates/attachment/${templateId}/${itemId}/edit`;
+    
+    // Show modal
+    document.getElementById('editAttachmentModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditAttachmentModal() {
+    document.getElementById('editAttachmentModal').style.display = 'none';
+    document.body.style.overflow = '';
+    currentTemplateId = null;
+    currentItemId = null;
+}
+
+// Close modals on ESC key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeAttachItemModal();
+        closeEditAttachmentModal();
     }
 });
 </script>

@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'student': '/student/dashboard',
                 'instructor': '/instructor/dashboard',
                 'admin': '/admin/dashboard',
-                'super-user': '/super-user/dashboard'
+                'superuser': '/super/dashboard'
             };
             const dashboardPath = dashboardMap[selectedRole];
             if (dashboardPath) {

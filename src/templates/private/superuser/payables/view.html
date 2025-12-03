@@ -117,6 +117,29 @@
                     </div>
                 </div>
                 
+                <div class="pv-detail-item">
+                    <div class="pv-detail-label">Required</div>
+                    <div class="pv-detail-value">
+                        {% if item.is_required %}
+                        <span class="pv-status-yes">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Yes
+                        </span>
+                        {% else %}
+                        <span class="pv-status-no">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M10 6L6 10M6 6L10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            No
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
                 <div class="pv-detail-item pv-detail-full">
                     <div class="pv-detail-label">Created</div>
                     <div class="pv-detail-value">{{ item.created_at.strftime('%B %d, %Y at %I:%M %p') if item.created_at else 'N/A' }}</div>
@@ -273,6 +296,12 @@
                         <input type="checkbox" name="is_active" {% if item.is_active %}checked{% endif %}>
                         <span class="pv-checkbox-label">Active</span>
                         <span class="pv-checkbox-help">Available for use</span>
+                    </label>
+                    
+                    <label class="pv-form-checkbox">
+                        <input type="checkbox" name="is_required" {% if item.is_required %}checked{% endif %}>
+                        <span class="pv-checkbox-label">Required</span>
+                        <span class="pv-checkbox-help">Students must purchase this item</span>
                     </label>
                 </div>
             </div>

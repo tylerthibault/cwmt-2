@@ -32,6 +32,7 @@ class PayableItemTemplate(BaseModel):
     item_type = db.Column(db.String(50), nullable=False)  # 'tuition', 'rental', 'equipment', 'misc'
     is_taxable = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_required = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relationships
     course_template_items = db.relationship(
@@ -66,7 +67,8 @@ class PayableItemTemplate(BaseModel):
             'base_price': float(self.base_price) if self.base_price else 0.0,
             'item_type': self.item_type,
             'is_taxable': self.is_taxable,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'is_required': self.is_required
         })
         return base_dict
     

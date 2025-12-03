@@ -148,7 +148,8 @@ class PayableItemLogic:
             base_price=base_price,
             item_type=item_type,
             is_taxable=bool(data.get('is_taxable', False)),
-            is_active=bool(data.get('is_active', True))
+            is_active=bool(data.get('is_active', True)),
+            is_required=bool(data.get('is_required', False))
         )
         
         db.session.add(template)
@@ -216,6 +217,9 @@ class PayableItemLogic:
         
         if 'is_active' in data:
             template.is_active = bool(data['is_active'])
+        
+        if 'is_required' in data:
+            template.is_required = bool(data['is_required'])
         
         db.session.commit()
         

@@ -236,10 +236,11 @@ class PaymentLogic:
         stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
         
         try:
-            # Create Payment Intent
+            # Create Payment Intent (card only)
             intent = stripe.PaymentIntent.create(
                 amount=amount_cents,
                 currency='usd',
+                payment_method_types=['card'],
                 metadata={
                     'enrollment_id': enrollment_id,
                     'user_id': user_id,
