@@ -7,7 +7,7 @@ The CWMT Logger is a wrapper around Python's built-in logging module, providing 
 
 ### Getting a Logger Instance
 ```python
-from src.utils.looger import Logger
+from src.utils.logger import Logger
 
 # Get the application-wide logger (recommended)
 logger = Logger.get_app_logger()
@@ -40,7 +40,7 @@ except Exception as e:
 ### In Logic Layer
 ```python
 # src/logic/user_logic.py
-from src.utils.looger import Logger
+from src.utils.logger import Logger
 
 logger = Logger.get_app_logger()
 
@@ -67,7 +67,7 @@ class UserLogic:
 ### In Controllers
 ```python
 # src/controllers/routes.py
-from src.utils.looger import Logger
+from src.utils.logger import Logger
 
 logger = Logger.get_app_logger()
 

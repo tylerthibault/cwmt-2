@@ -194,7 +194,7 @@ class CoursePayableItem(BaseModel):
     
     # Indexes defined in migration
     __table_args__ = (
-        db.Index('idx_course_id', 'course_id'),
+        db.Index('idx_course_payable_course_id', 'course_id'),
         db.Index('idx_course_payable_item', 'course_id', 'payable_item_template_id'),
     )
     

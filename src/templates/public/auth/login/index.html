@@ -58,50 +58,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% for user in all_users %}
                                     <tr>
-                                        <td>Super User</td>
-                                        <td>jennifer.mitchell@cwmt.test</td>
-                                        <td>
-                                            <form method="POST" action="{{ url_for('auth.login') }}" class="d-inline-form">
-                                                <input type="hidden" name="email" value="jennifer.mitchell@cwmt.test">
-                                                <input type="hidden" name="password" value="Pass123!!">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
-                                            </form>
-                                        </td>
+                                        <form action="{{ url_for('auth.login') }}" method="POST">
+                                            <td>{{ user.role_list[0].name | title }}</td>
+                                            <td>{{ user.email }}</td>
+                                            <td>
+                                                <input type="hidden" name="email" value="{{ user.email }}">
+                                                <input type="hidden" name="password" value="Pass123!!"> 
+                                                <button type="submit" class="btn btn-sm btn-secondary">Login</button>
+                                            </td>
+                                        </form>
                                     </tr>
-                                    <tr>
-                                        <td>Admin</td>
-                                        <td>robert.thompson@cwmt.test</td>
-                                        <td>
-                                            <form method="POST" action="{{ url_for('auth.login') }}" class="d-inline-form">
-                                                <input type="hidden" name="email" value="robert.thompson@cwmt.test">
-                                                <input type="hidden" name="password" value="Pass123!!">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Instructor</td>
-                                        <td>sarah.chen@cwmt.test</td>
-                                        <td>
-                                            <form method="POST" action="{{ url_for('auth.login') }}" class="d-inline-form">
-                                                <input type="hidden" name="email" value="sarah.chen@cwmt.test">
-                                                <input type="hidden" name="password" value="Pass123!!">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Student</td>
-                                        <td>david.garcia@cwmt.test</td>
-                                        <td>
-                                            <form method="POST" action="{{ url_for('auth.login') }}" class="d-inline-form">
-                                                <input type="hidden" name="email" value="david.garcia@cwmt.test">
-                                                <input type="hidden" name="password" value="Pass123!!">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Login</button>
-                                            </form>
-                                        </td>
-                                    </tr>
+                                    {% endfor %}
+                                </tbody>
                             </table>
                         </div>
                     </div>

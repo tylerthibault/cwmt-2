@@ -105,11 +105,11 @@ class AuthLogic:
         
         if not user:
             # Don't reveal if email exists or not for security
-            app.looger.warning(f"Password reset requested for non-existent email: {email}")
+            app.logger.warning(f"Password reset requested for non-existent email: {email}")
             return None
         
         if not user.is_active:
-            app.looger.warning(f"Password reset requested for inactive user: {email}")
+            app.logger.warning(f"Password reset requested for inactive user: {email}")
             return None
         
         # Invalidate any existing unused tokens for this user
@@ -139,7 +139,7 @@ class AuthLogic:
         db.session.add(reset_token)
         db.session.commit()
         
-        app.looger.info(f"Password reset token created for user: {email}")
+        app.logger.info(f"Password reset token created for user: {email}")
         
         return {
             'token': token_string,
@@ -161,11 +161,11 @@ class AuthLogic:
         reset_token = PasswordResetToken.query.filter_by(token=token).first()
         
         if not reset_token:
-            app.looger.warning(f"Invalid password reset token attempted: {token[:10]}...")
+            app.logger.warning(f"Invalid password reset token attempted: {token[:10]}...")
             return None
         
         if not reset_token.is_valid():
-            app.looger.warning(f"Expired or used password reset token attempted: {token[:10]}...")
+            app.logger.warning(f"Expired or used password reset token attempted: {token[:10]}...")
             return None
         
         return reset_token.user
@@ -205,6 +205,6 @@ class AuthLogic:
         
         db.session.commit()
         
-        app.looger.info(f"Password reset successful for user: {user.email}")
+        app.logger.info(f"Password reset successful for user: {user.email}")
         
         return True

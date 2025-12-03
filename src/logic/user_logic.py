@@ -92,8 +92,8 @@ class UserLogic:
         
         if not current_role:
             # Default to highest priority role
-            if 'super-user' in roles:
-                current_role = 'super-user'
+            if 'superuser' in roles:
+                current_role = 'superuser'
             elif 'admin' in roles:
                 current_role = 'admin'
             elif 'instructor' in roles:
@@ -102,7 +102,7 @@ class UserLogic:
                 current_role = 'student'
         
         # Build context based on the current role
-        if current_role == 'super-user':
+        if current_role == 'superuser':
             return UserLogic._build_superuser_context(user, current_role)
         elif current_role == 'admin':
             return UserLogic._build_admin_context(user, current_role)
@@ -117,7 +117,7 @@ class UserLogic:
     @staticmethod
     def _build_instructor_context(user, current_role):
         """Build context for instructor dashboard"""
-        app.looger.info(f"Building context for instructor: {user.email}")
+        app.logger.info(f"Building context for instructor: {user.email}")
         context = {
             'user': user,
             'current_role': current_role,
@@ -169,14 +169,14 @@ class UserLogic:
     
     @staticmethod
     def _build_superuser_context(user, current_role):
-        """Build context for super-user dashboard"""
+        """Build context for superuser dashboard"""
         from src.models.roles import Role
         from src.models.courses_model import Course, CourseTemplate
         from src.models.student_profile import StudentProfile
         from src.models.course_enrollment import CourseEnrollment
         from datetime import datetime, timedelta
         
-        app.logger.info(f"Building context for super-user: {user.email}")
+        app.logger.info(f"Building context for superuser: {user.email}")
         
         # ===== SYSTEM STATISTICS =====
         total_users = User.query.count()
@@ -231,7 +231,6 @@ class UserLogic:
             if entry_user:
                 recent_user_activity.append({
                     'timestamp': entry.created_at,
-                    'username': entry_user.username,
                     'email': entry_user.email,
                     'action': 'Logout' if entry.has_logged_out else 'Login',
                     'details': f"Session: {entry.token[:8]}...",
@@ -284,7 +283,7 @@ class UserLogic:
         context = {
             'user': user,
             'current_role': current_role,
-            'dashboard_template': 'private/dashboard/super_user/index.html',
+            'dashboard_template': 'private/dashboard/superuser/index.html',
             
             # System statistics
             'total_users': total_users,

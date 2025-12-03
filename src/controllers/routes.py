@@ -6,14 +6,14 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """Example route showing logger usage"""
-    app.looger.info("Index route accessed", route="/", method="GET")
+    app.logger.info("Index route accessed", route="/", method="GET")
     
     return render_template('public/landing/index.html')
 
 @main_bp.route('/courses')
 def courses():
     """Courses page route - displays available courses in calendar view"""
-    app.looger.info("Courses route accessed", route="/courses", method="GET")
+    app.logger.info("Courses route accessed", route="/courses", method="GET")
     
     return render_template('public/courses/index.html')
 
@@ -62,62 +62,39 @@ def api_available_courses():
             'locations': sorted(list(locations))
         })
     except Exception as e:
-        app.looger.error(f"Error fetching available courses: {str(e)}")
+        app.logger.error(f"Error fetching available courses: {str(e)}")
         return jsonify({'error': 'Failed to load courses'}), 500
 
 @main_bp.route('/about')
 def about():
     """About page route"""
-    app.looger.info("About route accessed", route="/about", method="GET")
+    app.logger.info("About route accessed", route="/about", method="GET")
     
     return render_template('public/about/index.html')
 
 @main_bp.route('/contact')
 def contact():
     """Contact page route"""
-    app.looger.info("Contact route accessed", route="/contact", method="GET")
+    app.logger.info("Contact route accessed", route="/contact", method="GET")
     
     return render_template('public/contact.html')
 
+
 @main_bp.route('/seed')
 def seed():
-    """Route to trigger seeding of all data (roles, users, email settings, courses, students)"""
-    from seeds.seed_roles import seed_default_roles
-    from seeds.seed_users import seed_default_users
-    from seeds.seed_email_settings import seed_email_settings
-    from seeds.seed_courses import seed_default_course_templates
-    from seeds.seed_students import seed_all_students
-    from seeds.seed_email_actions import seed_email_actions
-    from seeds.seed_email_templates import seed_email_templates
-    
+    """Route to trigger seeding - for development/testing only"""
     try:
-        app.looger.info("Starting full database seeding via web route...")
-        
-        # Seed in the correct order
-        seed_default_roles(app)
-        app.looger.info("✓ Roles seeded")
-        
-        seed_default_users(app)
-        app.looger.info("✓ Users seeded")
-        
-        seed_email_settings(app)
-        app.looger.info("✓ Email settings seeded")
-        
-        seed_default_course_templates(app)
-        app.looger.info("✓ Courses seeded")
-        
-        seed_all_students(app)
-        app.looger.info("✓ Students seeded")
 
-        seed_email_actions(app)
-        app.looger.info("✓ Email actions seeded")
+        from src.development.seeds import roles
+        roles.seed_basic_roles(app)
 
-        seed_email_templates(app)
-        app.looger.info("✓ Email templates seeded")
+        from src.development.seeds import users
+        users.seed_users(app)
+
         
-        flash('All seeding completed successfully! (Roles, Users, Email Settings, Courses, Students)', 'success')
+        app.logger.info("Seeding completed via /seed route")
+        flash('Seeding completed successfully!', 'success')
+        return redirect(url_for('auth.login'))
     except Exception as e:
-        app.looger.error(f"Seeding failed: {str(e)}")
-        flash(f'Seeding failed: {str(e)}', 'error')
-    
-    return redirect(url_for('main.index'))
+        app.logger.error(f"Seeding failed via /seed route: {str(e)}")
+        return f"Seeding failed: {str(e)}", 500

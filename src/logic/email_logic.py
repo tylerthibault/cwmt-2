@@ -113,24 +113,24 @@ class EmailLogic:
                     msg.attach(**attachment)
             
             # Log the attempt
-            current_app.looger.info(f"Sending email: action='{action_key}', recipient='{recipient_email}', template='{template.name}'")
+            current_app.logger.info(f"Sending email: action='{action_key}', recipient='{recipient_email}', template='{template.name}'")
             
             # Send the email
             mail.send(msg)
             
             # Log success
-            current_app.looger.info(f"Email sent successfully: action='{action_key}', recipient='{recipient_email}'")
+            current_app.logger.info(f"Email sent successfully: action='{action_key}', recipient='{recipient_email}'")
             
             return True
             
         except ValueError as e:
             # Log validation errors
-            current_app.looger.error(f"Email validation error: {str(e)}")
+            current_app.logger.error(f"Email validation error: {str(e)}")
             raise
             
         except Exception as e:
             # Log sending errors
-            current_app.looger.error(f"Failed to send email: action='{action_key}', recipient='{recipient_email}', error={str(e)}")
+            current_app.logger.error(f"Failed to send email: action='{action_key}', recipient='{recipient_email}', error={str(e)}")
             raise
     
     @staticmethod
@@ -322,11 +322,11 @@ class EmailLogic:
             return template_string.format(**variables)
         except KeyError as e:
             # If a required variable is missing, log it but don't fail
-            current_app.looger.warning(f"Missing template variable: {str(e)}")
+            current_app.logger.warning(f"Missing template variable: {str(e)}")
             # Return the original string with missing variables still in brackets
             return template_string
         except Exception as e:
-            current_app.looger.error(f"Error rendering template: {str(e)}")
+            current_app.logger.error(f"Error rendering template: {str(e)}")
             return template_string
     
     @staticmethod

@@ -1,0 +1,680 @@
+{% extends 'bases/student.html' %}
+
+{% block title %}Payment - {{ course.template.name }}{% endblock title %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="payment-content">
+        <!-- Header -->
+        <div class="payment-header">
+            <div>
+                <a href="{{ url_for('student.view_course', course_id=course.id) }}" class="back-link">
+                    ← Back to Course
+                </a>
+                <h1 class="payment-title">Complete Your Payment</h1>
+                <p class="payment-subtitle">{{ course.template.name }}</p>
+            </div>
+        </div>
+
+        <div class="payment-grid">
+            <!-- Left Column: Item Selection -->
+            <div class="payment-items-section">
+                <h2 class="section-title">Available Items</h2>
+                
+                {% if items_with_status %}
+                <form id="paymentForm">
+                    <div class="items-list">
+                        {% for item_data in items_with_status %}
+                        {% set payable_item = item_data.payable_item %}
+                        {% set line_item = item_data.line_item %}
+                        {% set is_paid = item_data.is_paid %}
+                        {% set is_pending = item_data.is_pending %}
+                        {% set amount_due = item_data.amount_due %}
+                        
+                        <div class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% endif %}">
+                            <div class="item-checkbox">
+                                {% if not line_item %}
+                                <input 
+                                    type="checkbox" 
+                                    name="payable_items" 
+                                    value="{{ payable_item.id }}"
+                                    id="item-{{ payable_item.id }}"
+                                    class="item-select"
+                                    data-price="{{ payable_item.price }}"
+                                >
+                                {% elif is_pending and amount_due > 0 %}
+                                <input 
+                                    type="checkbox" 
+                                    name="line_items" 
+                                    value="{{ line_item.id }}"
+                                    id="line-{{ line_item.id }}"
+                                    class="line-item-select"
+                                    data-price="{{ amount_due }}"
+                                >
+                                {% else %}
+                                <div class="paid-checkmark">✓</div>
+                                {% endif %}
+                            </div>
+                            
+                            <label for="{% if not line_item %}item-{{ payable_item.id }}{% elif is_pending %}line-{{ line_item.id }}{% endif %}" class="item-content">
+                                <div class="item-details">
+                                    <div class="item-name">{{ payable_item.payable_item_template.name }}</div>
+                                    {% if payable_item.payable_item_template.description %}
+                                    <div class="item-description">{{ payable_item.payable_item_template.description }}</div>
+                                    {% endif %}
+                                    <div class="item-meta">
+                                        <span class="item-type">{{ payable_item.payable_item_template.item_type | title }}</span>
+                                        {% if payable_item.payable_item_template.is_taxable %}
+                                        <span class="item-taxable">Taxable</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="item-price-section">
+                                    {% if is_paid %}
+                                    <span class="item-status status-paid">Paid</span>
+                                    {% elif is_pending and amount_due > 0 %}
+                                    <span class="item-price">${{ "%.2f"|format(amount_due) }}</span>
+                                    <span class="item-status status-pending">Pending</span>
+                                    {% elif is_pending and amount_due == 0 %}
+                                    <span class="item-status status-paid">Paid</span>
+                                    {% else %}
+                                    <span class="item-price">${{ "%.2f"|format(payable_item.price) }}</span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="button" id="addToCartBtn" class="btn btn-secondary" style="display: none;">
+                            Add Selected Items
+                        </button>
+                        <button type="button" id="proceedToPaymentBtn" class="btn btn-primary" style="display: none;">
+                            Proceed to Payment
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="no-items">
+                    <p>No payment items available for this course.</p>
+                    <a href="{{ url_for('student.view_course', course_id=course.id) }}" class="btn btn-secondary">
+                        Back to Course
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Payment Summary -->
+            <div class="payment-summary-section">
+                <div class="summary-card">
+                    <h3 class="summary-title">Payment Summary</h3>
+                    
+                    <div class="summary-line">
+                        <span>Selected Items</span>
+                        <span id="selectedCount">0</span>
+                    </div>
+                    
+                    <div class="summary-line">
+                        <span>Subtotal</span>
+                        <span id="subtotalAmount">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-line">
+                        <span>Tax</span>
+                        <span id="taxAmount">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-divider"></div>
+                    
+                    <div class="summary-line summary-total">
+                        <span>Total</span>
+                        <span id="totalAmount">$0.00</span>
+                    </div>
+                    
+                    {% if payment_summary.amount_paid > 0 %}
+                    <div class="summary-line summary-paid">
+                        <span>Previously Paid</span>
+                        <span>-${{ "%.2f"|format(payment_summary.amount_paid) }}</span>
+                    </div>
+                    
+                    <div class="summary-line summary-due">
+                        <span>Amount Due</span>
+                        <span>${{ "%.2f"|format(payment_summary.amount_due) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Stripe Payment Element -->
+                <div id="paymentElementContainer" style="display: none;">
+                    <div class="payment-method-card">
+                        <h3 class="summary-title">Payment Method</h3>
+                        <div id="payment-element"></div>
+                        <button type="button" id="submitPaymentBtn" class="btn btn-primary btn-full">
+                            Pay Now
+                        </button>
+                        <div id="paymentError" class="payment-error"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-container {
+    background: #F5F5F7;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.payment-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.payment-header {
+    margin-bottom: 2rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #0071E3;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #0051A8;
+}
+
+.payment-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.5px;
+}
+
+.payment-subtitle {
+    font-size: 1.125rem;
+    color: #86868B;
+    margin: 0;
+}
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.payment-items-section,
+.payment-summary-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payment-item {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+}
+
+.payment-item:has(input:checked) {
+    border: 2px solid #0071E3;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+}
+
+.payment-item.item-paid {
+    opacity: 0.7;
+    background: #F5F5F7;
+}
+
+.item-checkbox {
+    flex-shrink: 0;
+    padding-top: 0.25rem;
+}
+
+.item-select,
+.line-item-select {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.paid-checkmark {
+    width: 20px;
+    height: 20px;
+    background: #34C759;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.item-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.25rem;
+}
+
+.item-description {
+    font-size: 0.875rem;
+    color: #6E6E73;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.item-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.item-type {
+    font-size: 0.75rem;
+    color: #86868B;
+    padding: 0.25rem 0.5rem;
+    background: #F5F5F7;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.item-taxable {
+    font-size: 0.75rem;
+    color: #FF9500;
+    padding: 0.25rem 0.5rem;
+    background: #FFF4E5;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.item-price-section {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.item-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1D1D1F;
+}
+
+.item-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-paid {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.status-pending {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.summary-card,
+.payment-method-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 2rem;
+}
+
+.summary-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0 0 1.5rem 0;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    color: #6E6E73;
+    font-size: 0.875rem;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #E5E5E7;
+    margin: 0.5rem 0;
+}
+
+.summary-total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    padding-top: 1rem;
+}
+
+.summary-paid {
+    color: #34C759;
+    font-weight: 600;
+}
+
+.summary-due {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0071E3;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #0071E3;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0051A8;
+}
+
+.btn-secondary {
+    background: #E5E5E7;
+    color: #1D1D1F;
+}
+
+.btn-secondary:hover {
+    background: #D2D2D7;
+}
+
+.btn-full {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.payment-error {
+    color: #FF3B30;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.payment-error.active {
+    display: block;
+}
+
+.no-items {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.no-items p {
+    font-size: 1rem;
+    color: #6E6E73;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 968px) {
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-card,
+    .payment-method-card {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .payment-title {
+        font-size: 2rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+// Initialize Stripe
+const stripe = Stripe('{{ stripe_publishable_key }}');
+let elements;
+let paymentElement;
+let clientSecret;
+let selectedLineItemIds = [];
+
+// Calculate and update totals
+function updateSummary() {
+    const newItemCheckboxes = document.querySelectorAll('.item-select:checked');
+    const lineItemCheckboxes = document.querySelectorAll('.line-item-select:checked');
+    
+    const totalSelected = newItemCheckboxes.length + lineItemCheckboxes.length;
+    let subtotal = 0;
+    
+    // Calculate subtotal from new items
+    newItemCheckboxes.forEach(checkbox => {
+        subtotal += parseFloat(checkbox.dataset.price);
+    });
+    
+    // Calculate subtotal from pending line items
+    lineItemCheckboxes.forEach(checkbox => {
+        subtotal += parseFloat(checkbox.dataset.price);
+    });
+    
+    // TODO: Calculate tax properly
+    const tax = 0;
+    const total = subtotal + tax;
+    
+    document.getElementById('selectedCount').textContent = totalSelected;
+    document.getElementById('subtotalAmount').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('taxAmount').textContent = `$${tax.toFixed(2)}`;
+    document.getElementById('totalAmount').textContent = `$${total.toFixed(2)}`;
+    
+    // Show/hide buttons
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const proceedBtn = document.getElementById('proceedToPaymentBtn');
+    
+    if (newItemCheckboxes.length > 0) {
+        addToCartBtn.style.display = 'block';
+        proceedBtn.style.display = 'none';
+    } else {
+        addToCartBtn.style.display = 'none';
+    }
+    
+    if (lineItemCheckboxes.length > 0) {
+        proceedBtn.style.display = 'block';
+    } else {
+        proceedBtn.style.display = 'none';
+    }
+}
+
+// Add event listeners to checkboxes
+document.querySelectorAll('.item-select, .line-item-select').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSummary);
+});
+
+// Add items to cart (create line items)
+document.getElementById('addToCartBtn')?.addEventListener('click', async function() {
+    const selectedItems = Array.from(document.querySelectorAll('.item-select:checked'))
+        .map(cb => parseInt(cb.value));
+    
+    if (selectedItems.length === 0) return;
+    
+    try {
+        this.disabled = true;
+        this.textContent = 'Adding...';
+        
+        const response = await fetch('{{ url_for("student.add_items_to_cart", course_id=course.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                payable_item_ids: selectedItems
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Reload page to show new line items
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error adding items: ' + error.message);
+    } finally {
+        this.disabled = false;
+        this.textContent = 'Add Selected Items';
+    }
+});
+
+// Proceed to payment
+document.getElementById('proceedToPaymentBtn')?.addEventListener('click', async function() {
+    selectedLineItemIds = Array.from(document.querySelectorAll('.line-item-select:checked'))
+        .map(cb => parseInt(cb.value));
+    
+    if (selectedLineItemIds.length === 0) return;
+    
+    try {
+        this.disabled = true;
+        this.textContent = 'Loading...';
+        
+        const response = await fetch('{{ url_for("student.create_payment_intent", course_id=course.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                line_item_ids: selectedLineItemIds
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            clientSecret = data.client_secret;
+            
+            // Initialize Stripe Elements
+            elements = stripe.elements({ clientSecret });
+            paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
+            
+            // Show payment form
+            document.getElementById('paymentElementContainer').style.display = 'block';
+            this.style.display = 'none';
+        } else {
+            alert('Error: ' + data.message);
+            this.disabled = false;
+            this.textContent = 'Proceed to Payment';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+        this.disabled = false;
+        this.textContent = 'Proceed to Payment';
+    }
+});
+
+// Submit payment
+document.getElementById('submitPaymentBtn')?.addEventListener('click', async function() {
+    this.disabled = true;
+    this.textContent = 'Processing...';
+    
+    const errorElement = document.getElementById('paymentError');
+    errorElement.classList.remove('active');
+    
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: '{{ url_for("student.view_course", course_id=course.id, _external=True) }}',
+        },
+    });
+    
+    if (error) {
+        errorElement.textContent = error.message;
+        errorElement.classList.add('active');
+        this.disabled = false;
+        this.textContent = 'Pay Now';
+    }
+});
+
+// Initialize summary on page load
+updateSummary();
+</script>
+{% endblock content %}

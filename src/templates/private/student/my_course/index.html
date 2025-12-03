@@ -13,6 +13,9 @@
             </div>
             <span class="cd-status cd-status-{{ enrollment.status }}">
                 {{ enrollment.status | title }}
+                {% if enrollment.status == 'active' %}
+                <button class="cd-btn cd-btn-primary" onclick="window.location.href='{{ url_for('student.payment_selection', course_id=course.id) }}'">Pay Now</button>
+                {% endif %}
             </span>
         </div>
         
@@ -399,6 +402,15 @@
 
 .cd-btn-secondary:hover {
     background: #D2D2D7;
+}
+
+.cd-btn-primary {
+    background: #0071E3;
+    color: white;
+}
+
+.cd-btn-primary:hover {
+    background: #0051A8;
 }
 
 .cd-btn-danger {

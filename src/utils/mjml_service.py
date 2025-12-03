@@ -91,7 +91,7 @@ class MJMLService:
             }
             
         except Exception as e:
-            current_app.looger.error(f"MJML conversion error: {str(e)}")
+            current_app.logger.error(f"MJML conversion error: {str(e)}")
             return {
                 'success': False,
                 'error': f'MJML conversion failed: {str(e)}'

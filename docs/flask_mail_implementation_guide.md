@@ -303,14 +303,14 @@ app = create_app()
 
 ## Step 7: Add Super User Routes
 
-Add these routes to `src/controllers/super_user_controller.py`:
+Add these routes to `src/controllers/superuser_controller.py`:
 
 ```python
 from src.logic.settings_logic import SettingsLogic
 from flask import jsonify
 
-@super_user_bp.route('/settings/email', methods=['GET'])
-@super_user_required
+@superuser_bp.route('/settings/email', methods=['GET'])
+@superuser_required
 def email_settings():
     """Display email settings page."""
     settings = SettingsLogic.get_settings_by_category('email')
@@ -319,10 +319,10 @@ def email_settings():
         'settings': settings,
         'page_title': 'Email Settings'
     })
-    return render_template('private/super_user/email_settings.html', **context)
+    return render_template('private/superuser/email_settings.html', **context)
 
-@super_user_bp.route('/settings/email', methods=['POST'])
-@super_user_required
+@superuser_bp.route('/settings/email', methods=['POST'])
+@superuser_required
 def update_email_settings():
     """Update email settings."""
     data = request.get_json()
@@ -338,8 +338,8 @@ def update_email_settings():
     
     return jsonify({'message': 'Settings updated successfully'})
 
-@super_user_bp.route('/settings/email/test', methods=['POST'])
-@super_user_required
+@superuser_bp.route('/settings/email/test', methods=['POST'])
+@superuser_required
 def test_email_settings():
     """Test email configuration."""
     try:
@@ -358,7 +358,7 @@ def test_email_settings():
 
 ## Step 8: Create Email Settings Template
 
-Create `src/templates/private/super_user/email_settings.html`:
+Create `src/templates/private/superuser/email_settings.html`:
 
 ```html
 {% extends "bases/private.html" %}

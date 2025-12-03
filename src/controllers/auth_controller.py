@@ -20,8 +20,8 @@ def get_user_dashboard_url(user):
     """
     role_names = [role.name for role in user.role_list]
     
-    if 'super-user' in role_names:
-        return url_for('super_user.dashboard')
+    if 'superuser' in role_names:
+        return url_for('superuser.dashboard')
     elif 'admin' in role_names:
         return url_for('user_admin.dashboard')
     elif 'instructor' in role_names:
@@ -93,7 +93,13 @@ def login():
             return redirect(get_user_dashboard_url(user))
         
         flash('Login failed. Please check your credentials and try again.', 'error')
-    return render_template('public/auth/login/index.html')
+
+    from src.models.user import User
+    all_users = User.query.all()
+    context = {
+        'all_users': all_users
+    }
+    return render_template('public/auth/login/index.html', **context)
 
 
 @auth_bp.route('/logout', methods=['POST', 'GET'])

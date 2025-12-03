@@ -1,3 +1,79 @@
+<style>
+    .sidenav-container {
+        height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+    }
+    
+    .sidenav {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .sidenav-menu-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 1rem;
+    }
+    
+    .sidenav-footer {
+        flex-shrink: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 0.75rem;
+    }
+    
+    .sidenav-category {
+        margin-bottom: 0.5rem;
+    }
+    
+    .sidenav-category-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1.25rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-radius: 0.5rem;
+        margin: 0 0.5rem;
+    }
+    
+    .sidenav-category-header:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidenav-category-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+    
+    .sidenav-category-icon {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.2s ease;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .sidenav-category-icon.expanded {
+        transform: rotate(180deg);
+    }
+    
+    .sidenav-category-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .sidenav-category-content.expanded {
+        max-height: 1000px;
+    }
+</style>
 
 <div class="sidenav-container">
     <nav class="sidenav collapsed preload" id="sidenav" aria-label="Main navigation">
@@ -6,7 +82,7 @@
         </button>
 
 
-        <div class="min-h-20">
+        <div class="min-h-20" style="flex-shrink: 0;">
             {# Role Switcher - Only show if user has multiple roles #}
             {% set user_roles = user.role_list | map(attribute='name') | list %}
             {% if user_roles | length > 1 %}
@@ -21,41 +97,54 @@
             {% endif %}
         </div>
 
-        <div>
+        <div class="sidenav-menu-wrapper">
             <ul id="sidenavMenu">
                 {% set user_roles = user.role_list | map(attribute='name') | list %}
 
                 {# Instructor Menu #}
                 {% if current_role == 'instructor' %}
-                <div class="role-menu" data-role="instructor">
-                    <p class="sidenav-title">Instructor</p>
-                    <li><a href="{{ url_for('instructor.dashboard') }}">
-                            <span class="icon" aria-hidden="true">&#128200;</span>
-                            <span class="sidenav-btn-text">Dashboard</span>
-                        </a>
-                    </li>
-                    <li><a href="{{ url_for('instructor.my_courses') }}">
-                            <span class="icon" aria-hidden="true">&#128218;</span>
-                            <span class="sidenav-btn-text">My Courses</span>
-                        </a>
-                    </li>
-                    <li><a href="{{ url_for('instructor.schedule') }}">
-                            <span class="icon" aria-hidden="true">&#128197;</span>
-                            <span class="sidenav-btn-text">Schedule</span>
-                        </a>
-                    </li>
-                    <li><a href="#">
-                            <span class="icon" aria-hidden="true">&#128100;</span>
-                            <span class="sidenav-btn-text">Students</span>
-                        </a>
-                    </li>
+                <div class="role-menu sidenav-category" data-role="instructor">
+                    <div class="sidenav-category-header" onclick="toggleCategory(this)">
+                        <p class="sidenav-category-title">Instructor</p>
+                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="sidenav-category-content expanded">
+                        <li><a href="{{ url_for('instructor.dashboard') }}">
+                                <span class="icon" aria-hidden="true">&#128200;</span>
+                                <span class="sidenav-btn-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li><a href="{{ url_for('instructor.my_courses') }}">
+                                <span class="icon" aria-hidden="true">&#128218;</span>
+                                <span class="sidenav-btn-text">My Courses</span>
+                            </a>
+                        </li>
+                        <li><a href="{{ url_for('instructor.schedule') }}">
+                                <span class="icon" aria-hidden="true">&#128197;</span>
+                                <span class="sidenav-btn-text">Schedule</span>
+                            </a>
+                        </li>
+                        <li><a href="#">
+                                <span class="icon" aria-hidden="true">&#128100;</span>
+                                <span class="sidenav-btn-text">Students</span>
+                            </a>
+                        </li>
+                    </div>
                 </div>
                 {% endif %}
 
                 {# Admin Menu #}
                 {% if current_role == 'admin' %}
-                <div class="role-menu" data-role="admin">
-                    <p class="sidenav-title">Admin</p>
+                <div class="role-menu sidenav-category" data-role="admin">
+                    <div class="sidenav-category-header" onclick="toggleCategory(this)">
+                        <p class="sidenav-category-title">Admin</p>
+                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="sidenav-category-content expanded">
                     <li><a href="{{ url_for('user_admin.dashboard') }}">
                             <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
@@ -86,19 +175,26 @@
                             <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
+                    </div>
                 </div>
                 {% endif %}
 
-                {# Super User Menu #}
-                {% if current_role == 'super-user' %}
-                <div class="role-menu" data-role="super-user">
-                    <p class="sidenav-title">Super User</p>
-                    <li><a href="{{ url_for('super_user.dashboard') }}">
+                {# Superuser Menu #}
+                {% if current_role == 'superuser' %}
+                <div class="role-menu sidenav-category" data-role="superuser">
+                    <div class="sidenav-category-header" onclick="toggleCategory(this)">
+                        <p class="sidenav-category-title">Super User</p>
+                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="sidenav-category-content expanded">
+                    <li><a href="{{ url_for('superuser.dashboard') }}">
                             <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
                         </a>
                     </li>
-                    <li><a href="{{ url_for('super_user.user_management') }}">
+                    <li><a href="{{ url_for('superuser.user_management') }}">
                             <span class="icon" aria-hidden="true">&#128101;</span>
                             <span class="sidenav-btn-text">User Management</span>
                         </a>
@@ -115,22 +211,29 @@
                             <span class="sidenav-btn-text">Payable Items</span>
                         </a>
                     </li>
-                    <li><a href="{{ url_for('super_user.system_settings') }}">
+                    <li><a href="{{ url_for('superuser.system_settings') }}">
                             <span class="icon" aria-hidden="true">&#128295;</span>
                             <span class="sidenav-btn-text">System Settings</span>
                         </a>
                     </li>
-                    <li><a href="{{ url_for('super_user.students_list') }}">
+                    <li><a href="{{ url_for('superuser.students_list') }}">
                             <span class="icon" aria-hidden="true">&#128100;</span>
                             <span class="sidenav-btn-text">Students</span>
                         </a>
                     </li>
+                    </div>
                 </div>
                 {% endif %}
 
                 {# Common Menu Items - Always visible #}
-                <div class="role-menu common-menu" data-role="common">
-                    <p class="sidenav-title">Account</p>
+                <div class="role-menu common-menu sidenav-category" data-role="common">
+                    <div class="sidenav-category-header" onclick="toggleCategory(this)">
+                        <p class="sidenav-category-title">Account</p>
+                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="sidenav-category-content expanded">
                     <li><a href="{{ url_for('user.settings') }}">
                             <span class="icon" aria-hidden="true">&#9881;</span>
                             <span class="sidenav-btn-text">Settings</span>
@@ -146,10 +249,12 @@
                             <span class="sidenav-btn-text">Notifications</span>
                         </a>
                     </li>
+                    </div>
                 </div>
             </ul>
         </div>
-        <div>
+        
+        <div class="sidenav-footer">
             <ul>
                 <li>
                     <a href="{{ url_for('auth.logout') }}">
@@ -161,3 +266,18 @@
         </div>
     </nav>
 </div>
+
+<script>
+function toggleCategory(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.sidenav-category-icon');
+    
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        icon.classList.remove('expanded');
+    } else {
+        content.classList.add('expanded');
+        icon.classList.add('expanded');
+    }
+}
+</script>
