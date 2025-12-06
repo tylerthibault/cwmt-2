@@ -217,6 +217,10 @@ def view_course(course_id):
         payment_summary = PaymentLogic.get_enrollment_payment_summary(enrollment.id)
         line_items = PaymentLogic.get_enrollment_line_items(enrollment.id)
         
+        # Get payment history including failed payments
+        from src.models.payment_models import Payment
+        payment_history = Payment.query.filter_by(enrollment_id=enrollment.id).order_by(Payment.payment_date.desc()).all()
+        
         context = {
             'user': logbook_entry.user,
             'current_role': 'student',
@@ -224,7 +228,8 @@ def view_course(course_id):
             'enrollment': enrollment,
             'student_profile': student_profile,
             'payment_summary': payment_summary,
-            'line_items': line_items
+            'line_items': line_items,
+            'payment_history': payment_history
         }
         
         return render_template('private/student/my_course/index.html', **context)
@@ -814,7 +819,7 @@ def request_refund(line_item_id):
         
         return jsonify({
             'success': True,
-            'message': 'Refund request submitted successfully. A superuser will review your request.',
+            'message': 'Refund request submitted successfully. An admin will review your request.',
             'refund_id': refund.id
         })
         

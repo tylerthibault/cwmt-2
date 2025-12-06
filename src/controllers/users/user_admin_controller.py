@@ -978,12 +978,14 @@ def override_payment_status(line_item_id):
 @admin_required
 def sync_stripe_payments(course_id):
     """
-    Manually sync pending Stripe payments by checking their status with Stripe.
+    Manually sync all Stripe payments by checking their status with Stripe.
+    Checks for payment success, failures, cancellations, and disputes.
     Useful when webhooks are not running or payments were missed.
     """
     import stripe
     import os
     from decimal import Decimal
+    from datetime import datetime
     from src.models.payment_models import Payment
     from src.logic.payment_logic import PaymentLogic
     from src.models import db
@@ -1002,11 +1004,10 @@ def sync_stripe_payments(course_id):
         # Initialize Stripe
         stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
         
-        # Get all pending payments for this course
+        # Get all Stripe payments for this course (not just pending)
         enrollment_ids = [e.id for e in course.enrollments if e.status not in ['withdrawn', 'cancelled']]
-        pending_payments = Payment.query.filter(
+        stripe_payments = Payment.query.filter(
             Payment.enrollment_id.in_(enrollment_ids),
-            Payment.status == 'pending',
             Payment.stripe_payment_intent_id.isnot(None)
         ).all() if enrollment_ids else []
         
@@ -1014,25 +1015,27 @@ def sync_stripe_payments(course_id):
         updated_count = 0
         errors = []
         
-        for payment in pending_payments:
+        for payment in stripe_payments:
             checked_count += 1
             
             try:
                 # Retrieve payment intent from Stripe
                 intent = stripe.PaymentIntent.retrieve(payment.stripe_payment_intent_id)
                 
-                # Check if payment succeeded
-                if intent.status == 'succeeded':
+                # Get the charge if it exists
+                charge = None
+                charge_id = None
+                if hasattr(intent, 'charges') and intent.charges and hasattr(intent.charges, 'data') and intent.charges.data:
+                    charge_id = intent.charges.data[0].id
+                    charge = stripe.Charge.retrieve(charge_id)
+                
+                # Check payment intent status
+                if intent.status == 'succeeded' and payment.status != 'completed':
                     # Extract metadata
                     metadata = intent.metadata
                     line_item_ids = metadata.get('line_item_ids', '').split(',')
                     
                     if line_item_ids and line_item_ids[0]:
-                        # Get charge ID safely
-                        charge_id = None
-                        if hasattr(intent, 'charges') and intent.charges and hasattr(intent.charges, 'data') and intent.charges.data:
-                            charge_id = intent.charges.data[0].id
-                        
                         # Record/update the payment
                         PaymentLogic.record_payment(
                             enrollment_id=payment.enrollment_id,
@@ -1045,10 +1048,39 @@ def sync_stripe_payments(course_id):
                             notes='Manually synced from Stripe by admin'
                         )
                         updated_count += 1
-                elif intent.status == 'canceled':
+                        
+                elif intent.status == 'canceled' and payment.status not in ['failed', 'canceled']:
                     # Mark as failed
                     payment.status = 'failed'
                     payment.notes = (payment.notes or '') + '\nPayment was canceled in Stripe'
+                    db.session.commit()
+                    updated_count += 1
+                    
+                elif intent.status in ['requires_payment_method', 'requires_action'] and payment.status == 'completed':
+                    # Payment was marked completed but actually requires action
+                    payment.status = 'pending'
+                    payment.notes = (payment.notes or '') + f'\nReverted to pending - Stripe status: {intent.status}'
+                    db.session.commit()
+                    updated_count += 1
+                
+                # Check for disputes on the charge
+                if charge and hasattr(charge, 'disputed') and charge.disputed and payment.status != 'disputed':
+                    # Payment has been disputed
+                    payment.status = 'disputed'
+                    dispute_info = f'\n[DISPUTE DETECTED] Synced at {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")} - Payment is under dispute'
+                    payment.notes = (payment.notes or '') + dispute_info
+                    db.session.commit()
+                    updated_count += 1
+                    
+                # Check if dispute was resolved
+                if charge and hasattr(charge, 'disputed') and not charge.disputed and payment.status == 'disputed':
+                    # Dispute was resolved - check outcome
+                    if intent.status == 'succeeded':
+                        payment.status = 'completed'
+                        payment.notes = (payment.notes or '') + f'\n[DISPUTE RESOLVED] Won - Payment restored'
+                    else:
+                        payment.status = 'failed'
+                        payment.notes = (payment.notes or '') + f'\n[DISPUTE RESOLVED] Lost - Payment failed'
                     db.session.commit()
                     updated_count += 1
                     

@@ -41,7 +41,7 @@ class Payment(BaseModel):
     # Payment details
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)  # stripe, cash, check, other
-    status = db.Column(db.String(50), default='pending', nullable=False)  # pending, completed, failed
+    status = db.Column(db.String(50), default='pending', nullable=False)  # pending, completed, failed, disputed
     payment_date = db.Column(db.DateTime, nullable=False)
     
     # Stripe integration

@@ -176,6 +176,40 @@
         </div>
         {% endif %}
         
+        <!-- Payment History Section -->
+        {% if payment_history and payment_history|length > 0 %}
+        <div class="cd-section">
+            <h2 class="cd-section-title">Payment History</h2>
+            <div class="cd-payment-history">
+                {% for payment in payment_history %}
+                <div class="cd-payment-history-item cd-payment-history-{{ payment.status }}">
+                    <div class="cd-payment-history-info">
+                        <div class="cd-payment-history-header">
+                            <span class="cd-payment-history-method">{{ payment.payment_method|upper }}</span>
+                            <span class="cd-payment-history-amount">${{ "%.2f"|format(payment.amount) }}</span>
+                        </div>
+                        <div class="cd-payment-history-date">{{ payment.payment_date.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                        {% if payment.notes %}
+                        <div class="cd-payment-history-notes">{{ payment.notes | replace('\n', '<br>') | safe }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="cd-payment-history-status">
+                        {% if payment.status == 'completed' %}
+                            <span class="cd-status-badge cd-status-paid">✓ Completed</span>
+                        {% elif payment.status == 'disputed' %}
+                            <span class="cd-status-badge cd-status-disputed">⚠ Disputed</span>
+                        {% elif payment.status == 'failed' %}
+                            <span class="cd-status-badge cd-status-failed">✗ Failed</span>
+                        {% elif payment.status == 'pending' %}
+                            <span class="cd-status-badge cd-status-pending">⏱ Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="cd-section">
             <h2 class="cd-section-title">Instructors</h2>
             <div class="cd-instructors">
@@ -278,6 +312,31 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Message Modal (Success/Error) -->
+<div id="messageModal" class="modal-overlay" onclick="closeMessageModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title" id="messageModalTitle">Notification</h2>
+            <button class="modal-close" onclick="closeMessageModal()" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div id="messageModalIcon" style="text-align: center; margin-bottom: 1rem; font-size: 3rem;"></div>
+            <p id="messageModalText" style="text-align: center; font-size: 1.1rem;"></p>
+        </div>
+        
+        <div class="modal-actions">
+            <button type="button" onclick="closeMessageModal()" class="modal-btn modal-btn-primary">
+                OK
+            </button>
         </div>
     </div>
 </div>
@@ -795,6 +854,101 @@
     padding-top: 1rem;
 }
 
+/* Payment History Styles */
+.cd-payment-history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cd-payment-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.cd-payment-history-failed {
+    border-left: 4px solid #d32f2f;
+    background: #ffebee;
+}
+
+.cd-payment-history-disputed {
+    border-left: 4px solid #f57c00;
+    background: #fff3e0;
+}
+
+.cd-payment-history-completed {
+    border-left: 4px solid #388e3c;
+}
+
+.cd-payment-history-pending {
+    border-left: 4px solid #f57c00;
+}
+
+.cd-payment-history-info {
+    flex: 1;
+}
+
+.cd-payment-history-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.cd-payment-history-method {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #424242;
+    padding: 0.25rem 0.5rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.cd-payment-history-amount {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #212121;
+}
+
+.cd-payment-history-date {
+    font-size: 0.875rem;
+    color: #757575;
+    margin-bottom: 0.25rem;
+}
+
+.cd-payment-history-notes {
+    font-size: 0.875rem;
+    color: #616161;
+    margin-top: 0.5rem;
+    font-family: monospace;
+    background: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    line-height: 1.5;
+}
+
+.cd-payment-history-status {
+    display: flex;
+    align-items: center;
+}
+
+.cd-status-failed {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef5350;
+}
+
+.cd-status-disputed {
+    background-color: #fff3e0;
+    color: #e65100;
+    border-color: #ff9800;
+}
+
 @media (max-width: 768px) {
     .cd-header {
         flex-direction: column;
@@ -1110,6 +1264,43 @@ function closeRefundRequestModal(event) {
     }
 }
 
+// Message Modal Functions
+function showMessageModal(title, message, type = 'info') {
+    const modal = document.getElementById('messageModal');
+    const titleEl = document.getElementById('messageModalTitle');
+    const textEl = document.getElementById('messageModalText');
+    const iconEl = document.getElementById('messageModalIcon');
+    
+    titleEl.textContent = title;
+    textEl.textContent = message;
+    
+    // Set icon based on type
+    if (type === 'success') {
+        iconEl.textContent = '✓';
+        iconEl.style.color = '#2E7D32';
+    } else if (type === 'error') {
+        iconEl.textContent = '✕';
+        iconEl.style.color = '#C62828';
+    } else if (type === 'warning') {
+        iconEl.textContent = '⚠';
+        iconEl.style.color = '#E65100';
+    } else {
+        iconEl.textContent = 'ℹ';
+        iconEl.style.color = '#007AFF';
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMessageModal(event) {
+    if (!event || event.target === event.currentTarget || event.target.closest('.modal-close') || event.target.closest('.modal-btn')) {
+        const modal = document.getElementById('messageModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
 async function submitRefundRequest(event) {
     event.preventDefault();
     
@@ -1119,12 +1310,12 @@ async function submitRefundRequest(event) {
     
     // Validate amount
     if (amount <= 0 || amount > maxRefundableAmount) {
-        alert(`Refund amount must be between $0.01 and $${maxRefundableAmount.toFixed(2)}`);
+        showMessageModal('Invalid Amount', `Refund amount must be between $0.01 and $${maxRefundableAmount.toFixed(2)}`, 'error');
         return;
     }
     
     if (!reason) {
-        alert('Please provide a reason for the refund request');
+        showMessageModal('Reason Required', 'Please provide a reason for the refund request', 'warning');
         return;
     }
     
@@ -1143,14 +1334,15 @@ async function submitRefundRequest(event) {
         const data = await response.json();
         
         if (data.success) {
-            alert(data.message);
             closeRefundRequestModal();
-            location.reload(); // Reload to show updated status
+            showMessageModal('Request Submitted', data.message, 'success');
+            // Reload after user closes the modal
+            setTimeout(() => location.reload(), 2000);
         } else {
-            alert(data.message || 'Failed to submit refund request');
+            showMessageModal('Request Failed', data.message || 'Failed to submit refund request', 'error');
         }
     } catch (error) {
-        alert('An error occurred while submitting your refund request. Please try again.');
+        showMessageModal('Error', 'An error occurred while submitting your refund request. Please try again.', 'error');
         console.error('Refund request error:', error);
     }
 }

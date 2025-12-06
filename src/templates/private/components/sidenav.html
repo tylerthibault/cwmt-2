@@ -106,11 +106,11 @@
                 <div class="role-menu sidenav-category" data-role="instructor">
                     <div class="sidenav-category-header" onclick="toggleCategory(this)">
                         <p class="sidenav-category-title">Instructor</p>
-                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                        <svg class="sidenav-category-icon" viewBox="0 0 16 16" fill="none">
                             <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="sidenav-category-content expanded">
+                    <div class="sidenav-category-content">
                         <li><a href="{{ url_for('instructor.dashboard') }}">
                                 <span class="icon" aria-hidden="true">&#128200;</span>
                                 <span class="sidenav-btn-text">Dashboard</span>
@@ -140,11 +140,11 @@
                 <div class="role-menu sidenav-category" data-role="admin">
                     <div class="sidenav-category-header" onclick="toggleCategory(this)">
                         <p class="sidenav-category-title">Admin</p>
-                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                        <svg class="sidenav-category-icon" viewBox="0 0 16 16" fill="none">
                             <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="sidenav-category-content expanded">
+                    <div class="sidenav-category-content">
                     <li><a href="{{ url_for('user_admin.dashboard') }}">
                             <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
@@ -183,12 +183,12 @@
                 {% if current_role == 'superuser' %}
                 <div class="role-menu sidenav-category" data-role="superuser">
                     <div class="sidenav-category-header" onclick="toggleCategory(this)">
-                        <p class="sidenav-category-title">Super User</p>
-                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                        <p class="sidenav-category-title">Superuser</p>
+                        <svg class="sidenav-category-icon" viewBox="0 0 16 16" fill="none">
                             <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="sidenav-category-content expanded">
+                    <div class="sidenav-category-content">
                     <li><a href="{{ url_for('superuser.dashboard') }}">
                             <span class="icon" aria-hidden="true">&#128200;</span>
                             <span class="sidenav-btn-text">Dashboard</span>
@@ -229,11 +229,11 @@
                 <div class="role-menu common-menu sidenav-category" data-role="common">
                     <div class="sidenav-category-header" onclick="toggleCategory(this)">
                         <p class="sidenav-category-title">Account</p>
-                        <svg class="sidenav-category-icon expanded" viewBox="0 0 16 16" fill="none">
+                        <svg class="sidenav-category-icon" viewBox="0 0 16 16" fill="none">
                             <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="sidenav-category-content expanded">
+                    <div class="sidenav-category-content">
                     <li><a href="{{ url_for('user.settings') }}">
                             <span class="icon" aria-hidden="true">&#9881;</span>
                             <span class="sidenav-btn-text">Settings</span>

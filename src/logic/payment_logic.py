@@ -380,6 +380,79 @@ class PaymentLogic:
         return payment
     
     @staticmethod
+    def record_failed_payment(
+        enrollment_id: int,
+        line_item_ids: List[int],
+        amount: Decimal,
+        processed_by_user_id: int,
+        stripe_payment_intent_id: Optional[str] = None,
+        failure_reason: Optional[str] = None
+    ) -> Payment:
+        """
+        Record a failed payment attempt for tracking purposes.
+        
+        Args:
+            enrollment_id: Enrollment ID
+            line_item_ids: List of EnrollmentLineItem IDs attempted to be paid
+            amount: Payment amount attempted
+            processed_by_user_id: User ID who attempted the payment
+            stripe_payment_intent_id: Optional Stripe Payment Intent ID
+            failure_reason: Reason for payment failure
+            
+        Returns:
+            Payment instance with status='failed'
+            
+        Raises:
+            PaymentValidationError: If validation fails
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validate line items exist
+        line_items = EnrollmentLineItem.query.filter(
+            EnrollmentLineItem.id.in_(line_item_ids),
+            EnrollmentLineItem.enrollment_id == enrollment_id
+        ).all()
+        
+        if len(line_items) != len(line_item_ids):
+            raise PaymentValidationError("One or more line items not found")
+        
+        # Check if failed payment already recorded for this intent
+        if stripe_payment_intent_id:
+            existing_payment = Payment.query.filter_by(
+                stripe_payment_intent_id=stripe_payment_intent_id
+            ).first()
+            
+            if existing_payment:
+                # Update existing payment to failed
+                existing_payment.status = 'failed'
+                existing_payment.notes = (existing_payment.notes or '') + f"\nFailed: {failure_reason}"
+                db.session.commit()
+                logger.info(f"Updated existing payment {existing_payment.id} to failed status")
+                return existing_payment
+        
+        # Create failed payment record
+        notes = f"Payment failed: {failure_reason}" if failure_reason else "Payment failed"
+        
+        payment = Payment(
+            enrollment_id=enrollment_id,
+            processed_by_user_id=processed_by_user_id,
+            amount=amount,
+            payment_method='stripe',
+            status='failed',
+            payment_date=datetime.utcnow(),
+            stripe_payment_intent_id=stripe_payment_intent_id,
+            notes=notes
+        )
+        
+        db.session.add(payment)
+        db.session.commit()
+        
+        logger.info(f"Failed payment recorded - ID: {payment.id}, Amount: ${amount}, Reason: {failure_reason}")
+        
+        return payment
+    
+    @staticmethod
     def process_stripe_webhook(payload: dict, sig_header: str) -> Dict:
         """
         Process Stripe webhook event.
@@ -453,6 +526,144 @@ class PaymentLogic:
                 'success': True,
                 'payment_id': payment.id
             }
+        
+        # Handle payment intent failed
+        elif event['type'] == 'payment_intent.payment_failed':
+            payment_intent = event['data']['object']
+            
+            # Extract metadata
+            metadata = payment_intent.get('metadata', {})
+            enrollment_id = metadata.get('enrollment_id')
+            user_id = metadata.get('user_id')
+            line_item_ids = metadata.get('line_item_ids', '').split(',')
+            
+            logger.warning(f"Payment intent failed - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}")
+            
+            if not all([enrollment_id, user_id, line_item_ids]):
+                logger.error("Missing required metadata in failed payment intent")
+                return {'success': True, 'message': 'Missing metadata for failed payment'}
+            
+            # Get failure reason
+            last_payment_error = payment_intent.get('last_payment_error', {})
+            failure_message = last_payment_error.get('message', 'Payment declined')
+            failure_code = last_payment_error.get('code', 'unknown')
+            
+            # Record the failed payment
+            amount = Decimal(payment_intent['amount']) / 100  # Convert cents to dollars
+            
+            logger.info(f"Recording failed payment of ${amount} for enrollment {enrollment_id} - Reason: {failure_message}")
+            
+            failed_payment = PaymentLogic.record_failed_payment(
+                enrollment_id=int(enrollment_id),
+                line_item_ids=[int(id) for id in line_item_ids if id],
+                amount=amount,
+                processed_by_user_id=int(user_id),
+                stripe_payment_intent_id=payment_intent['id'],
+                failure_reason=f"{failure_code}: {failure_message}"
+            )
+            
+            logger.info(f"Failed payment recorded - Payment ID: {failed_payment.id}")
+            
+            return {
+                'success': True,
+                'payment_id': failed_payment.id,
+                'status': 'failed'
+            }
+        
+        # Handle charge dispute created
+        elif event['type'] == 'charge.dispute.created':
+            dispute = event['data']['object']
+            charge_id = dispute.get('charge')
+            amount = Decimal(dispute.get('amount', 0)) / 100
+            reason = dispute.get('reason', 'unknown')
+            status = dispute.get('status', 'needs_response')
+            
+            logger.warning(f"Dispute created for charge {charge_id} - Amount: ${amount}, Reason: {reason}")
+            
+            # Find the payment by charge_id
+            payment = Payment.query.filter_by(stripe_charge_id=charge_id).first()
+            
+            if payment:
+                # Update payment with dispute information
+                dispute_note = f"\n[DISPUTE CREATED] {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - Amount: ${amount}, Reason: {reason}, Status: {status}"
+                payment.notes = (payment.notes or '') + dispute_note
+                payment.status = 'disputed'
+                db.session.commit()
+                
+                logger.info(f"Payment {payment.id} marked as disputed")
+                
+                return {
+                    'success': True,
+                    'payment_id': payment.id,
+                    'status': 'disputed'
+                }
+            else:
+                logger.warning(f"No payment found for disputed charge {charge_id}")
+                return {'success': True, 'message': 'Payment not found for dispute'}
+        
+        # Handle charge dispute funds withdrawn
+        elif event['type'] == 'charge.dispute.funds_withdrawn':
+            dispute = event['data']['object']
+            charge_id = dispute.get('charge')
+            amount = Decimal(dispute.get('amount', 0)) / 100
+            
+            logger.warning(f"Dispute funds withdrawn for charge {charge_id} - Amount: ${amount}")
+            
+            # Find the payment by charge_id
+            payment = Payment.query.filter_by(stripe_charge_id=charge_id).first()
+            
+            if payment:
+                # Update payment with funds withdrawn information
+                withdraw_note = f"\n[FUNDS WITHDRAWN] {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - Amount: ${amount} withdrawn due to dispute"
+                payment.notes = (payment.notes or '') + withdraw_note
+                db.session.commit()
+                
+                logger.info(f"Payment {payment.id} updated with funds withdrawn notice")
+                
+                return {
+                    'success': True,
+                    'payment_id': payment.id,
+                    'status': 'funds_withdrawn'
+                }
+            else:
+                logger.warning(f"No payment found for charge {charge_id} with funds withdrawn")
+                return {'success': True, 'message': 'Payment not found for funds withdrawal'}
+        
+        # Handle charge dispute closed (won or lost)
+        elif event['type'] == 'charge.dispute.closed':
+            dispute = event['data']['object']
+            charge_id = dispute.get('charge')
+            status = dispute.get('status')  # won, lost, etc.
+            
+            logger.info(f"Dispute closed for charge {charge_id} - Status: {status}")
+            
+            # Find the payment by charge_id
+            payment = Payment.query.filter_by(stripe_charge_id=charge_id).first()
+            
+            if payment:
+                # Update payment based on dispute outcome
+                close_note = f"\n[DISPUTE CLOSED] {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - Outcome: {status}"
+                payment.notes = (payment.notes or '') + close_note
+                
+                if status == 'won':
+                    # Dispute won, payment remains valid
+                    payment.status = 'completed'
+                elif status == 'lost':
+                    # Dispute lost, mark as failed
+                    payment.status = 'failed'
+                
+                db.session.commit()
+                
+                logger.info(f"Payment {payment.id} dispute resolved - Status: {status}")
+                
+                return {
+                    'success': True,
+                    'payment_id': payment.id,
+                    'dispute_status': status
+                }
+            else:
+                logger.warning(f"No payment found for closed dispute on charge {charge_id}")
+                return {'success': True, 'message': 'Payment not found for dispute closure'}
         
         logger.info(f"Event type {event['type']} not handled")
         return {'success': True, 'message': 'Event type not handled'}
@@ -566,6 +777,14 @@ class PaymentLogic:
         # Validate line item is paid
         if line_item.status != 'paid':
             raise PaymentValidationError("Can only request refund for paid items")
+        
+        # Check for existing pending refund requests
+        existing_refund = Refund.query.filter_by(
+            enrollment_line_item_id=line_item_id,
+            status='requested'
+        ).first()
+        if existing_refund:
+            raise PaymentValidationError("A refund request for this item is already pending review")
         
         # Validate amount
         if amount <= 0:
