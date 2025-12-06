@@ -98,3 +98,20 @@ def seed():
     except Exception as e:
         app.logger.error(f"Seeding failed via /seed route: {str(e)}")
         return f"Seeding failed: {str(e)}", 500
+    
+@main_bp.route('/reset_db')
+def reset_db():
+    """
+        Route to reset the database for development/testing only. This will delete the database completely and recreate it and then redirect to the seeding route.
+    """
+    try:
+        from src.models import db
+        db.drop_all()
+        db.create_all()
+        
+        app.logger.info("Database reset completed via /reset_db route")
+        flash('Database reset successfully!', 'success')
+        return redirect(url_for('main.seed'))
+    except Exception as e:
+        app.logger.error(f"Database reset failed via /reset_db route: {str(e)}")
+        return f"Database reset failed: {str(e)}", 500

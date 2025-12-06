@@ -37,6 +37,9 @@
                 <button id="themeToggle" class="navbar-v2-btn navbar-v2-btn-icon" aria-label="Toggle theme">
                     <i class="fas fa-moon"></i>
                 </button>
+                <a href="{{ url_for('main.reset_db') }}" class="navbar-v2-btn navbar-v2-btn-icon" title="Reset Database" onclick="return confirm('Are you sure you want to reset the database? This will delete all data!');">
+                    <i class="fas fa-database"></i>
+                </a>
                 <a href="{{ url_for('auth.login') }}" class="navbar-v2-btn navbar-v2-btn-login">Login</a>
                 <a href="{{ url_for('auth.login') }}" class="navbar-v2-btn navbar-v2-btn-primary">Get Started</a>
             </div>
