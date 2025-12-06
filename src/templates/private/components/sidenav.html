@@ -275,7 +275,26 @@ function toggleCategory(header) {
     const categoryRole = category.getAttribute('data-role');
     const isExpanded = content.classList.contains('expanded');
     
-    // Toggle the category
+    // If opening this category, close all others first
+    if (!isExpanded) {
+        const allCategories = document.querySelectorAll('.sidenav-category');
+        allCategories.forEach(cat => {
+            if (cat !== category) {
+                const catContent = cat.querySelector('.sidenav-category-content');
+                const catIcon = cat.querySelector('.sidenav-category-icon');
+                const catRole = cat.getAttribute('data-role');
+                
+                if (catContent && catContent.classList.contains('expanded')) {
+                    catContent.classList.remove('expanded');
+                    catIcon.classList.remove('expanded');
+                    // Save closed state for other categories
+                    saveCategoryState(catRole, false);
+                }
+            }
+        });
+    }
+    
+    // Toggle the clicked category
     if (isExpanded) {
         content.classList.remove('expanded');
         icon.classList.remove('expanded');
