@@ -103,6 +103,7 @@ def create_course_template():
         'name': request.form.get('name'),
         'description': request.form.get('description', ''),
         'duration_days': int(request.form.get('duration_days', 1)),
+        'max_students': int(request.form.get('max_students', 12)),
         'experience_level': request.form.get('experience_level'),
         'is_active': True
     }
@@ -170,6 +171,7 @@ def update_course_template():
         'name': request.form.get('name'),
         'description': request.form.get('description', ''),
         'duration_days': int(request.form.get('duration_days', 1)),
+        'max_students': int(request.form.get('max_students', 12)),
         'experience_level': request.form.get('experience_level')
     }
     

@@ -86,4 +86,20 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleButton.setAttribute('aria-expanded', !isCollapsed);
         }
     }
+
+    // Expose function to clear sidenav state (called on logout)
+    window.clearSidenavState = function() {
+        // Clear main sidenav collapsed state
+        localStorage.removeItem('sidenav-collapsed');
+        
+        // Clear all category states for all roles
+        const roles = ['instructor', 'admin', 'superuser', 'student'];
+        const categories = ['instructor', 'admin', 'superuser', 'common'];
+        
+        roles.forEach(role => {
+            categories.forEach(category => {
+                localStorage.removeItem(`sidenav-${role}-${category}`);
+            });
+        });
+    };
 });

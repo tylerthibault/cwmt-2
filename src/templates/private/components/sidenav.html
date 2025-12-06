@@ -257,7 +257,7 @@
         <div class="sidenav-footer">
             <ul>
                 <li>
-                    <a href="{{ url_for('auth.logout') }}">
+                    <a href="{{ url_for('auth.logout') }}" onclick="if (window.clearSidenavState) window.clearSidenavState();">
                         <span class="icon" aria-hidden="true">&#10162;</span>
                         <span class="sidenav-btn-text">Logout</span>
                     </a>
@@ -271,19 +271,49 @@
 function toggleCategory(header) {
     const content = header.nextElementSibling;
     const icon = header.querySelector('.sidenav-category-icon');
+    const category = header.closest('.sidenav-category');
+    const categoryRole = category.getAttribute('data-role');
     const isExpanded = content.classList.contains('expanded');
     
-    // Close all other categories
-    const allCategories = document.querySelectorAll('.sidenav-category-content');
-    const allIcons = document.querySelectorAll('.sidenav-category-icon');
-    
-    allCategories.forEach(cat => cat.classList.remove('expanded'));
-    allIcons.forEach(ic => ic.classList.remove('expanded'));
-    
-    // If the clicked category was not expanded, expand it
-    if (!isExpanded) {
+    // Toggle the category
+    if (isExpanded) {
+        content.classList.remove('expanded');
+        icon.classList.remove('expanded');
+    } else {
         content.classList.add('expanded');
         icon.classList.add('expanded');
     }
+    
+    // Save state to localStorage
+    saveCategoryState(categoryRole, !isExpanded);
 }
+
+function saveCategoryState(categoryRole, isExpanded) {
+    // Get current role from role switcher or data attribute
+    const currentRole = document.getElementById('roleSwitcher')?.value || '{{ current_role }}';
+    const storageKey = `sidenav-${currentRole}-${categoryRole}`;
+    localStorage.setItem(storageKey, isExpanded);
+}
+
+function loadCategoryStates() {
+    const currentRole = document.getElementById('roleSwitcher')?.value || '{{ current_role }}';
+    const categories = document.querySelectorAll('.sidenav-category');
+    
+    categories.forEach(category => {
+        const categoryRole = category.getAttribute('data-role');
+        const storageKey = `sidenav-${currentRole}-${categoryRole}`;
+        const isExpanded = localStorage.getItem(storageKey) === 'true';
+        
+        const content = category.querySelector('.sidenav-category-content');
+        const icon = category.querySelector('.sidenav-category-icon');
+        
+        if (isExpanded && content && icon) {
+            content.classList.add('expanded');
+            icon.classList.add('expanded');
+        }
+    });
+}
+
+// Load states when page loads
+document.addEventListener('DOMContentLoaded', loadCategoryStates);
 </script>
