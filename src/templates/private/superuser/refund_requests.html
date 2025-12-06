@@ -1,0 +1,337 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="page-header mb-4">
+        <h1><i class="fas fa-undo"></i> Refund Requests Management</h1>
+        <p class="text-muted">Review and process student refund requests</p>
+    </div>
+
+    <!-- Pending Refund Requests -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-clock"></i> Pending Refund Requests ({{ pending_refunds|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if pending_refunds %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Request Date</th>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Item</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for refund in pending_refunds %}
+                        <tr>
+                            <td>{{ refund.request_date.strftime('%m/%d/%Y %I:%M %p') if refund.request_date else 'N/A' }}</td>
+                            <td>
+                                <strong>{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}</strong><br>
+                                <small class="text-muted">{{ refund.requested_by.email }}</small>
+                            </td>
+                            <td>
+                                {% if refund.enrollment_line_item.enrollment.course %}
+                                    {{ refund.enrollment_line_item.enrollment.course.template.name }}<br>
+                                    <small class="text-muted">{{ refund.enrollment_line_item.enrollment.course.start_date.strftime('%m/%d/%Y') if refund.enrollment_line_item.enrollment.course.start_date }}</small>
+                                {% else %}
+                                    <em>N/A</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ refund.enrollment_line_item.course_payable_item.payable_item_template.name }}</td>
+                            <td><strong>${{ "%.2f"|format(refund.amount) }}</strong></td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="showReasonModal('{{ refund.reason|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
+                                    View Reason
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-success" onclick="openApproveModal({{ refund.id }}, '{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}', {{ refund.amount }})">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="openDenyModal({{ refund.id }}, '{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}', {{ refund.amount }})">
+                                    <i class="fas fa-times"></i> Deny
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                <p>No pending refund requests</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Processed Refund Requests -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Recent Processed Refunds</h5>
+        </div>
+        <div class="card-body">
+            {% if processed_refunds %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Request Date</th>
+                            <th>Processed Date</th>
+                            <th>Student</th>
+                            <th>Item</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Processed By</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for refund in processed_refunds %}
+                        <tr>
+                            <td>{{ refund.request_date.strftime('%m/%d/%Y') if refund.request_date else 'N/A' }}</td>
+                            <td>{{ refund.refund_date.strftime('%m/%d/%Y') if refund.refund_date else 'N/A' }}</td>
+                            <td>{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}</td>
+                            <td>{{ refund.enrollment_line_item.course_payable_item.payable_item_template.name }}</td>
+                            <td>${{ "%.2f"|format(refund.amount) }}</td>
+                            <td>
+                                {% if refund.status == 'processed' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif refund.status == 'denied' %}
+                                    <span class="badge bg-danger">Denied</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ refund.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if refund.processed_by %}
+                                    {{ refund.processed_by.username }}
+                                {% else %}
+                                    <em>N/A</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if refund.admin_notes %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showNotesModal('{{ refund.admin_notes|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
+                                        View Notes
+                                    </button>
+                                {% else %}
+                                    <em>-</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-3">
+                <p>No processed refunds yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Approve Refund Modal -->
+<div id="approveRefundModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve Refund Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Student:</strong> <span id="approveStudentName"></span></p>
+                <p><strong>Refund Amount:</strong> $<span id="approveAmount"></span></p>
+                
+                <div class="mb-3">
+                    <label for="refundMethod" class="form-label">Refund Method</label>
+                    <select id="refundMethod" class="form-select" required>
+                        <option value="stripe">Stripe</option>
+                        <option value="cash">Cash</option>
+                        <option value="check">Check</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="approveNotes" class="form-label">Admin Notes (Optional)</label>
+                    <textarea id="approveNotes" class="form-control" rows="3" placeholder="Add any notes about this refund..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitApproval()">Approve Refund</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deny Refund Modal -->
+<div id="denyRefundModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deny Refund Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Student:</strong> <span id="denyStudentName"></span></p>
+                <p><strong>Refund Amount:</strong> $<span id="denyAmount"></span></p>
+                
+                <div class="mb-3">
+                    <label for="denyNotes" class="form-label">Reason for Denial <span class="text-danger">*</span></label>
+                    <textarea id="denyNotes" class="form-control" rows="3" placeholder="Please provide a reason for denying this refund..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitDenial()">Deny Refund</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reason Modal -->
+<div id="reasonModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Refund Request Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="reasonText" style="white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+<div id="notesModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Admin Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="notesText" style="white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentRefundId = null;
+
+function openApproveModal(refundId, studentName, amount) {
+    currentRefundId = refundId;
+    document.getElementById('approveStudentName').textContent = studentName;
+    document.getElementById('approveAmount').textContent = amount.toFixed(2);
+    document.getElementById('refundMethod').value = 'stripe';
+    document.getElementById('approveNotes').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('approveRefundModal'));
+    modal.show();
+}
+
+function openDenyModal(refundId, studentName, amount) {
+    currentRefundId = refundId;
+    document.getElementById('denyStudentName').textContent = studentName;
+    document.getElementById('denyAmount').textContent = amount.toFixed(2);
+    document.getElementById('denyNotes').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('denyRefundModal'));
+    modal.show();
+}
+
+function showReasonModal(reason) {
+    document.getElementById('reasonText').textContent = reason;
+    const modal = new bootstrap.Modal(document.getElementById('reasonModal'));
+    modal.show();
+}
+
+function showNotesModal(notes) {
+    document.getElementById('notesText').textContent = notes;
+    const modal = new bootstrap.Modal(document.getElementById('notesModal'));
+    modal.show();
+}
+
+async function submitApproval() {
+    const refundMethod = document.getElementById('refundMethod').value;
+    const adminNotes = document.getElementById('approveNotes').value.trim();
+    
+    try {
+        const response = await fetch(`/super/refund-requests/${currentRefundId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                refund_method: refundMethod,
+                admin_notes: adminNotes
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to approve refund');
+        }
+    } catch (error) {
+        alert('An error occurred while approving the refund');
+        console.error('Approval error:', error);
+    }
+}
+
+async function submitDenial() {
+    const adminNotes = document.getElementById('denyNotes').value.trim();
+    
+    if (!adminNotes) {
+        alert('Please provide a reason for denial');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/super/refund-requests/${currentRefundId}/deny`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                admin_notes: adminNotes
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to deny refund');
+        }
+    } catch (error) {
+        alert('An error occurred while denying the refund');
+        console.error('Denial error:', error);
+    }
+}
+</script>
+{% endblock content %}

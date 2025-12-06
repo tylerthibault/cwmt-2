@@ -16,7 +16,7 @@ Does NOT contain:
 - Data validation (belongs in logic layer)
 - Complex calculations (belongs in logic layer)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from src.models.logbook import Logbook
 from src.logic.user_logic import UserLogic
@@ -229,10 +229,18 @@ def view_course_instance(course_id):
     # Get course data with all relationships
     course_dict = course.to_dict(include_enrollments=True, include_template=True)
     
+    # Get all payments for this course's enrollments
+    from src.models.payment_models import Payment
+    enrollment_ids = [e.id for e in course.enrollments if e.status not in ['withdrawn', 'cancelled']]
+    payments = Payment.query.filter(
+        Payment.enrollment_id.in_(enrollment_ids)
+    ).order_by(Payment.payment_date.desc()).all() if enrollment_ids else []
+    
     context = {
         **user_context,
         'course': course,
         'course_dict': course_dict,
+        'payments': payments,
         'page_title': f'View Course: {course.template.name if course.template else "Course Details"}'
     }
     
@@ -920,3 +928,155 @@ def convert_mjml_to_html():
             'success': False,
             'error': result.get('error', 'Unknown error')
         }), 400
+
+
+# ============================================================================
+# PAYMENT MANAGEMENT ROUTES
+# ============================================================================
+
+@user_admin_bp.route('/payment/line-item/<int:line_item_id>/override', methods=['POST'])
+@admin_required
+def override_payment_status(line_item_id):
+    """
+    Allow admin to manually override payment status of a line item.
+    POST only for safety.
+    """
+    from src.logic.payment_logic import PaymentLogic, PaymentValidationError
+    from flask import jsonify
+    
+    # Get current admin user
+    token = session.get('token')
+    logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+    admin_user_id = logbook_entry.user_id
+    
+    data = request.form.to_dict()
+    new_status = data.get('status')
+    remarks = data.get('remarks', '').strip()
+    
+    try:
+        PaymentLogic.admin_override_line_item_status(
+            line_item_id=line_item_id,
+            new_status=new_status,
+            admin_user_id=admin_user_id,
+            remarks=remarks
+        )
+        
+        flash(f'Payment status updated to "{new_status}" successfully', 'success')
+        
+        # Redirect back to referrer or course view
+        return redirect(request.referrer or url_for('user_admin.schedule_management'))
+        
+    except PaymentValidationError as e:
+        flash(str(e), 'error')
+        return redirect(request.referrer or url_for('user_admin.schedule_management'))
+    except Exception as e:
+        flash(f'Error updating payment status: {str(e)}', 'error')
+        return redirect(request.referrer or url_for('user_admin.schedule_management'))
+
+
+@user_admin_bp.route('/course/<int:course_id>/sync-stripe-payments', methods=['POST'])
+@admin_required
+def sync_stripe_payments(course_id):
+    """
+    Manually sync pending Stripe payments by checking their status with Stripe.
+    Useful when webhooks are not running or payments were missed.
+    """
+    import stripe
+    import os
+    from decimal import Decimal
+    from src.models.payment_models import Payment
+    from src.logic.payment_logic import PaymentLogic
+    from src.models import db
+    
+    try:
+        # Get course and validate
+        course = Course.query.get_or_404(course_id)
+        
+        # Get current user
+        token = session.get('token')
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        
+        if not logbook_entry or not logbook_entry.user_id:
+            return jsonify({'success': False, 'message': 'Session expired'}), 401
+        
+        # Initialize Stripe
+        stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+        
+        # Get all pending payments for this course
+        enrollment_ids = [e.id for e in course.enrollments if e.status not in ['withdrawn', 'cancelled']]
+        pending_payments = Payment.query.filter(
+            Payment.enrollment_id.in_(enrollment_ids),
+            Payment.status == 'pending',
+            Payment.stripe_payment_intent_id.isnot(None)
+        ).all() if enrollment_ids else []
+        
+        checked_count = 0
+        updated_count = 0
+        errors = []
+        
+        for payment in pending_payments:
+            checked_count += 1
+            
+            try:
+                # Retrieve payment intent from Stripe
+                intent = stripe.PaymentIntent.retrieve(payment.stripe_payment_intent_id)
+                
+                # Check if payment succeeded
+                if intent.status == 'succeeded':
+                    # Extract metadata
+                    metadata = intent.metadata
+                    line_item_ids = metadata.get('line_item_ids', '').split(',')
+                    
+                    if line_item_ids and line_item_ids[0]:
+                        # Get charge ID safely
+                        charge_id = None
+                        if hasattr(intent, 'charges') and intent.charges and hasattr(intent.charges, 'data') and intent.charges.data:
+                            charge_id = intent.charges.data[0].id
+                        
+                        # Record/update the payment
+                        PaymentLogic.record_payment(
+                            enrollment_id=payment.enrollment_id,
+                            line_item_ids=[int(id) for id in line_item_ids if id],
+                            amount=Decimal(intent.amount) / 100,
+                            payment_method='stripe',
+                            processed_by_user_id=logbook_entry.user_id,
+                            stripe_payment_intent_id=intent.id,
+                            stripe_charge_id=charge_id,
+                            notes='Manually synced from Stripe by admin'
+                        )
+                        updated_count += 1
+                elif intent.status == 'canceled':
+                    # Mark as failed
+                    payment.status = 'failed'
+                    payment.notes = (payment.notes or '') + '\nPayment was canceled in Stripe'
+                    db.session.commit()
+                    updated_count += 1
+                    
+            except stripe.error.StripeError as e:
+                errors.append(f"Payment {payment.id}: {str(e)}")
+            except Exception as e:
+                errors.append(f"Payment {payment.id}: {str(e)}")
+        
+        message = f"Sync completed. "
+        if updated_count > 0:
+            message += f"{updated_count} payment(s) updated. "
+        else:
+            message += "No payments needed updating. "
+        
+        if errors:
+            message += f"\n\nErrors: {'; '.join(errors[:3])}"
+            if len(errors) > 3:
+                message += f"... and {len(errors) - 3} more"
+        
+        return jsonify({
+            'success': True,
+            'checked': checked_count,
+            'updated': updated_count,
+            'message': message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error syncing payments: {str(e)}'
+        }), 500

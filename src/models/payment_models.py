@@ -187,24 +187,32 @@ class Refund(BaseModel):
     original_payment_id = db.Column(
         db.Integer,
         db.ForeignKey('payments.id', ondelete='RESTRICT'),
-        nullable=False
+        nullable=True  # Can be null for requested refunds not yet processed
     )
     enrollment_line_item_id = db.Column(
         db.Integer,
         db.ForeignKey('enrollment_line_items.id', ondelete='CASCADE'),
         nullable=False
     )
-    processed_by_user_id = db.Column(
+    requested_by_user_id = db.Column(
         db.Integer,
         db.ForeignKey('users.id', ondelete='RESTRICT'),
         nullable=False
     )
+    processed_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='RESTRICT'),
+        nullable=True  # Null until approved/denied
+    )
     
     # Refund details
     amount = db.Column(db.Numeric(10, 2), nullable=False)
-    refund_method = db.Column(db.String(50), nullable=False)  # stripe, cash, check
-    refund_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(50), default='requested', nullable=False)  # requested, approved, denied, processed
+    refund_method = db.Column(db.String(50), nullable=True)  # stripe, cash, check - set when processed
+    request_date = db.Column(db.DateTime, nullable=False)
+    refund_date = db.Column(db.DateTime, nullable=True)  # Set when actually refunded
     reason = db.Column(db.Text, nullable=True)
+    admin_notes = db.Column(db.Text, nullable=True)  # Notes from superuser when approving/denying
     
     # Stripe integration
     stripe_refund_id = db.Column(db.String(255), unique=True, nullable=True)
@@ -212,7 +220,8 @@ class Refund(BaseModel):
     # Relationships
     original_payment = db.relationship('Payment', back_populates='refunds', foreign_keys=[original_payment_id])
     enrollment_line_item = db.relationship('EnrollmentLineItem', back_populates='refunds')
-    processed_by = db.relationship('User', backref='processed_refunds')
+    requested_by = db.relationship('User', foreign_keys=[requested_by_user_id], backref='requested_refunds')
+    processed_by = db.relationship('User', foreign_keys=[processed_by_user_id], backref='processed_refunds')
     
     # Indexes
     __table_args__ = (

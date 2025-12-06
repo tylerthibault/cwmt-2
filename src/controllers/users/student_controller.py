@@ -12,6 +12,7 @@ from src.models.courses_model import Course
 from src.models.course_enrollment import CourseEnrollment
 from decimal import Decimal
 import os
+import stripe
 
 # Create blueprint for student routes
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -124,6 +125,9 @@ def view_course(course_id):
     """
     View details of a specific enrolled course
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         # Get current user
         token = session.get('token')
@@ -158,12 +162,69 @@ def view_course(course_id):
             flash("You are not enrolled in this course.", "error")
             return redirect(url_for('student.my_courses'))
         
+        # Check if returning from Stripe payment (payment_intent in query params)
+        payment_intent_id = request.args.get('payment_intent')
+        if payment_intent_id:
+            logger.info(f"Detected return from Stripe with payment_intent: {payment_intent_id}")
+            try:
+                # Initialize Stripe
+                stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+                
+                # Retrieve the payment intent from Stripe
+                intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+                logger.info(f"Payment intent status: {intent.status}")
+                
+                # If payment succeeded and not already recorded
+                if intent.status == 'succeeded':
+                    # Check if we already recorded this payment
+                    from src.models.payment_models import Payment
+                    existing_payment = Payment.query.filter_by(
+                        stripe_payment_intent_id=payment_intent_id
+                    ).first()
+                    
+                    if not existing_payment:
+                        logger.info("Payment succeeded but not recorded - processing now")
+                        # Extract metadata and record payment
+                        metadata = intent.metadata
+                        enrollment_id = metadata.get('enrollment_id')
+                        line_item_ids = metadata.get('line_item_ids', '').split(',')
+                        
+                        if enrollment_id and line_item_ids:
+                            amount = Decimal(intent.amount) / 100
+                            
+                            PaymentLogic.record_payment(
+                                enrollment_id=int(enrollment_id),
+                                line_item_ids=[int(id) for id in line_item_ids if id],
+                                amount=amount,
+                                payment_method='stripe',
+                                processed_by_user_id=user_id,
+                                stripe_payment_intent_id=payment_intent_id,
+                                stripe_charge_id=intent.charges.data[0].id if intent.charges.data else None,
+                                notes='Payment recorded on return (webhook backup)'
+                            )
+                            
+                            flash("Payment successful! Your items have been paid.", "success")
+                            logger.info(f"Payment recorded successfully for intent {payment_intent_id}")
+                    else:
+                        logger.info("Payment already recorded")
+                        flash("Payment confirmed!", "success")
+                        
+            except Exception as e:
+                logger.error(f"Error checking payment intent: {str(e)}", exc_info=True)
+                flash("Payment may be processing. Please refresh if items still show as pending.", "info")
+        
+        # Get payment information for this enrollment
+        payment_summary = PaymentLogic.get_enrollment_payment_summary(enrollment.id)
+        line_items = PaymentLogic.get_enrollment_line_items(enrollment.id)
+        
         context = {
             'user': logbook_entry.user,
             'current_role': 'student',
             'course': course,
             'enrollment': enrollment,
-            'student_profile': student_profile
+            'student_profile': student_profile,
+            'payment_summary': payment_summary,
+            'line_items': line_items
         }
         
         return render_template('private/student/my_course/index.html', **context)
@@ -550,6 +611,7 @@ def payment_selection(course_id):
                 'line_item': line_item,
                 'is_paid': line_item.status == 'paid' if line_item else False,
                 'is_pending': line_item.status == 'pending' if line_item else False,
+                'is_rejected': line_item.status == 'rejected' if line_item else False,
                 'amount_due': (line_item.total - line_item.amount_paid) if line_item else payable_item.price
             })
         
@@ -685,24 +747,78 @@ def create_payment_intent(course_id):
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
 
-@student_bp.route('/webhooks/stripe', methods=['POST'])
+@student_bp.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     """
     Handle Stripe webhook events.
     Note: This route does not require login as it's called by Stripe.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         payload = request.data
         sig_header = request.headers.get('Stripe-Signature')
         
+        logger.info(f"Received Stripe webhook - Signature present: {bool(sig_header)}")
+        
         if not sig_header:
+            logger.error("Missing Stripe signature in webhook")
             return jsonify({'error': 'Missing signature'}), 400
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
+        logger.info(f"Webhook processed successfully: {result}")
         
         return jsonify(result), 200
         
     except PaymentBusinessError as e:
+        logger.error(f"Payment business error in webhook: {str(e)}")
         return jsonify({'error': str(e)}), 400
     except Exception as e:
+        logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Webhook error: {str(e)}'}), 500
+
+
+@student_bp.route('/refund-request/<int:line_item_id>', methods=['POST'])
+@login_required
+def request_refund(line_item_id):
+    """
+    Create a refund request for a paid line item.
+    Request will be sent to superuser for approval.
+    """
+    try:
+        # Get current user
+        token = session.get('token')
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        
+        if not logbook_entry or not logbook_entry.user_id:
+            return jsonify({'success': False, 'message': 'Session expired'}), 401
+        
+        user_id = logbook_entry.user_id
+        
+        # Get request data
+        data = request.get_json()
+        amount = Decimal(str(data.get('amount', 0)))
+        reason = data.get('reason', '').strip()
+        
+        if not reason:
+            return jsonify({'success': False, 'message': 'Please provide a reason for the refund request'}), 400
+        
+        # Create refund request
+        refund = PaymentLogic.request_refund(
+            line_item_id=line_item_id,
+            user_id=user_id,
+            amount=amount,
+            reason=reason
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Refund request submitted successfully. A superuser will review your request.',
+            'refund_id': refund.id
+        })
+        
+    except PaymentValidationError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error creating refund request: {str(e)}'}), 500

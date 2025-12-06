@@ -271,11 +271,17 @@
 function toggleCategory(header) {
     const content = header.nextElementSibling;
     const icon = header.querySelector('.sidenav-category-icon');
+    const isExpanded = content.classList.contains('expanded');
     
-    if (content.classList.contains('expanded')) {
-        content.classList.remove('expanded');
-        icon.classList.remove('expanded');
-    } else {
+    // Close all other categories
+    const allCategories = document.querySelectorAll('.sidenav-category-content');
+    const allIcons = document.querySelectorAll('.sidenav-category-icon');
+    
+    allCategories.forEach(cat => cat.classList.remove('expanded'));
+    allIcons.forEach(ic => ic.classList.remove('expanded'));
+    
+    // If the clicked category was not expanded, expand it
+    if (!isExpanded) {
         content.classList.add('expanded');
         icon.classList.add('expanded');
     }

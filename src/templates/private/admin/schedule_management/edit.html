@@ -86,6 +86,22 @@
                             </select>
                         </div>
 
+                        <!-- Max Students -->
+                        <div class="mb-3">
+                            <label for="maxStudents" class="form-label">Maximum Students</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="maxStudents" 
+                                   name="max_students" 
+                                   min="1"
+                                   value="{{ course.max_students if course.max_students is not none else course.template.max_students }}"
+                                   placeholder="Override template default ({{ course.template.max_students }})">
+                            <small class="form-text text-muted">
+                                Leave empty to use template default ({{ course.template.max_students }} student{% if course.template.max_students != 1 %}s{% endif %}). 
+                                Current enrollments: {{ course.enrollments|length }}
+                            </small>
+                        </div>
+
                         <hr>
                         <h6>Participants</h6>
 

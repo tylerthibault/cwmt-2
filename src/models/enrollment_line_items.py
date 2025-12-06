@@ -47,11 +47,16 @@ class EnrollmentLineItem(BaseModel):
     total = db.Column(db.Numeric(10, 2), nullable=False)  # subtotal - discount + tax
     
     # Payment status
-    status = db.Column(db.String(50), default='pending', nullable=False)  # pending, paid, refunded, partially_refunded
+    status = db.Column(db.String(50), default='pending', nullable=False)  # pending, paid, refunded, partially_refunded, rejected
     amount_paid = db.Column(db.Numeric(10, 2), default=0.00, nullable=False)
     amount_refunded = db.Column(db.Numeric(10, 2), default=0.00, nullable=False)
     
+    # Admin override tracking
+    admin_remarks = db.Column(db.Text, nullable=True)  # Notes from admin when manually adjusting status
+    manually_adjusted_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Admin who made manual adjustment
+    
     # Relationships
+    manually_adjusted_by = db.relationship('User', foreign_keys=[manually_adjusted_by_user_id])
     enrollment = db.relationship('CourseEnrollment', backref='line_items')
     course_payable_item = db.relationship('CoursePayableItem', backref='enrollment_line_items')
     payment_allocations = db.relationship(
@@ -92,7 +97,9 @@ class EnrollmentLineItem(BaseModel):
             'total': float(self.total) if self.total else 0.0,
             'status': self.status,
             'amount_paid': float(self.amount_paid) if self.amount_paid else 0.0,
-            'amount_refunded': float(self.amount_refunded) if self.amount_refunded else 0.0
+            'amount_refunded': float(self.amount_refunded) if self.amount_refunded else 0.0,
+            'admin_remarks': self.admin_remarks,
+            'manually_adjusted_by_user_id': self.manually_adjusted_by_user_id
         })
         return base_dict
     

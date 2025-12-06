@@ -40,10 +40,11 @@
                         {% set line_item = item_data.line_item %}
                         {% set is_paid = item_data.is_paid %}
                         {% set is_pending = item_data.is_pending %}
+                        {% set is_rejected = item_data.is_rejected %}
                         {% set amount_due = item_data.amount_due %}
                         {% set is_required = payable_item.is_required %}
                         
-                        <div class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% endif %} {% if is_required %}item-required{% endif %}">
+                        <div class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% elif is_rejected %}item-rejected{% endif %} {% if is_required %}item-required{% endif %}">
                             <div class="item-checkbox">
                                 {% if not line_item %}
                                 <input 
@@ -55,7 +56,7 @@
                                     data-price="{{ payable_item.price }}"
                                     {% if is_required %}checked disabled{% endif %}
                                 >
-                                {% elif is_pending and amount_due > 0 %}
+                                {% elif (is_pending or is_rejected) and amount_due > 0 %}
                                 <input 
                                     type="checkbox" 
                                     name="line_items" 
@@ -70,7 +71,7 @@
                                 {% endif %}
                             </div>
                             
-                            <label for="{% if not line_item %}item-{{ payable_item.id }}{% elif is_pending %}line-{{ line_item.id }}{% endif %}" class="item-content">
+                            <label for="{% if not line_item %}item-{{ payable_item.id }}{% elif is_pending or is_rejected %}line-{{ line_item.id }}{% endif %}" class="item-content">
                                 <div class="item-details">
                                     <div class="item-name">
                                         {{ payable_item.payable_item_template.name }}
@@ -90,10 +91,13 @@
                                 <div class="item-price-section">
                                     {% if is_paid %}
                                     <span class="item-status status-paid">Paid</span>
+                                    {% elif is_rejected and amount_due > 0 %}
+                                    <span class="item-price">${{ "%.2f"|format(amount_due) }}</span>
+                                    <span class="item-status status-rejected">Rejected - Retry Payment</span>
                                     {% elif is_pending and amount_due > 0 %}
                                     <span class="item-price">${{ "%.2f"|format(amount_due) }}</span>
                                     <span class="item-status status-pending">Pending</span>
-                                    {% elif is_pending and amount_due == 0 %}
+                                    {% elif (is_pending or is_rejected) and amount_due == 0 %}
                                     <span class="item-status status-paid">Paid</span>
                                     {% else %}
                                     <span class="item-price">${{ "%.2f"|format(payable_item.price) }}</span>
@@ -424,6 +428,17 @@
 .status-pending {
     background: #FFF3E0;
     color: #E65100;
+}
+
+.status-rejected {
+    background: #FFEBEE;
+    color: #C62828;
+    font-weight: 500;
+}
+
+.item-rejected {
+    border-color: #EF5350;
+    background: #FFF5F5;
 }
 
 .action-buttons {

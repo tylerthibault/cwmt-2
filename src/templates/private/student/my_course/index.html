@@ -76,6 +76,106 @@
             <p class="cd-description">{{ course.template.description or 'No description available.' }}</p>
         </div>
         
+        <!-- Payment Status Section -->
+        {% if line_items %}
+        <div class="cd-section">
+            <div class="cd-payment-header">
+                <h2 class="cd-section-title">Payment Status</h2>
+                {% if payment_summary.is_paid %}
+                    <span class="cd-payment-badge cd-payment-paid">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 4px;">
+                            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                            <path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Fully Paid
+                    </span>
+                {% elif payment_summary.amount_paid > 0 %}
+                    <span class="cd-payment-badge cd-payment-partial">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 4px;">
+                            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                            <path d="M8 4v8M4 8h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Partially Paid
+                    </span>
+                {% else %}
+                    <span class="cd-payment-badge cd-payment-unpaid">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 4px;">
+                            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 6L6 10M6 6L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Payment Pending
+                    </span>
+                {% endif %}
+            </div>
+            
+            <div class="cd-payment-summary">
+                <div class="cd-payment-row">
+                    <span class="cd-payment-label">Total Amount:</span>
+                    <span class="cd-payment-value">${{ "%.2f"|format(payment_summary.total_amount) }}</span>
+                </div>
+                <div class="cd-payment-row">
+                    <span class="cd-payment-label">Amount Paid:</span>
+                    <span class="cd-payment-value cd-payment-paid-text">${{ "%.2f"|format(payment_summary.amount_paid) }}</span>
+                </div>
+                {% if payment_summary.amount_due > 0 %}
+                <div class="cd-payment-row cd-payment-due-row">
+                    <span class="cd-payment-label">Amount Due:</span>
+                    <span class="cd-payment-value cd-payment-due-text">${{ "%.2f"|format(payment_summary.amount_due) }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="cd-payment-items">
+                <h3 class="cd-payment-items-title">Payment Items</h3>
+                {% for item in line_items %}
+                <div class="cd-payment-item">
+                    <div class="cd-payment-item-info">
+                        <div class="cd-payment-item-name">{{ item.course_payable_item.payable_item_template.name }}</div>
+                        <div class="cd-payment-item-details">
+                            <span class="cd-payment-item-type">{{ item.course_payable_item.payable_item_template.item_type|title }}</span>
+                            <span class="cd-payment-item-separator">•</span>
+                            <span>${{ "%.2f"|format(item.total) }}</span>
+                            {% if item.status == 'paid' and (item.amount_paid - item.amount_refunded) > 0 %}
+                                <span class="cd-payment-item-separator">•</span>
+                                <span class="cd-refundable">Refundable: ${{ "%.2f"|format(item.amount_paid - item.amount_refunded) }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="cd-payment-item-status">
+                        {% if item.status == 'paid' %}
+                            <span class="cd-status-badge cd-status-paid">✓ Paid</span>
+                            {% if (item.amount_paid - item.amount_refunded) > 0 %}
+                                <button type="button" class="cd-btn-refund" onclick="openRefundRequestModal({{ item.id }}, '{{ item.course_payable_item.payable_item_template.name }}', {{ item.amount_paid - item.amount_refunded }})">
+                                    Request Refund
+                                </button>
+                            {% endif %}
+                        {% elif item.status == 'rejected' %}
+                            <span class="cd-status-badge cd-status-rejected">✗ Rejected</span>
+                        {% elif item.status == 'partially_refunded' %}
+                            <span class="cd-status-badge cd-status-partial">⚠ Partially Refunded</span>
+                        {% elif item.status == 'refunded' %}
+                            <span class="cd-status-badge cd-status-refunded">↩ Refunded</span>
+                        {% else %}
+                            <span class="cd-status-badge cd-status-pending">⏱ Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if payment_summary.amount_due > 0 %}
+            <div class="cd-payment-action">
+                <a href="{{ url_for('student.payment_selection', course_id=course.id) }}" class="cd-btn cd-btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 4px;">
+                        <path d="M2 4h12M4 4V2h8v2M2 4v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4M6 7v6M10 7v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    Make a Payment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
         <div class="cd-section">
             <h2 class="cd-section-title">Instructors</h2>
             <div class="cd-instructors">
@@ -175,6 +275,73 @@
                     </button>
                     <button type="submit" class="modal-btn modal-btn-danger">
                         Confirm Withdrawal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Refund Request Modal -->
+<div id="refundRequestModal" class="modal-overlay" onclick="closeRefundRequestModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Request Refund</h2>
+            <button class="modal-close" onclick="closeRefundRequestModal()" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="refundRequestForm" onsubmit="submitRefundRequest(event)">
+                <input type="hidden" id="refundLineItemId" value="">
+                
+                <div class="form-group">
+                    <label class="form-label"><strong>Item:</strong> <span id="refundItemName"></span></label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="refundAmount" class="form-label">Refund Amount</label>
+                    <input 
+                        type="number" 
+                        id="refundAmount" 
+                        name="amount" 
+                        class="form-control" 
+                        step="0.01" 
+                        min="0.01"
+                        required
+                    >
+                    <small class="form-text">Maximum refundable: $<span id="maxRefundAmount"></span></small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="refundReason" class="form-label">Reason for Refund Request</label>
+                    <textarea 
+                        id="refundReason" 
+                        name="reason" 
+                        class="form-control" 
+                        rows="4" 
+                        required
+                        placeholder="Please provide a detailed reason for your refund request..."
+                    ></textarea>
+                </div>
+                
+                <div class="modal-info">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex-shrink: 0;">
+                        <circle cx="10" cy="10" r="9" stroke="#007AFF" stroke-width="2"/>
+                        <path d="M10 6v4M10 14h.01" stroke="#007AFF" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p>Your refund request will be reviewed by a superuser. You will be notified once a decision is made.</p>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" onclick="closeRefundRequestModal()" class="modal-btn modal-btn-secondary">
+                        Cancel
+                    </button>
+                    <button type="submit" class="modal-btn modal-btn-primary">
+                        Submit Request
                     </button>
                 </div>
             </form>
@@ -422,6 +589,212 @@
     background: #E02020;
 }
 
+/* Payment Status Styles */
+.cd-payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.cd-payment-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.cd-payment-paid {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.cd-payment-partial {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.cd-payment-unpaid {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.cd-payment-summary {
+    background: #F5F5F7;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cd-payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.cd-payment-row:not(:last-child) {
+    border-bottom: 1px solid #E5E5E7;
+}
+
+.cd-payment-due-row {
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid #E5E5E7 !important;
+}
+
+.cd-payment-label {
+    font-size: 0.875rem;
+    color: #6E6E73;
+}
+
+.cd-payment-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1D1D1F;
+}
+
+.cd-payment-paid-text {
+    color: #2E7D32;
+}
+
+.cd-payment-due-text {
+    color: #C62828;
+    font-size: 1.125rem;
+}
+
+.cd-payment-items {
+    margin-bottom: 1.5rem;
+}
+
+.cd-payment-items-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0 0 1rem 0;
+}
+
+.cd-payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #F5F5F7;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.cd-payment-item:last-child {
+    margin-bottom: 0;
+}
+
+.cd-payment-item-info {
+    flex: 1;
+}
+
+.cd-payment-item-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.25rem;
+}
+
+.cd-payment-item-details {
+    font-size: 0.8125rem;
+    color: #6E6E73;
+}
+
+.cd-payment-item-type {
+    text-transform: capitalize;
+}
+
+.cd-payment-item-separator {
+    margin: 0 0.5rem;
+}
+
+.cd-payment-item-status {
+    margin-left: 1rem;
+}
+
+.cd-status-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cd-status-paid {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.cd-status-pending {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.cd-status-rejected {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.cd-status-partial {
+    background: #FFF9C4;
+    color: #F57F17;
+}
+
+.cd-status-refunded {
+    background: #E0E0E0;
+    color: #616161;
+}
+
+.cd-btn-refund {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    background: white;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    color: #007AFF;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cd-btn-refund:hover {
+    background: #F5F5F5;
+    border-color: #007AFF;
+}
+
+.cd-refundable {
+    color: #2E7D32;
+    font-size: 0.875rem;
+}
+
+.modal-info {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #F0F8FF;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.modal-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #1565C0;
+}
+
+.cd-payment-action {
+    display: flex;
+    justify-content: center;
+    padding-top: 1rem;
+}
+
 @media (max-width: 768px) {
     .cd-header {
         flex-direction: column;
@@ -442,6 +815,22 @@
     .cd-btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    .cd-payment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .cd-payment-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .cd-payment-item-status {
+        margin-left: 0;
     }
 }
 
@@ -673,6 +1062,7 @@ function closeWithdrawModal(event) {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeWithdrawModal(event);
+        closeRefundRequestModal(event);
     }
 });
 
@@ -684,5 +1074,85 @@ document.getElementById('withdrawForm').addEventListener('submit', function(even
         event.preventDefault();
     }
 });
+
+// Refund Request Modal Functions
+let currentRefundLineItemId = null;
+let maxRefundableAmount = 0;
+
+function openRefundRequestModal(lineItemId, itemName, maxAmount) {
+    currentRefundLineItemId = lineItemId;
+    maxRefundableAmount = maxAmount;
+    
+    document.getElementById('refundLineItemId').value = lineItemId;
+    document.getElementById('refundItemName').textContent = itemName;
+    document.getElementById('maxRefundAmount').textContent = maxAmount.toFixed(2);
+    document.getElementById('refundAmount').setAttribute('max', maxAmount);
+    document.getElementById('refundAmount').value = maxAmount.toFixed(2);
+    
+    const modal = document.getElementById('refundRequestModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeRefundRequestModal(event) {
+    if (!event || event.target === event.currentTarget || event.target.closest('.modal-close')) {
+        const modal = document.getElementById('refundRequestModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Clear the form
+        const form = document.getElementById('refundRequestForm');
+        if (form) {
+            form.reset();
+        }
+        currentRefundLineItemId = null;
+        maxRefundableAmount = 0;
+    }
+}
+
+async function submitRefundRequest(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const amount = parseFloat(form.amount.value);
+    const reason = form.reason.value.trim();
+    
+    // Validate amount
+    if (amount <= 0 || amount > maxRefundableAmount) {
+        alert(`Refund amount must be between $0.01 and $${maxRefundableAmount.toFixed(2)}`);
+        return;
+    }
+    
+    if (!reason) {
+        alert('Please provide a reason for the refund request');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/student/refund-request/${currentRefundLineItemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: amount,
+                reason: reason
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            closeRefundRequestModal();
+            location.reload(); // Reload to show updated status
+        } else {
+            alert(data.message || 'Failed to submit refund request');
+        }
+    } catch (error) {
+        alert('An error occurred while submitting your refund request. Please try again.');
+        console.error('Refund request error:', error);
+    }
+}
 </script>
 {% endblock content %}

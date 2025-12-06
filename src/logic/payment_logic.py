@@ -213,7 +213,7 @@ class PaymentLogic:
         line_items = EnrollmentLineItem.query.filter(
             EnrollmentLineItem.id.in_(line_item_ids),
             EnrollmentLineItem.enrollment_id == enrollment_id,
-            EnrollmentLineItem.status == 'pending'
+            EnrollmentLineItem.status.in_(['pending', 'rejected'])
         ).all()
         
         if len(line_items) != len(line_item_ids):
@@ -249,6 +249,21 @@ class PaymentLogic:
                 },
                 description=f"Course payment for {user.email}"
             )
+            
+            # Create pending payment record
+            pending_payment = Payment(
+                enrollment_id=enrollment_id,
+                processed_by_user_id=user_id,
+                amount=total_amount,
+                payment_method='stripe',
+                status='pending',
+                payment_date=datetime.utcnow(),
+                stripe_payment_intent_id=intent.id,
+                notes=f"Stripe Payment Intent created for {len(line_items)} item(s)"
+            )
+            
+            db.session.add(pending_payment)
+            db.session.commit()
             
             return {
                 'client_secret': intent.client_secret,
@@ -298,20 +313,35 @@ class PaymentLogic:
         if len(line_items) != len(line_item_ids):
             raise PaymentValidationError("One or more line items not found")
         
-        # Create payment record
-        payment = Payment(
-            enrollment_id=enrollment_id,
-            processed_by_user_id=processed_by_user_id,
-            amount=amount,
-            payment_method=payment_method,
-            status='completed',
-            payment_date=datetime.utcnow(),
-            stripe_payment_intent_id=stripe_payment_intent_id,
-            stripe_charge_id=stripe_charge_id,
-            notes=notes
-        )
+        # Check if pending payment already exists for this payment intent
+        payment = None
+        if stripe_payment_intent_id:
+            payment = Payment.query.filter_by(
+                stripe_payment_intent_id=stripe_payment_intent_id
+            ).first()
         
-        db.session.add(payment)
+        if payment:
+            # Update existing pending payment to completed
+            payment.status = 'completed'
+            payment.payment_date = datetime.utcnow()
+            payment.stripe_charge_id = stripe_charge_id
+            if notes:
+                payment.notes = (payment.notes or '') + f"\n{notes}"
+        else:
+            # Create new payment record
+            payment = Payment(
+                enrollment_id=enrollment_id,
+                processed_by_user_id=processed_by_user_id,
+                amount=amount,
+                payment_method=payment_method,
+                status='completed',
+                payment_date=datetime.utcnow(),
+                stripe_payment_intent_id=stripe_payment_intent_id,
+                stripe_charge_id=stripe_charge_id,
+                notes=notes
+            )
+            db.session.add(payment)
+        
         db.session.flush()  # Get payment ID
         
         # Allocate payment to line items
@@ -364,17 +394,26 @@ class PaymentLogic:
         Raises:
             PaymentBusinessError: If webhook processing fails
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
         stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
         endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+        
+        logger.info(f"Processing Stripe webhook - Secret present: {bool(endpoint_secret)}")
         
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, endpoint_secret
             )
-        except ValueError:
+        except ValueError as e:
+            logger.error(f"Invalid webhook payload: {str(e)}")
             raise PaymentBusinessError("Invalid payload")
-        except stripe.error.SignatureVerificationError:
+        except stripe.error.SignatureVerificationError as e:
+            logger.error(f"Invalid webhook signature: {str(e)}")
             raise PaymentBusinessError("Invalid signature")
+        
+        logger.info(f"Webhook event type: {event['type']}")
         
         # Handle payment intent succeeded
         if event['type'] == 'payment_intent.succeeded':
@@ -386,11 +425,16 @@ class PaymentLogic:
             user_id = metadata.get('user_id')
             line_item_ids = metadata.get('line_item_ids', '').split(',')
             
+            logger.info(f"Payment intent metadata - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}")
+            
             if not all([enrollment_id, user_id, line_item_ids]):
+                logger.error("Missing required metadata in payment intent")
                 raise PaymentBusinessError("Missing required metadata")
             
             # Record the payment
             amount = Decimal(payment_intent['amount']) / 100  # Convert cents to dollars
+            
+            logger.info(f"Recording payment of ${amount} for enrollment {enrollment_id}")
             
             payment = PaymentLogic.record_payment(
                 enrollment_id=int(enrollment_id),
@@ -403,9 +447,289 @@ class PaymentLogic:
                 notes='Automated Stripe payment'
             )
             
+            logger.info(f"Payment recorded successfully - Payment ID: {payment.id}")
+            
             return {
                 'success': True,
                 'payment_id': payment.id
             }
         
+        logger.info(f"Event type {event['type']} not handled")
         return {'success': True, 'message': 'Event type not handled'}
+    
+    @staticmethod
+    def admin_override_line_item_status(
+        line_item_id: int,
+        new_status: str,
+        admin_user_id: int,
+        remarks: str
+    ) -> EnrollmentLineItem:
+        """
+        Allow admin to manually override payment status of a line item.
+        
+        Args:
+            line_item_id: ID of line item to update
+            new_status: New status ('paid', 'rejected', 'pending')
+            admin_user_id: ID of admin making the change
+            remarks: Admin's explanation for the override
+            
+        Returns:
+            Updated EnrollmentLineItem instance
+            
+        Raises:
+            PaymentValidationError: If validation fails
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validate line item exists
+        line_item = EnrollmentLineItem.query.get(line_item_id)
+        if not line_item:
+            raise PaymentValidationError(f"Line item {line_item_id} not found")
+        
+        # Validate status
+        valid_statuses = ['paid', 'rejected', 'pending']
+        if new_status not in valid_statuses:
+            raise PaymentValidationError(f"Status must be one of: {', '.join(valid_statuses)}")
+        
+        # Validate remarks provided
+        if not remarks or not remarks.strip():
+            raise PaymentValidationError("Admin remarks are required when overriding status")
+        
+        # Validate admin user exists
+        admin_user = User.query.get(admin_user_id)
+        if not admin_user:
+            raise PaymentValidationError(f"Admin user {admin_user_id} not found")
+        
+        logger.info(f"Admin {admin_user.username} (ID: {admin_user_id}) overriding line item {line_item_id} status to '{new_status}'")
+        
+        # Update line item
+        old_status = line_item.status
+        line_item.status = new_status
+        
+        # If marking as paid, set amount_paid to total
+        if new_status == 'paid':
+            line_item.amount_paid = line_item.total
+            logger.info(f"Marking line item as paid - amount_paid set to {line_item.total}")
+        
+        # If marking as rejected or pending, don't change amount_paid
+        # (admin might have rejected after partial payment)
+        
+        # Add admin tracking
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        admin_note = f"[{timestamp}] Admin override by {admin_user.username} (ID: {admin_user_id}): Changed status from '{old_status}' to '{new_status}'. Remarks: {remarks}"
+        
+        if line_item.admin_remarks:
+            line_item.admin_remarks += f"\n\n{admin_note}"
+        else:
+            line_item.admin_remarks = admin_note
+        
+        line_item.manually_adjusted_by_user_id = admin_user_id
+        
+        db.session.commit()
+        
+        logger.info(f"Line item {line_item_id} status updated successfully")
+        
+        return line_item
+    
+    @staticmethod
+    def request_refund(
+        line_item_id: int,
+        user_id: int,
+        amount: Decimal,
+        reason: str
+    ) -> Refund:
+        """
+        Create a refund request for a paid line item.
+        Request goes to superuser for approval.
+        
+        Args:
+            line_item_id: EnrollmentLineItem ID
+            user_id: User ID requesting refund (student)
+            amount: Amount to refund
+            reason: Reason for refund request
+            
+        Returns:
+            Refund instance with status='requested'
+            
+        Raises:
+            PaymentValidationError: If validation fails
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validate line item
+        line_item = EnrollmentLineItem.query.get(line_item_id)
+        if not line_item:
+            raise PaymentValidationError(f"Line item {line_item_id} not found")
+        
+        # Validate line item is paid
+        if line_item.status != 'paid':
+            raise PaymentValidationError("Can only request refund for paid items")
+        
+        # Validate amount
+        if amount <= 0:
+            raise PaymentValidationError("Refund amount must be greater than zero")
+        
+        max_refundable = line_item.amount_paid - line_item.amount_refunded
+        if amount > max_refundable:
+            raise PaymentValidationError(f"Refund amount cannot exceed ${max_refundable:.2f}")
+        
+        # Validate user
+        user = User.query.get(user_id)
+        if not user:
+            raise PaymentValidationError(f"User {user_id} not found")
+        
+        logger.info(f"Creating refund request for line item {line_item_id} by user {user.username}")
+        
+        # Create refund request
+        refund = Refund(
+            enrollment_line_item_id=line_item_id,
+            requested_by_user_id=user_id,
+            amount=amount,
+            status='requested',
+            request_date=datetime.utcnow(),
+            reason=reason
+        )
+        
+        db.session.add(refund)
+        db.session.commit()
+        
+        logger.info(f"Refund request created - ID: {refund.id}")
+        
+        return refund
+    
+    @staticmethod
+    def get_pending_refund_requests() -> List[Refund]:
+        """
+        Get all pending refund requests for superuser review.
+        
+        Returns:
+            List of Refund instances with status='requested'
+        """
+        return Refund.query.filter_by(status='requested').order_by(Refund.request_date.desc()).all()
+    
+    @staticmethod
+    def approve_refund_request(
+        refund_id: int,
+        superuser_id: int,
+        refund_method: str,
+        admin_notes: Optional[str] = None
+    ) -> Refund:
+        """
+        Approve a refund request and process the refund.
+        Only superusers can approve refunds.
+        
+        Args:
+            refund_id: Refund ID
+            superuser_id: Superuser ID approving the refund
+            refund_method: Method of refund (stripe, cash, check)
+            admin_notes: Optional notes from superuser
+            
+        Returns:
+            Updated Refund instance with status='processed'
+            
+        Raises:
+            PaymentValidationError: If validation fails
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validate refund exists and is pending
+        refund = Refund.query.get(refund_id)
+        if not refund:
+            raise PaymentValidationError(f"Refund {refund_id} not found")
+        
+        if refund.status != 'requested':
+            raise PaymentValidationError(f"Refund must be in 'requested' status, currently: {refund.status}")
+        
+        # Validate superuser
+        superuser = User.query.get(superuser_id)
+        if not superuser:
+            raise PaymentValidationError(f"Superuser {superuser_id} not found")
+        
+        # Validate line item still exists and has enough paid amount
+        line_item = refund.enrollment_line_item
+        max_refundable = line_item.amount_paid - line_item.amount_refunded
+        
+        if refund.amount > max_refundable:
+            raise PaymentValidationError(f"Cannot refund ${refund.amount:.2f} - only ${max_refundable:.2f} available")
+        
+        logger.info(f"Superuser {superuser.username} approving refund {refund_id}")
+        
+        # Update refund status
+        refund.status = 'processed'
+        refund.refund_method = refund_method
+        refund.refund_date = datetime.utcnow()
+        refund.processed_by_user_id = superuser_id
+        refund.admin_notes = admin_notes
+        
+        # Update line item
+        line_item.amount_refunded += refund.amount
+        
+        # Update line item status based on refund
+        if line_item.amount_refunded >= line_item.amount_paid:
+            line_item.status = 'refunded'
+        elif line_item.amount_refunded > 0:
+            line_item.status = 'partially_refunded'
+        
+        db.session.commit()
+        
+        logger.info(f"Refund {refund_id} processed successfully - ${refund.amount} refunded")
+        
+        return refund
+    
+    @staticmethod
+    def deny_refund_request(
+        refund_id: int,
+        superuser_id: int,
+        admin_notes: str
+    ) -> Refund:
+        """
+        Deny a refund request.
+        Only superusers can deny refunds.
+        
+        Args:
+            refund_id: Refund ID
+            superuser_id: Superuser ID denying the refund
+            admin_notes: Reason for denial
+            
+        Returns:
+            Updated Refund instance with status='denied'
+            
+        Raises:
+            PaymentValidationError: If validation fails
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validate refund exists and is pending
+        refund = Refund.query.get(refund_id)
+        if not refund:
+            raise PaymentValidationError(f"Refund {refund_id} not found")
+        
+        if refund.status != 'requested':
+            raise PaymentValidationError(f"Refund must be in 'requested' status, currently: {refund.status}")
+        
+        # Validate superuser
+        superuser = User.query.get(superuser_id)
+        if not superuser:
+            raise PaymentValidationError(f"Superuser {superuser_id} not found")
+        
+        # Validate admin notes provided
+        if not admin_notes or not admin_notes.strip():
+            raise PaymentValidationError("Admin notes are required when denying a refund")
+        
+        logger.info(f"Superuser {superuser.username} denying refund {refund_id}")
+        
+        # Update refund status
+        refund.status = 'denied'
+        refund.processed_by_user_id = superuser_id
+        refund.admin_notes = admin_notes
+        refund.refund_date = datetime.utcnow()
+        
+        db.session.commit()
+        
+        logger.info(f"Refund {refund_id} denied")
+        
+        return refund

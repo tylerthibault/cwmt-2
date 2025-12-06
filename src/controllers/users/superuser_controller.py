@@ -521,3 +521,116 @@ def test_email_settings():
             error_msg = f'Failed to send test email: {error_msg}'
             
         return jsonify({'error': error_msg}), 500
+
+
+# ============================================================================
+# REFUND MANAGEMENT ROUTES
+# ============================================================================
+
+@superuser_bp.route('/refund-requests')
+@superuser_required
+def refund_requests():
+    """
+    Display all refund requests for superuser review.
+    Shows pending, approved, denied, and processed refunds.
+    """
+    from src.logic.payment_logic import PaymentLogic
+    from src.models.payment_models import Refund
+    
+    user_context = UserLogic.get_context(view_as='superuser')
+    
+    # Get all refund requests, grouped by status
+    pending_refunds = Refund.query.filter_by(status='requested').order_by(Refund.request_date.desc()).all()
+    processed_refunds = Refund.query.filter(Refund.status.in_(['approved', 'denied', 'processed'])).order_by(Refund.refund_date.desc()).limit(50).all()
+    
+    context = {
+        **user_context,
+        'pending_refunds': pending_refunds,
+        'processed_refunds': processed_refunds,
+        'page_title': 'Refund Requests Management'
+    }
+    
+    return render_template('private/superuser/refund_requests.html', **context)
+
+
+@superuser_bp.route('/refund-requests/<int:refund_id>/approve', methods=['POST'])
+@superuser_required
+def approve_refund(refund_id):
+    """
+    Approve a refund request.
+    """
+    from src.logic.payment_logic import PaymentLogic, PaymentValidationError
+    
+    try:
+        # Get current superuser
+        token = session.get('token')
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        
+        if not logbook_entry or not logbook_entry.user_id:
+            return jsonify({'success': False, 'message': 'Session expired'}), 401
+        
+        # Get form data
+        data = request.get_json()
+        refund_method = data.get('refund_method', 'stripe')
+        admin_notes = data.get('admin_notes', '').strip()
+        
+        # Approve refund
+        refund = PaymentLogic.approve_refund_request(
+            refund_id=refund_id,
+            superuser_id=logbook_entry.user_id,
+            refund_method=refund_method,
+            admin_notes=admin_notes
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Refund approved and processed successfully',
+            'refund_id': refund.id
+        })
+        
+    except PaymentValidationError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error approving refund: {str(e)}'}), 500
+
+
+@superuser_bp.route('/refund-requests/<int:refund_id>/deny', methods=['POST'])
+@superuser_required
+def deny_refund(refund_id):
+    """
+    Deny a refund request.
+    """
+    from src.logic.payment_logic import PaymentLogic, PaymentValidationError
+    
+    try:
+        # Get current superuser
+        token = session.get('token')
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        
+        if not logbook_entry or not logbook_entry.user_id:
+            return jsonify({'success': False, 'message': 'Session expired'}), 401
+        
+        # Get form data
+        data = request.get_json()
+        admin_notes = data.get('admin_notes', '').strip()
+        
+        if not admin_notes:
+            return jsonify({'success': False, 'message': 'Admin notes are required when denying a refund'}), 400
+        
+        # Deny refund
+        refund = PaymentLogic.deny_refund_request(
+            refund_id=refund_id,
+            superuser_id=logbook_entry.user_id,
+            admin_notes=admin_notes
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Refund request denied',
+            'refund_id': refund.id
+        })
+        
+    except PaymentValidationError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error denying refund: {str(e)}'}), 500
