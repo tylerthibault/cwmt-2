@@ -56,7 +56,7 @@ def seed_courses(app):
                 'name': 'Tuition',
                 'description': 'Course tuition fee',
                 'item_type': 'tuition',
-                'base_price': 0.00  # Will be overridden per course
+                'base_price': 300.00  # Default tuition price
             },
             {
                 'name': 'Materials Fee',
