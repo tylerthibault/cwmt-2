@@ -561,8 +561,19 @@ class PaymentLogic:
             ).first()
             
             if existing_payment:
-                print(f"WEBHOOK: Payment already recorded for intent {payment_intent_id}", flush=True)
-                return {'success': True, 'message': 'Payment already recorded', 'payment_id': existing_payment.id}
+                # If payment is still pending, we need to update it to completed
+                if existing_payment.status == 'pending':
+                    print(f"WEBHOOK: Updating pending payment to completed for intent {payment_intent_id}", flush=True)
+                    existing_payment.status = 'completed'
+                    existing_payment.payment_date = datetime.utcnow()
+                    existing_payment.stripe_charge_id = charge['id']
+                    existing_payment.notes = (existing_payment.notes or '') + "\nPayment confirmed via charge.succeeded webhook"
+                    db.session.commit()
+                    print(f"WEBHOOK: Payment {existing_payment.id} updated to completed", flush=True)
+                    return {'success': True, 'message': 'Payment updated to completed', 'payment_id': existing_payment.id}
+                else:
+                    print(f"WEBHOOK: Payment already completed for intent {payment_intent_id}", flush=True)
+                    return {'success': True, 'message': 'Payment already completed', 'payment_id': existing_payment.id}
             
             # Retrieve the payment intent to get metadata
             stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
