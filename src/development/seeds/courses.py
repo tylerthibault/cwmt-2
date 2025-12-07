@@ -26,7 +26,8 @@ def seed_courses(app):
                 'description': 'The Basic Rider Course is a comprehensive motorcycle training program for beginners.',
                 'duration_days': 3,
                 'max_students': 12,
-                'price': 350.00,
+                'experience_level': 'beginner',
+                'tuition_price': 350.00,
                 'is_active': True
             },
             {
@@ -34,7 +35,8 @@ def seed_courses(app):
                 'description': 'Advanced techniques for experienced riders looking to improve their skills.',
                 'duration_days': 2,
                 'max_students': 8,
-                'price': 275.00,
+                'experience_level': 'advanced',
+                'tuition_price': 275.00,
                 'is_active': True
             },
             {
@@ -42,7 +44,8 @@ def seed_courses(app):
                 'description': 'Intensive weekend course covering essential riding skills.',
                 'duration_days': 2,
                 'max_students': 10,
-                'price': 299.00,
+                'experience_level': 'intermediate',
+                'tuition_price': 299.00,
                 'is_active': True
             }
         ]
@@ -108,7 +111,7 @@ def seed_courses(app):
                 description=template_data['description'],
                 duration_days=template_data['duration_days'],
                 max_students=template_data['max_students'],
-                price=template_data['price'],
+                experience_level=template_data['experience_level'],
                 is_active=template_data['is_active']
             )
             db.session.add(template)
