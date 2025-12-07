@@ -242,6 +242,12 @@ def seed_courses(app):
                 status='scheduled'
             )
             db.session.add(course)
+            db.session.flush()  # Flush to get course.id
+            
+            # Copy payable items from template to course
+            from src.logic.payable_item_logic import CoursePayableItemLogic
+            CoursePayableItemLogic.copy_items_from_template(course.id, template.id)
+            
             print(f"✓ Created course: {template.name} starting {course_date.strftime('%Y-%m-%d')} at {course_data['location']}")
         
         db.session.commit()
