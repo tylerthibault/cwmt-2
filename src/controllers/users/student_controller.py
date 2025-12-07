@@ -794,10 +794,10 @@ def stripe_webhook():
         sig_header = request.headers.get('Stripe-Signature')
         
         # Use print for guaranteed visibility in CapRover logs
-        print("=" * 100)
-        print("STRIPE WEBHOOK RECEIVED")
-        print(f"Signature present: {bool(sig_header)}")
-        print(f"Payload size: {len(payload)} bytes")
+        print("=" * 100, flush=True)
+        print("STRIPE WEBHOOK RECEIVED", flush=True)
+        print(f"Signature present: {bool(sig_header)}", flush=True)
+        print(f"Payload size: {len(payload)} bytes", flush=True)
         
         logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
         logger.info(f"Signature present: {bool(sig_header)}")
@@ -809,34 +809,34 @@ def stripe_webhook():
         try:
             import json
             event_data = json.loads(payload)
-            print(f"Event type: {event_data.get('type', 'unknown')}")
-            print(f"Event ID: {event_data.get('id', 'unknown')}")
+            print(f"Event type: {event_data.get('type', 'unknown')}", flush=True)
+            print(f"Event ID: {event_data.get('id', 'unknown')}", flush=True)
             logger.info(f"Event type: {event_data.get('type', 'unknown')}")
             logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
         except Exception as parse_err:
-            print(f"Failed to parse payload: {parse_err}")
+            print(f"Failed to parse payload: {parse_err}", flush=True)
         
         if not sig_header:
-            print("ERROR: Missing Stripe signature")
+            print("ERROR: Missing Stripe signature", flush=True)
             logger.error("Missing Stripe signature in webhook")
             return jsonify({'error': 'Missing signature'}), 400
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
-        print(f"Webhook processed successfully: {result}")
-        print("=" * 100)
+        print(f"Webhook processed successfully: {result}", flush=True)
+        print("=" * 100, flush=True)
         logger.info(f"Webhook processed successfully: {result}")
         logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
         
         return jsonify(result), 200
         
     except PaymentBusinessError as e:
-        print(f"WEBHOOK ERROR - Payment business error: {str(e)}")
-        print("=" * 100)
+        print(f"WEBHOOK ERROR - Payment business error: {str(e)}", flush=True)
+        print("=" * 100, flush=True)
         logger.error(f"Payment business error in webhook: {str(e)}")
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        print(f"WEBHOOK ERROR - Unexpected error: {str(e)}")
-        print("=" * 100)
+        print(f"WEBHOOK ERROR - Unexpected error: {str(e)}", flush=True)
+        print("=" * 100, flush=True)
         logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Webhook error: {str(e)}'}), 500
 

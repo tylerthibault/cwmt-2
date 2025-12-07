@@ -497,12 +497,12 @@ class PaymentLogic:
                 logger.error(f"Invalid webhook signature: {str(e)}")
                 raise PaymentBusinessError("Invalid signature")
         
-        print(f"WEBHOOK: Processing event type: {event['type']}")
+        print(f"WEBHOOK: Processing event type: {event['type']}", flush=True)
         logger.info(f"Webhook event type: {event['type']}")
         
         # Handle payment intent succeeded
         if event['type'] == 'payment_intent.succeeded':
-            print("WEBHOOK: Handling payment_intent.succeeded")
+            print("WEBHOOK: Handling payment_intent.succeeded", flush=True)
             payment_intent = event['data']['object']
             
             # Extract metadata
@@ -511,18 +511,18 @@ class PaymentLogic:
             user_id = metadata.get('user_id')
             line_item_ids = metadata.get('line_item_ids', '').split(',')
             
-            print(f"WEBHOOK: Metadata - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}")
+            print(f"WEBHOOK: Metadata - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}", flush=True)
             logger.info(f"Payment intent metadata - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}")
             
             if not all([enrollment_id, user_id, line_item_ids]):
-                print("WEBHOOK ERROR: Missing required metadata")
+                print("WEBHOOK ERROR: Missing required metadata", flush=True)
                 logger.error("Missing required metadata in payment intent")
                 raise PaymentBusinessError("Missing required metadata")
             
             # Record the payment
             amount = Decimal(payment_intent['amount']) / 100  # Convert cents to dollars
             
-            print(f"WEBHOOK: Recording payment of ${amount} for enrollment {enrollment_id}")
+            print(f"WEBHOOK: Recording payment of ${amount} for enrollment {enrollment_id}", flush=True)
             logger.info(f"Recording payment of ${amount} for enrollment {enrollment_id}")
             
             payment = PaymentLogic.record_payment(
@@ -536,7 +536,7 @@ class PaymentLogic:
                 notes='Automated Stripe payment'
             )
             
-            print(f"WEBHOOK: Payment recorded successfully - Payment ID: {payment.id}")
+            print(f"WEBHOOK: Payment recorded successfully - Payment ID: {payment.id}", flush=True)
             logger.info(f"Payment recorded successfully - Payment ID: {payment.id}")
             
             return {
