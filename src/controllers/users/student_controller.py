@@ -771,6 +771,12 @@ def stripe_webhook():
         payload = request.data
         sig_header = request.headers.get('Stripe-Signature')
         
+        # Use print for guaranteed visibility in CapRover logs
+        print("=" * 100)
+        print("STRIPE WEBHOOK RECEIVED")
+        print(f"Signature present: {bool(sig_header)}")
+        print(f"Payload size: {len(payload)} bytes")
+        
         logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
         logger.info(f"Signature present: {bool(sig_header)}")
         logger.info(f"Payload size: {len(payload)} bytes")
@@ -781,25 +787,34 @@ def stripe_webhook():
         try:
             import json
             event_data = json.loads(payload)
+            print(f"Event type: {event_data.get('type', 'unknown')}")
+            print(f"Event ID: {event_data.get('id', 'unknown')}")
             logger.info(f"Event type: {event_data.get('type', 'unknown')}")
             logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
-        except:
-            pass
+        except Exception as parse_err:
+            print(f"Failed to parse payload: {parse_err}")
         
         if not sig_header:
+            print("ERROR: Missing Stripe signature")
             logger.error("Missing Stripe signature in webhook")
             return jsonify({'error': 'Missing signature'}), 400
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
+        print(f"Webhook processed successfully: {result}")
+        print("=" * 100)
         logger.info(f"Webhook processed successfully: {result}")
         logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
         
         return jsonify(result), 200
         
     except PaymentBusinessError as e:
+        print(f"WEBHOOK ERROR - Payment business error: {str(e)}")
+        print("=" * 100)
         logger.error(f"Payment business error in webhook: {str(e)}")
         return jsonify({'error': str(e)}), 400
     except Exception as e:
+        print(f"WEBHOOK ERROR - Unexpected error: {str(e)}")
+        print("=" * 100)
         logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Webhook error: {str(e)}'}), 500
 
