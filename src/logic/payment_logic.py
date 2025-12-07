@@ -544,6 +544,68 @@ class PaymentLogic:
                 'payment_id': payment.id
             }
         
+        # Handle charge.succeeded (alternative to payment_intent.succeeded)
+        elif event['type'] == 'charge.succeeded':
+            print("WEBHOOK: Handling charge.succeeded", flush=True)
+            charge = event['data']['object']
+            
+            # Get payment intent from charge
+            payment_intent_id = charge.get('payment_intent')
+            if not payment_intent_id:
+                print("WEBHOOK: No payment_intent in charge.succeeded", flush=True)
+                return {'success': True, 'message': 'No payment intent in charge'}
+            
+            # Check if we already recorded this payment
+            existing_payment = Payment.query.filter_by(
+                stripe_payment_intent_id=payment_intent_id
+            ).first()
+            
+            if existing_payment:
+                print(f"WEBHOOK: Payment already recorded for intent {payment_intent_id}", flush=True)
+                return {'success': True, 'message': 'Payment already recorded', 'payment_id': existing_payment.id}
+            
+            # Retrieve the payment intent to get metadata
+            stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+            try:
+                payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+                metadata = payment_intent.get('metadata', {})
+            except Exception as e:
+                print(f"WEBHOOK ERROR: Failed to retrieve payment intent: {str(e)}", flush=True)
+                return {'success': False, 'message': f'Failed to retrieve payment intent: {str(e)}'}
+            
+            enrollment_id = metadata.get('enrollment_id')
+            user_id = metadata.get('user_id')
+            line_item_ids = metadata.get('line_item_ids', '').split(',')
+            
+            print(f"WEBHOOK: Metadata from charge - enrollment: {enrollment_id}, user: {user_id}, line_items: {line_item_ids}", flush=True)
+            
+            if not all([enrollment_id, user_id, line_item_ids]):
+                print("WEBHOOK ERROR: Missing required metadata in charge", flush=True)
+                return {'success': True, 'message': 'Missing metadata'}
+            
+            # Record the payment
+            amount = Decimal(charge['amount']) / 100
+            
+            print(f"WEBHOOK: Recording payment of ${amount} for enrollment {enrollment_id} from charge.succeeded", flush=True)
+            
+            payment = PaymentLogic.record_payment(
+                enrollment_id=int(enrollment_id),
+                line_item_ids=[int(id) for id in line_item_ids if id],
+                amount=amount,
+                payment_method='stripe',
+                processed_by_user_id=int(user_id),
+                stripe_payment_intent_id=payment_intent_id,
+                stripe_charge_id=charge['id'],
+                notes='Automated Stripe payment (via charge.succeeded)'
+            )
+            
+            print(f"WEBHOOK: Payment recorded successfully from charge - Payment ID: {payment.id}", flush=True)
+            
+            return {
+                'success': True,
+                'payment_id': payment.id
+            }
+        
         # Handle payment intent failed
         elif event['type'] == 'payment_intent.payment_failed':
             payment_intent = event['data']['object']
