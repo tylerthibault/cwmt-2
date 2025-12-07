@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from src.models import db
 from src.models.courses_model import CourseTemplate, Course
 from src.models.user import User
-from src.models.payable_item_model import PayableItemTemplate, CoursePayableItem
+from src.models.payable_item_model import PayableItemTemplate, CourseTemplatePayableItem
 
 
 def seed_courses(app):
@@ -52,17 +52,20 @@ def seed_courses(app):
             {
                 'name': 'Tuition',
                 'description': 'Course tuition fee',
-                'category': 'tuition'
+                'item_type': 'tuition',
+                'base_price': 0.00  # Will be overridden per course
             },
             {
                 'name': 'Materials Fee',
                 'description': 'Course materials and handbook',
-                'category': 'materials'
+                'item_type': 'misc',
+                'base_price': 25.00
             },
             {
                 'name': 'Bike Rental',
                 'description': 'Motorcycle rental for the duration of the course',
-                'category': 'equipment'
+                'item_type': 'rental',
+                'base_price': 50.00
             }
         ]
         
@@ -77,8 +80,10 @@ def seed_courses(app):
                 template = PayableItemTemplate(
                     name=item_data['name'],
                     description=item_data['description'],
-                    category=item_data['category'],
-                    is_active=True
+                    item_type=item_data['item_type'],
+                    base_price=item_data['base_price'],
+                    is_active=True,
+                    is_required=(item_data['item_type'] == 'tuition')
                 )
                 db.session.add(template)
                 db.session.flush()
@@ -110,30 +115,30 @@ def seed_courses(app):
             db.session.flush()
             
             # Add payable items to template
-            # Tuition - full course price
-            tuition_item = CoursePayableItem(
+            # Tuition - required
+            tuition_item = CourseTemplatePayableItem(
                 course_template_id=template.id,
                 payable_item_template_id=payable_templates['Tuition'].id,
-                price=template_data['price'],
-                is_required=True
+                is_required=True,
+                display_order=1
             )
             db.session.add(tuition_item)
             
-            # Materials Fee - $25
-            materials_item = CoursePayableItem(
+            # Materials Fee - required
+            materials_item = CourseTemplatePayableItem(
                 course_template_id=template.id,
                 payable_item_template_id=payable_templates['Materials Fee'].id,
-                price=25.00,
-                is_required=True
+                is_required=True,
+                display_order=2
             )
             db.session.add(materials_item)
             
-            # Bike Rental - $50 (optional)
-            rental_item = CoursePayableItem(
+            # Bike Rental - optional
+            rental_item = CourseTemplatePayableItem(
                 course_template_id=template.id,
                 payable_item_template_id=payable_templates['Bike Rental'].id,
-                price=50.00,
-                is_required=False
+                is_required=False,
+                display_order=3
             )
             db.session.add(rental_item)
             
