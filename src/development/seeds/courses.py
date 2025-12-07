@@ -150,6 +150,11 @@ def seed_courses(app):
         
         db.session.commit()
         
+        # Verify we have templates to work with
+        if not created_templates:
+            print("⚠ No course templates available to create courses")
+            return
+        
         # Create scheduled courses
         today = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)
         
@@ -211,32 +216,33 @@ def seed_courses(app):
         
         for course_data in courses_to_create:
             template = course_data['template']
-            start_date = course_data['start_date']
-            end_date = start_date + timedelta(days=template.duration_days)
+            start_datetime = course_data['start_date']
+            course_date = start_datetime.date()
+            course_time = start_datetime.time()
             
             # Check if course already exists at this time
             existing = Course.query.filter_by(
-                template_id=template.id,
-                start_date=start_date,
+                course_template_id=template.id,
+                course_date=course_date,
+                course_time=course_time,
                 location=course_data['location']
             ).first()
             
             if existing:
-                print(f"⚠ Course already exists: {template.name} on {start_date.strftime('%Y-%m-%d')}")
+                print(f"⚠ Course already exists: {template.name} on {course_date.strftime('%Y-%m-%d')}")
                 continue
             
             # Create course
             course = Course(
-                template_id=template.id,
-                instructor_id=course_data['instructor'].id,
-                start_date=start_date,
-                end_date=end_date,
+                course_template_id=template.id,
+                instructor1_id=course_data['instructor'].id,
+                course_date=course_date,
+                course_time=course_time,
                 location=course_data['location'],
-                status='scheduled',
-                current_students=0
+                status='scheduled'
             )
             db.session.add(course)
-            print(f"✓ Created course: {template.name} starting {start_date.strftime('%Y-%m-%d')} at {course_data['location']}")
+            print(f"✓ Created course: {template.name} starting {course_date.strftime('%Y-%m-%d')} at {course_data['location']}")
         
         db.session.commit()
         print(f"\n✓ Course seeding complete!")
