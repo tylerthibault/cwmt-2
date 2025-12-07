@@ -91,6 +91,9 @@ def seed():
         from src.development.seeds import users
         users.seed_users(app)
 
+        from src.development.seeds import courses
+        courses.seed_courses(app)
+
         
         app.logger.info("Seeding completed via /seed route")
         flash('Seeding completed successfully!', 'success')
