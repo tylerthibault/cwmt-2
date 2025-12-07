@@ -11,11 +11,33 @@ from src.models.logbook import Logbook
 from src.models.courses_model import Course
 from src.models.course_enrollment import CourseEnrollment
 from decimal import Decimal
+from datetime import datetime
 import os
 import stripe
 
 # Create blueprint for student routes
 student_bp = Blueprint('student', __name__, url_prefix='/student')
+
+
+@student_bp.route('/webhook-test', methods=['GET', 'POST'])
+def webhook_test():
+    """
+    Simple test endpoint to verify webhooks can reach the server.
+    Access via: https://your-domain.com/student/webhook-test
+    """
+    print("=" * 100)
+    print("WEBHOOK TEST ENDPOINT HIT")
+    print(f"Method: {request.method}")
+    print(f"Headers: {dict(request.headers)}")
+    print(f"Data: {request.data}")
+    print("=" * 100)
+    
+    return jsonify({
+        'success': True,
+        'message': 'Webhook test endpoint is reachable',
+        'method': request.method,
+        'timestamp': datetime.now().isoformat()
+    }), 200
 
 
 @student_bp.route('/')
