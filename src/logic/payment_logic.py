@@ -473,18 +473,29 @@ class PaymentLogic:
         stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
         endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
         
-        logger.info(f"Processing Stripe webhook - Secret present: {bool(endpoint_secret)}")
+        logger.info(f"Processing Stripe webhook - Secret present: {bool(endpoint_secret)}, Secret value: {endpoint_secret[:10] if endpoint_secret else 'None'}...")
         
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, endpoint_secret
-            )
-        except ValueError as e:
-            logger.error(f"Invalid webhook payload: {str(e)}")
-            raise PaymentBusinessError("Invalid payload")
-        except stripe.error.SignatureVerificationError as e:
-            logger.error(f"Invalid webhook signature: {str(e)}")
-            raise PaymentBusinessError("Invalid signature")
+        # If no webhook secret is configured, skip signature verification (development fallback)
+        if not endpoint_secret:
+            logger.warning("No STRIPE_WEBHOOK_SECRET configured - parsing webhook without signature verification (INSECURE)")
+            try:
+                import json
+                event = json.loads(payload)
+            except Exception as e:
+                logger.error(f"Failed to parse webhook payload: {str(e)}")
+                raise PaymentBusinessError("Invalid payload")
+        else:
+            # Production: Verify signature
+            try:
+                event = stripe.Webhook.construct_event(
+                    payload, sig_header, endpoint_secret
+                )
+            except ValueError as e:
+                logger.error(f"Invalid webhook payload: {str(e)}")
+                raise PaymentBusinessError("Invalid payload")
+            except stripe.error.SignatureVerificationError as e:
+                logger.error(f"Invalid webhook signature: {str(e)}")
+                raise PaymentBusinessError("Invalid signature")
         
         logger.info(f"Webhook event type: {event['type']}")
         

@@ -757,6 +757,12 @@ def stripe_webhook():
     """
     Handle Stripe webhook events.
     Note: This route does not require login as it's called by Stripe.
+    
+    Production Setup Required:
+    1. In Stripe Dashboard -> Developers -> Webhooks
+    2. Add endpoint: https://your-domain.com/student/stripe-webhook
+    3. Select events: payment_intent.succeeded, payment_intent.payment_failed, charge.dispute.*
+    4. Copy webhook signing secret and set as STRIPE_WEBHOOK_SECRET environment variable
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -765,7 +771,20 @@ def stripe_webhook():
         payload = request.data
         sig_header = request.headers.get('Stripe-Signature')
         
-        logger.info(f"Received Stripe webhook - Signature present: {bool(sig_header)}")
+        logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
+        logger.info(f"Signature present: {bool(sig_header)}")
+        logger.info(f"Payload size: {len(payload)} bytes")
+        logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
+        logger.info(f"User-Agent: {request.headers.get('User-Agent')}")
+        
+        # Log the event type if we can parse it
+        try:
+            import json
+            event_data = json.loads(payload)
+            logger.info(f"Event type: {event_data.get('type', 'unknown')}")
+            logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
+        except:
+            pass
         
         if not sig_header:
             logger.error("Missing Stripe signature in webhook")
@@ -773,6 +792,7 @@ def stripe_webhook():
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
         logger.info(f"Webhook processed successfully: {result}")
+        logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
         
         return jsonify(result), 200
         
