@@ -265,12 +265,16 @@ def enroll_in_course(course_id):
         
         user_id = logbook_entry.user_id
         
+        print(f"ENROLLMENT: User {user_id} attempting to enroll in course {course_id}", flush=True)
+        
         # Attempt enrollment
         course = CourseLogic.enroll_student(
             course_id=course_id,
             student_id=user_id,  # This is the user_id which enroll_student expects
             is_admin_override=False
         )
+        
+        print(f"ENROLLMENT: Successfully enrolled user {user_id} in course {course_id}", flush=True)
         
         # After successful enrollment, update vehicle information if provided
         student_profile = StudentLogic.get_student_profile(user_id)
@@ -282,6 +286,7 @@ def enroll_in_course(course_id):
             ).first()
             
             if enrollment:
+                print(f"ENROLLMENT: Updating vehicle info for enrollment {enrollment.id}", flush=True)
                 # Update with vehicle information from form
                 # Convert empty strings to None for integer fields
                 motorcycle_year = request.form.get('motorcycle_year', '').strip()
@@ -293,16 +298,22 @@ def enroll_in_course(course_id):
                     'motorcycle_license_plate': request.form.get('motorcycle_license_plate', '').strip() or None,
                     'notes': request.form.get('notes', '').strip() or None
                 }
+                print(f"ENROLLMENT: Vehicle data: {vehicle_data}", flush=True)
                 StudentLogic.update_enrollment(enrollment.id, vehicle_data)
+                print(f"ENROLLMENT: Vehicle info updated successfully", flush=True)
         
         flash(f"Successfully enrolled in {course.template.name}!", "success")
         return redirect(url_for('student.view_course', course_id=course_id))
         
     except CourseBusinessError as e:
+        print(f"ENROLLMENT ERROR (CourseBusinessError): {str(e)}", flush=True)
         current_app.logger.error(f"Enrollment failed: {str(e)}", exc_info=True)
         flash(str(e), "error")
         return redirect(url_for('student.available_courses'))
     except Exception as e:
+        print(f"ENROLLMENT ERROR (Exception): {str(e)}", flush=True)
+        import traceback
+        print(traceback.format_exc(), flush=True)
         current_app.logger.error(f"Enrollment failed: {str(e)}", exc_info=True)
         flash("Unable to complete enrollment. Please try again.", "error")
         return redirect(url_for('student.available_courses'))

@@ -1,5 +1,9 @@
 from src import create_app
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Get config from environment or default to production in Docker
 # config_name = os.environ.get('FLASK_CONFIG', 'production')

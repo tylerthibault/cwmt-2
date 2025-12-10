@@ -385,18 +385,23 @@ class CourseLogic:
         
         # Enroll student using StudentLogic
         try:
+            print(f"COURSE LOGIC: Enrolling student profile {student_profile.id} in course {course_id}", flush=True)
             enrollment_data = {
                 'notes': 'Enrolled by admin' if is_admin_override else 'Self-enrolled'
             }
-            StudentLogic.enroll_in_course(
+            enrollment = StudentLogic.enroll_in_course(
                 student_id=student_profile.id,
                 course_id=course_id,
                 enrollment_data=enrollment_data
             )
+            print(f"COURSE LOGIC: Enrollment created with ID {enrollment.id}", flush=True)
         except Exception as e:
+            print(f"COURSE LOGIC ERROR: Failed to enroll - {str(e)}", flush=True)
             raise CourseBusinessError(f"Failed to enroll student: {str(e)}")
         
+        print(f"COURSE LOGIC: Committing transaction", flush=True)
         db.session.commit()
+        print(f"COURSE LOGIC: Transaction committed successfully", flush=True)
         
         return course
     

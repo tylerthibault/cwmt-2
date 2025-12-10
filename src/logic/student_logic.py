@@ -167,6 +167,7 @@ class StudentLogic:
         
         # Create enrollment
         try:
+            print(f"STUDENT LOGIC: Creating enrollment for student {student_id} in course {course_id}", flush=True)
             enrollment = CourseEnrollment(
                 student_id=student_id,
                 course_id=course_id,
@@ -175,9 +176,14 @@ class StudentLogic:
                 **enrollment_data
             )
             db.session.add(enrollment)
+            print(f"STUDENT LOGIC: Enrollment added to session, committing...", flush=True)
             db.session.commit()
+            print(f"STUDENT LOGIC: Enrollment {enrollment.id} committed successfully", flush=True)
             return enrollment
         except Exception as e:
+            print(f"STUDENT LOGIC ERROR: Enrollment failed - {str(e)}", flush=True)
+            import traceback
+            print(traceback.format_exc(), flush=True)
             db.session.rollback()
             raise Exception(f"Failed to enroll student: {str(e)}")
     
@@ -232,15 +238,22 @@ class StudentLogic:
         StudentLogic._validate_enrollment_data(update_data)
         
         try:
+            print(f"STUDENT LOGIC: Updating enrollment {enrollment_id} with data: {update_data}", flush=True)
             for key, value in update_data.items():
                 if hasattr(enrollment, key):
                     # Convert empty strings to None for cleaner database storage
                     if isinstance(value, str) and value.strip() == '':
                         value = None
+                    print(f"STUDENT LOGIC: Setting {key} = {value}", flush=True)
                     setattr(enrollment, key, value)
+            print(f"STUDENT LOGIC: Committing enrollment update", flush=True)
             db.session.commit()
+            print(f"STUDENT LOGIC: Enrollment {enrollment_id} updated successfully", flush=True)
             return enrollment
         except Exception as e:
+            print(f"STUDENT LOGIC ERROR: Update failed - {str(e)}", flush=True)
+            import traceback
+            print(traceback.format_exc(), flush=True)
             db.session.rollback()
             raise Exception(f"Failed to update enrollment: {str(e)}")
     

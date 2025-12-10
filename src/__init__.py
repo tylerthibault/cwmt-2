@@ -15,6 +15,14 @@ def create_app(config_name='development'):
     # Load configuration
     app.config.from_object(config[config_name])
     
+    # Debug: Print database configuration
+    import os
+    print(f"========== DATABASE CONFIGURATION ==========", flush=True)
+    print(f"Config name: {config_name}", flush=True)
+    print(f"DATABASE_URL env var: {os.environ.get('DATABASE_URL', 'NOT SET')}", flush=True)
+    print(f"Final SQLALCHEMY_DATABASE_URI: {app.config['SQLALCHEMY_DATABASE_URI']}", flush=True)
+    print(f"==========================================", flush=True)
+    
     # Initialize logger
     init_logger(app)
     app.logger.info("------------------- Application starting up -------------------")
