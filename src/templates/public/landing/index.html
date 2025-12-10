@@ -1,5 +1,9 @@
 {% extends 'bases/public.html' %}
 
+{% block custom_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing/hero.css') }}">
+{% endblock custom_head %}
+
 {% block header %}
 {% include 'public/components/header.html' %}
 {% endblock header %}

@@ -3,16 +3,12 @@
 {% block custom_head %}
 {% endblock custom_head %}
 
-{% block page_wrapper %}
+{% block custom_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/private/sidenav.css') }}">
-<script>
-(function() {
-    const isCollapsed = localStorage.getItem('sidenav-collapsed');
-    if (isCollapsed === 'false') {
-        document.documentElement.classList.add('sidenav-expanded');
-    }
-})();
-</script>
+<script src="{{ url_for('static', filename='js/private/sidenav-init.js') }}"></script>
+{% endblock custom_head %}
+
+{% block page_wrapper %}
 <div class="private-layout">
     {% block header %}
         {% include 'private/components/sidenav.html' %}
