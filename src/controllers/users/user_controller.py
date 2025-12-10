@@ -1,9 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from src.controllers.auth_controller import login_required
 from src.logic.user_logic import UserLogic
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
-
 
 @user_bp.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
@@ -28,9 +27,11 @@ def enroll_in_course(course_id):
         flash(f"Successfully enrolled in {course.template.name}!", "success")
             
     except CourseBusinessError as e:
-        flash(str(e), "error")
+        current_app.logger.warning(f"Course business error enrolling user {user_id} in course {course_id}: {str(e)}")
+        flash("Course business error", "error")
     except Exception as e:
-        flash(f"An error occurred during enrollment: {str(e)}", "error")
+        current_app.logger.error(f"Error enrolling user {user_id} in course {course_id}: {str(e)}", exc_info=True)
+        flash("Unable to complete enrollment. Please try again.", "error")
     
     return redirect(url_for('student.dashboard'))
 
@@ -74,11 +75,11 @@ def update_profile():
             flash('Profile updated successfully!', 'success')
             
     except ValueError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f"Validation error updating profile for user {logbook_entry.user_id}: {str(e)}")
+        flash('Invalid profile information. Please check your input and try again.', 'error')
     except Exception as e:
-        flash('An error occurred while updating your profile.', 'error')
-        from flask import current_app as app
-        app.logger.error(f"Error updating profile: {str(e)}")
+        current_app.logger.error(f"Error updating profile for user {logbook_entry.user_id}: {str(e)}", exc_info=True)
+        flash('Unable to update profile. Please try again.', 'error')
     
     return redirect(url_for('user.settings'))
 
@@ -109,11 +110,11 @@ def update_password():
         flash('Password changed successfully!', 'success')
             
     except ValueError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f"Validation error updating password for user {logbook_entry.user_id}: {str(e)}")
+        flash('Invalid password information. Please check your input and try again.', 'error')
     except Exception as e:
-        flash('An error occurred while changing your password.', 'error')
-        from flask import current_app as app
-        app.logger.error(f"Error updating password: {str(e)}")
+        current_app.logger.error(f"Error updating password for user {logbook_entry.user_id}: {str(e)}", exc_info=True)
+        flash('Unable to change password. Please try again.', 'error')
     
     return redirect(url_for('user.settings'))
 

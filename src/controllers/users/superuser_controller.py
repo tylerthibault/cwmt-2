@@ -165,11 +165,13 @@ def add_user_to_role():
                 try:
                     StudentLogic.create_student_profile(int(user_id))
                 except Exception as e:
-                    flash(f'Warning: Student profile creation failed: {str(e)}', 'warning')
+                    current_app.logger.error(f'Error creating student profile for user {user.username}: {str(e)}', exc_info=True)
+                    flash('Student profile creation failed. Please try again.', 'warning')
         
         flash(f'Successfully added {user.username} to {role_name} role', 'success')
     except Exception as e:
-        flash(f'Error adding user to role: {str(e)}', 'error')
+        current_app.logger.error(f'Error adding user {user.username} to role {role_name}: {str(e)}', exc_info=True)
+        flash('Unable to add user to role. Please try again.', 'error')
     
     return redirect(url_for('superuser.user_management', role=role_name))
 
@@ -194,9 +196,11 @@ def create_user():
         user = UserLogic.create_user(data)
         flash(f'Successfully created user: {user.username}', 'success')
     except ValueError as e:
-        flash(f'Error creating user: {str(e)}', 'error')
+        current_app.logger.warning(f'Validation error creating user: {str(e)}')
+        flash('Invalid user information. Please check your input and try again.', 'error')
     except Exception as e:
-        flash(f'Unexpected error creating user: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error creating user: {str(e)}', exc_info=True)
+        flash('Unable to create user. Please try again.', 'error')
     
     # Preserve filters when redirecting
     role_filter = request.args.get('role')
@@ -237,7 +241,8 @@ def remove_user_from_role():
         UserHasRoles.remove_role(int(user_id), role.id)
         flash(f'Successfully removed {user.username} from {role_name} role', 'success')
     except Exception as e:
-        flash(f'Error removing user from role: {str(e)}', 'error')
+        current_app.logger.error(f'Error removing user {user.username} from role {role_name}: {str(e)}', exc_info=True)
+        flash('Unable to remove user from role. Please try again.', 'error')
     
     return redirect(url_for('superuser.user_management', role=role_name))
 
@@ -262,7 +267,8 @@ def deactivate_user():
         User.deactivate(user.id)
         flash(f'Successfully deactivated user {user.username}', 'success')
     except Exception as e:
-        flash(f'Error deactivating user: {str(e)}', 'error')
+        current_app.logger.error(f'Error deactivating user {user.username}: {str(e)}', exc_info=True)
+        flash('Unable to deactivate user. Please try again.', 'error')
     
     return redirect(url_for('superuser.user_management'))
 
@@ -288,7 +294,8 @@ def reactivate_user():
         User.activate(user.id)
         flash(f'Successfully reactivated user {user.username}', 'success')
     except Exception as e:
-        flash(f'Error reactivating user: {str(e)}', 'error')
+        current_app.logger.error(f'Error reactivating user {user.username}: {str(e)}', exc_info=True)
+        flash('Unable to reactivate user. Please try again.', 'error')
     
     return redirect(url_for('superuser.user_management'))
 
@@ -406,9 +413,11 @@ def edit_student(student_id):
             return redirect(url_for('superuser.student_detail', student_id=student_id))
             
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error updating student profile {student_id}: {str(e)}')
+            flash('Invalid student information. Please check your input and try again.', 'error')
         except Exception as e:
-            flash(f'Failed to update student profile: {str(e)}', 'error')
+            current_app.logger.error(f'Error updating student profile {student_id}: {str(e)}', exc_info=True)
+            flash('Unable to update student profile. Please try again.', 'error')
     
     # GET request - display form
     context = UserLogic.get_context(view_as='superuser')
@@ -589,9 +598,11 @@ def approve_refund(refund_id):
         })
         
     except PaymentValidationError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f'Payment validation error approving refund {refund_id}: {str(e)}')
+        return jsonify({'success': False, 'message': 'Invalid refund information. Please check your input.'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error approving refund: {str(e)}'}), 500
+        current_app.logger.error(f'Error approving refund {refund_id}: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to approve refund. Please try again.'}), 500
 
 
 @superuser_bp.route('/refund-requests/<int:refund_id>/deny', methods=['POST'])
@@ -631,6 +642,8 @@ def deny_refund(refund_id):
         })
         
     except PaymentValidationError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f'Payment validation error denying refund {refund_id}: {str(e)}')
+        return jsonify({'success': False, 'message': 'Invalid refund information. Please check your input.'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error denying refund: {str(e)}'}), 500
+        current_app.logger.error(f'Error denying refund {refund_id}: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to deny refund. Please try again.'}), 500

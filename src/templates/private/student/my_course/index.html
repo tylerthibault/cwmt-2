@@ -260,7 +260,7 @@
         {% endif %}
         
         <div class="cd-actions">
-            <a href="{{ url_for('student.my_courses') }}" class="cd-btn cd-btn-secondary">← Back to My Courses</a>
+            <a href="{{ url_for('student.dashboard') }}" class="cd-btn cd-btn-secondary">← Back to My Courses</a>
             {% if enrollment.status == 'active' %}
             <button onclick="openWithdrawModal()" class="cd-btn cd-btn-danger">Withdraw from Course</button>
             {% endif %}

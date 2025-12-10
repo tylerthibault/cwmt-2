@@ -46,11 +46,11 @@ def create_app(config_name='development'):
 
 def init_logger(app):
     """Initialize and attach the custom logger to the Flask app"""
-    # Determine log level based on configuration
+    # Create logger instance (logs to database, not files)
     logger = Logger(
         name="CWMT",
-        log_file=app.config.get('LOG_FILE'),
-        level="DEBUG"
+        level="DEBUG",
+        console_output=True  # Enable console output for development
     )
     app.logger = logger
 
@@ -100,12 +100,45 @@ def init_database(app):
     """Initialize database connections and create tables"""
     import os
     from sqlalchemy.engine import make_url
+    import pymysql
 
     app.logger.info("Database initialization started")
 
     # Resolve and ensure sqlite DB path exists if using sqlite
     uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
     app.logger.info(f"Configured SQLALCHEMY_DATABASE_URI: {uri}")
+    
+    # Auto-create MySQL database if it doesn't exist
+    if uri and uri.startswith('mysql'):
+        app.logger.info("Detected MySQL database, checking if database exists...")
+        try:
+            # Parse the connection URL
+            url = make_url(uri)
+            database_name = url.database
+            
+            # Create connection string without database name
+            connection_params = {
+                'host': url.host,
+                'user': url.username,
+                'password': url.password,
+                'port': url.port or 3306,
+                'charset': 'utf8mb4'
+            }
+            
+            # Connect to MySQL server (without specifying database)
+            connection = pymysql.connect(**connection_params)
+            cursor = connection.cursor()
+            
+            # Create database if it doesn't exist
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{database_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+            app.logger.info(f"Database '{database_name}' created or already exists")
+            
+            cursor.close()
+            connection.close()
+            
+        except Exception as e:
+            app.logger.warning(f"Could not auto-create MySQL database: {e}")
+            # Continue anyway - if database exists, this is fine
 
     if uri and uri.startswith('sqlite'):
         try:

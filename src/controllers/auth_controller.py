@@ -1,8 +1,10 @@
-from flask import Blueprint, request, render_template, session, redirect, url_for, flash
+from flask import Blueprint, request, render_template, session, redirect, url_for, flash, current_app
 from src.logic.auth_logic import AuthLogic
 from src.logic.email_logic import EmailLogic
 from functools import wraps
 from src.models.logbook import Logbook
+
+# from src import current_app.logger
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -44,16 +46,19 @@ def login_required(f):
         token = session.get('token')
         logbook_page = Logbook.query.filter_by(token=token, has_logged_out=False).first()
         if not logbook_page or logbook_page.is_timed_out():
+            current_app.logger.info(f'Session expired or invalid for token: {token[:8]}...')
             session.pop('token', None)
             flash('Session expired. Please log in again.', 'error')
             return redirect(url_for('auth.login'))
         
         user = logbook_page.user
         if not user:
+            current_app.logger.warning(f'Logbook entry found but user missing for token: {token[:8]}...')
             flash('Authentication required', 'error')
             return redirect(url_for('auth.login'))
         
         if not user.is_active:
+            current_app.logger.warning(f'Deactivated account access attempt by user {user.id} ({user.username})')
             flash('Account is deactivated. Please contact support.', 'error')
             return redirect(url_for('auth.login'))
 
@@ -71,11 +76,11 @@ def register():
             # sign the user in (for example, by setting session variables)
             token = Logbook.sign_logbook(user_id)
             session['token'] = token
-
-
+            current_app.logger.info(f'New user registered successfully: user_id={user_id}, username={data.get("username")}')
             flash('User registered successfully', 'success')
             return redirect(url_for('auth.login'))
     
+        current_app.logger.warning(f'Registration failed for username: {data.get("username")}')
         flash('Registration failed. Please check the errors and try again.', 'error')
     return render_template('public/auth/register/index.html')
 
@@ -88,10 +93,12 @@ def login():
         if user:
             token = Logbook.sign_logbook(user.id)
             session['token'] = token
+            current_app.logger.info(f'User logged in successfully: user_id={user.id}, username={user.username}')
             flash('Login successful', 'success')
             # Redirect to appropriate dashboard based on user role
             return redirect(get_user_dashboard_url(user))
         
+        current_app.logger.warning(f'Login failed for username: {data.get("username")}')
         flash('Login failed. Please check your credentials and try again.', 'error')
 
     from src.models.user import User
@@ -107,6 +114,9 @@ def login():
 def logout():
     token = session.get('token')
     if token:
+        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
+        if logbook_entry and logbook_entry.user:
+            current_app.logger.info(f'User logged out: user_id={logbook_entry.user_id}, username={logbook_entry.user.username}')
         Logbook.sign_out(token)
     session.pop('token', None)
     flash('Logout successful', 'success')
@@ -127,6 +137,7 @@ def forgot_password():
         
         # Always show success message for security (don't reveal if email exists)
         if token_info:
+            current_app.logger.info(f'Password reset requested for user: {token_info["user"].username} (email: {email})')
             # Generate reset link
             reset_link = url_for('auth.reset_password', token=token_info['token'], _external=True)
             
@@ -138,9 +149,11 @@ def forgot_password():
                     reset_link=reset_link,
                     expiry_time="24 hours"
                 )
+                current_app.logger.info(f'Password reset email sent successfully to {email}')
                 flash('Password reset instructions have been sent to your email', 'success')
             except Exception as e:
                 # Log error but still show success message for security
+                current_app.logger.error(f'Error sending password reset email to {email}: {str(e)}', exc_info=True)
                 flash('Password reset instructions have been sent to your email if it exists in our system', 'success')
         else:
             # Show same message even if user doesn't exist (security)
@@ -157,6 +170,7 @@ def reset_password(token):
     user = AuthLogic.verify_reset_token(token)
     
     if not user:
+        current_app.logger.warning(f'Invalid or expired password reset token attempted: {token[:8]}...')
         flash('Invalid or expired password reset link. Please request a new one.', 'error')
         return redirect(url_for('main.index'))
     
@@ -171,10 +185,12 @@ def reset_password(token):
         
         # Reset password using token
         if AuthLogic.reset_password_with_token(token, new_password):
+            current_app.logger.info(f'Password reset successful for user: {user.username}')
             flash('Password reset successful! You can now log in with your new password.', 'success')
             return redirect(url_for('auth.login'))
         else:
-            flash('Password reset failed. Please try again.', 'error')
+            current_app.logger.warning(f'Password reset failed for token: {token}')
+            flash('Unable to reset password. Please try again or request a new reset link.', 'error')
             return render_template('public/auth/reset_password/index.html', token=token, user=user)
     
     return render_template('public/auth/reset_password/index.html', token=token, user=user)

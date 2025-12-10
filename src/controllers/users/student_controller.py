@@ -2,7 +2,7 @@
 Student Controller - Routes for student dashboard and operations
 Handles all student-facing routes including dashboard, course viewing, enrollment management
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify, current_app
 from src.controllers.auth_controller import login_required
 from src.logic.student_logic import StudentLogic
 from src.logic.course_logic import CourseLogic, CourseBusinessError
@@ -15,30 +15,9 @@ from datetime import datetime
 import os
 import stripe
 
+
 # Create blueprint for student routes
 student_bp = Blueprint('student', __name__, url_prefix='/student')
-
-
-@student_bp.route('/webhook-test', methods=['GET', 'POST'])
-def webhook_test():
-    """
-    Simple test endpoint to verify webhooks can reach the server.
-    Access via: https://your-domain.com/student/webhook-test
-    """
-    print("=" * 100)
-    print("WEBHOOK TEST ENDPOINT HIT")
-    print(f"Method: {request.method}")
-    print(f"Headers: {dict(request.headers)}")
-    print(f"Data: {request.data}")
-    print("=" * 100)
-    
-    return jsonify({
-        'success': True,
-        'message': 'Webhook test endpoint is reachable',
-        'method': request.method,
-        'timestamp': datetime.now().isoformat()
-    }), 200
-
 
 @student_bp.route('/')
 @student_bp.route('/dashboard')
@@ -91,54 +70,9 @@ def dashboard():
         return render_template('private/student/index.html', **context)
         
     except Exception as e:
-        flash(f"Error loading dashboard: {str(e)}", "error")
+        current_app.logger.error(f"Error loading student dashboard: {str(e)}", exc_info=True)
+        flash("Unable to load dashboard. Please try again.", "error")
         return redirect(url_for('main.index'))
-
-
-@student_bp.route('/my-courses')
-@login_required
-def my_courses():
-    """
-    View all enrolled courses with filtering options
-    """
-    try:
-        # Get current user
-        token = session.get('token')
-        logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
-        
-        if not logbook_entry or not logbook_entry.user_id:
-            flash("Session expired. Please log in again.", "error")
-            return redirect(url_for('auth.login'))
-        
-        user_id = logbook_entry.user_id
-        student_profile = StudentLogic.get_student_profile(user_id)
-        
-        if not student_profile:
-            flash("Student profile not found.", "error")
-            return redirect(url_for('main.index'))
-        
-        # Get filter parameter
-        status_filter = request.args.get('status', 'all')
-        
-        # Get enrollments
-        enrollments = StudentLogic.get_student_courses(student_profile.id)
-        
-        # Apply filter
-        if status_filter != 'all':
-            enrollments = [e for e in enrollments if e.status == status_filter]
-        
-        context = {
-            'user': logbook_entry.user,
-            'current_role': 'student',
-            'enrollments': enrollments,
-            'status_filter': status_filter
-        }
-        
-        return render_template('private/student/my_courses.html', **context)
-        
-    except Exception as e:
-        flash(f"Error loading courses: {str(e)}", "error")
-        return redirect(url_for('student.dashboard'))
 
 
 @student_bp.route('/course/<int:course_id>')
@@ -148,18 +82,18 @@ def view_course(course_id):
     View details of a specific enrolled course
     """
     import logging
-    logger = logging.getLogger(__name__)
+    current_app.logger = logging.getcurrent_app.logger(__name__)
     
     try:
         # Get current user
         token = session.get('token')
         logbook_entry = Logbook.query.filter_by(token=token, has_logged_out=False).first()
-
-        print("*"*100)
         
         if not logbook_entry or not logbook_entry.user_id:
             flash("Session expired. Please log in again.", "error")
             return redirect(url_for('auth.login'))
+        
+        current_app.logger.info(f"User {logbook_entry.user_id} accessed course details for course {course_id}")
         
         user_id = logbook_entry.user_id
         student_profile = StudentLogic.get_student_profile(user_id)
@@ -172,7 +106,7 @@ def view_course(course_id):
         course = Course.query.get(course_id)
         if not course:
             flash("Course not found.", "error")
-            return redirect(url_for('student.my_courses'))
+            return redirect(url_for('student.dashboard'))
         
         # Verify student is enrolled in this course
         enrollment = CourseEnrollment.query.filter_by(
@@ -182,19 +116,19 @@ def view_course(course_id):
         
         if not enrollment:
             flash("You are not enrolled in this course.", "error")
-            return redirect(url_for('student.my_courses'))
+            return redirect(url_for('student.dashboard'))
         
         # Check if returning from Stripe payment (payment_intent in query params)
         payment_intent_id = request.args.get('payment_intent')
         if payment_intent_id:
-            logger.info(f"Detected return from Stripe with payment_intent: {payment_intent_id}")
+            current_app.logger.info(f"Detected return from Stripe with payment_intent: {payment_intent_id}")
             try:
                 # Initialize Stripe
                 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
                 
                 # Retrieve the payment intent from Stripe
                 intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-                logger.info(f"Payment intent status: {intent.status}")
+                current_app.logger.info(f"Payment intent status: {intent.status}")
                 
                 # If payment succeeded and not already recorded
                 if intent.status == 'succeeded':
@@ -205,7 +139,7 @@ def view_course(course_id):
                     ).first()
                     
                     if not existing_payment:
-                        logger.info("Payment succeeded but not recorded - processing now")
+                        current_app.logger.info("Payment succeeded but not recorded - processing now")
                         # Extract metadata and record payment
                         metadata = intent.metadata
                         enrollment_id = metadata.get('enrollment_id')
@@ -226,13 +160,13 @@ def view_course(course_id):
                             )
                             
                             flash("Payment successful! Your items have been paid.", "success")
-                            logger.info(f"Payment recorded successfully for intent {payment_intent_id}")
+                            current_app.logger.info(f"Payment recorded successfully for intent {payment_intent_id}")
                     else:
-                        logger.info("Payment already recorded")
+                        current_app.logger.info("Payment already recorded")
                         flash("Payment confirmed!", "success")
                         
             except Exception as e:
-                logger.error(f"Error checking payment intent: {str(e)}", exc_info=True)
+                current_app.logger.error(f"Error checking payment intent: {str(e)}", exc_info=True)
                 flash("Payment may be processing. Please refresh if items still show as pending.", "info")
         
         # Get payment information for this enrollment
@@ -257,7 +191,8 @@ def view_course(course_id):
         return render_template('private/student/my_course/index.html', **context)
         
     except Exception as e:
-        flash(f"Error loading course: {str(e)}", "error")
+        current_app.logger.error(f"Error loading course details for course {course_id}: {str(e)}", exc_info=True)
+        flash("Unable to load course details. Please try again.", "error")
         return redirect(url_for('student.dashboard'))
 
 
@@ -284,17 +219,17 @@ def available_courses():
         
         # Debug: Log what we got
         from flask import current_app
-        current_app.logger.info(f"Total available courses from CourseLogic: {len(all_available)}")
+        current_app.current_app.logger.info(f"Total available courses from CourseLogic: {len(all_available)}")
         
         # Get student's current ACTIVE enrollments to filter out (allow re-enrollment if withdrawn)
         active_enrolled_course_ids = []
         if student_profile:
             enrollments = StudentLogic.get_student_courses(student_profile.id)
             active_enrolled_course_ids = [e.course_id for e in enrollments if e.status not in ['withdrawn', 'cancelled']]
-            current_app.logger.info(f"Student has {len(active_enrolled_course_ids)} active enrollments to filter out")
+            current_app.current_app.logger.info(f"Student has {len(active_enrolled_course_ids)} active enrollments to filter out")
         
         available_courses = [c for c in all_available if c.id not in active_enrolled_course_ids]
-        current_app.logger.info(f"Available courses for student after filtering: {len(available_courses)}")
+        current_app.current_app.logger.info(f"Available courses for student after filtering: {len(available_courses)}")
         
         context = {
             'user': logbook_entry.user,
@@ -306,7 +241,8 @@ def available_courses():
         return render_template('private/student/available_courses/index.html', **context)
         
     except Exception as e:
-        flash(f"Error loading available courses: {str(e)}", "error")
+        current_app.logger.error(f"Error loading available courses: {str(e)}", exc_info=True)
+        flash("Unable to load available courses. Please try again.", "error")
         return redirect(url_for('student.dashboard'))
 
 
@@ -359,10 +295,12 @@ def enroll_in_course(course_id):
         return redirect(url_for('student.view_course', course_id=course_id))
         
     except CourseBusinessError as e:
+        current_app.logger.error(f"Enrollment failed: {str(e)}", exc_info=True)
         flash(str(e), "error")
         return redirect(url_for('student.available_courses'))
     except Exception as e:
-        flash(f"Enrollment failed: {str(e)}", "error")
+        current_app.logger.error(f"Enrollment failed: {str(e)}", exc_info=True)
+        flash("Unable to complete enrollment. Please try again.", "error")
         return redirect(url_for('student.available_courses'))
 
 
@@ -409,7 +347,8 @@ def update_vehicle_info(course_id):
         return jsonify({'success': True, 'message': 'Vehicle information updated'})
         
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        current_app.logger.error(f"Error updating vehicle information for course {course_id}: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to update vehicle information. Please try again.'}), 500
 
 
 @student_bp.route('/course/<int:course_id>/withdraw', methods=['POST'])
@@ -456,10 +395,12 @@ def withdraw_from_course(course_id):
         return redirect(url_for('student.my_courses'))
         
     except ValueError as e:
+        current_app.logger.error(f"Withdrawal failed: {str(e)}", exc_info=True)
         flash(str(e), "error")
         return redirect(url_for('student.view_course', course_id=course_id))
     except Exception as e:
-        flash(f"Withdrawal failed: {str(e)}", "error")
+        current_app.logger.error(f"Withdrawal failed: {str(e)}", exc_info=True)
+        flash("Unable to withdraw from course. Please try again.", "error")
         return redirect(url_for('student.view_course', course_id=course_id))
 
 
@@ -493,7 +434,8 @@ def profile():
         return render_template('private/student/profile.html', **context)
         
     except Exception as e:
-        flash(f"Error loading profile: {str(e)}", "error")
+        current_app.logger.error(f"Error loading profile: {str(e)}", exc_info=True)
+        flash("Unable to load profile. Please try again.", "error")
         return redirect(url_for('student.dashboard'))
 
 
@@ -536,10 +478,12 @@ def update_profile():
         return redirect(url_for('student.profile'))
         
     except ValueError as e:
+        current_app.logger.error(f"Profile update failed: {str(e)}", exc_info=True)
         flash(str(e), "error")
         return redirect(url_for('student.profile'))
     except Exception as e:
-        flash(f"Update failed: {str(e)}", "error")
+        current_app.logger.error(f"Profile update failed: {str(e)}", exc_info=True)
+        flash("Unable to update profile. Please try again.", "error")
         return redirect(url_for('student.profile'))
 
 
@@ -579,7 +523,8 @@ def payments():
         return render_template('private/student/payments.html', **context)
         
     except Exception as e:
-        flash(f"Error loading payments: {str(e)}", "error")
+        current_app.logger.error(f"Error loading payments: {str(e)}", exc_info=True)
+        flash("Unable to load payment information. Please try again.", "error")
         return redirect(url_for('student.dashboard'))
 
 
@@ -656,7 +601,8 @@ def payment_selection(course_id):
         return render_template('private/student/payment_selection.html', **context)
         
     except Exception as e:
-        flash(f"Error loading payment page: {str(e)}", "error")
+        current_app.logger.error(f"Error loading payment selection page for course {course_id}: {str(e)}", exc_info=True)
+        flash("Unable to load payment options. Please try again.", "error")
         return redirect(url_for('student.view_course', course_id=course_id))
 
 
@@ -709,11 +655,14 @@ def add_items_to_cart(course_id):
         })
         
     except PaymentValidationError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f"Payment validation error adding items to cart: {str(e)}")
+        return jsonify({'success': False, 'message': 'Invalid payment information. Please check your selection.'}), 400
     except PaymentBusinessError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f"Payment business error adding items to cart: {str(e)}")
+        return jsonify({'success': False, 'message': 'Unable to process payment items. Please try again.'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+        current_app.logger.error(f"Error adding items to cart for course {course_id}: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to add items. Please try again.'}), 500
 
 
 @student_bp.route('/course/<int:course_id>/create-payment-intent', methods=['POST'])
@@ -767,11 +716,14 @@ def create_payment_intent(course_id):
         })
         
     except PaymentValidationError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f"Payment validation error creating payment intent: {str(e)}")
+        return jsonify({'success': False, 'message': 'Invalid payment information. Please check your selection.'}), 400
     except PaymentBusinessError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f"Payment business error creating payment intent: {str(e)}")
+        return jsonify({'success': False, 'message': 'Unable to process payment. Please try again.'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+        current_app.logger.error(f"Error creating payment intent for course {course_id}: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to create payment. Please try again.'}), 500
 
 
 @student_bp.route('/stripe-webhook', methods=['POST'])
@@ -787,7 +739,7 @@ def stripe_webhook():
     4. Copy webhook signing secret and set as STRIPE_WEBHOOK_SECRET environment variable
     """
     import logging
-    logger = logging.getLogger(__name__)
+    current_app.logger = logging.getcurrent_app.logger(__name__)
     
     try:
         payload = request.data
@@ -799,11 +751,11 @@ def stripe_webhook():
         print(f"Signature present: {bool(sig_header)}", flush=True)
         print(f"Payload size: {len(payload)} bytes", flush=True)
         
-        logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
-        logger.info(f"Signature present: {bool(sig_header)}")
-        logger.info(f"Payload size: {len(payload)} bytes")
-        logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
-        logger.info(f"User-Agent: {request.headers.get('User-Agent')}")
+        current_app.logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
+        current_app.logger.info(f"Signature present: {bool(sig_header)}")
+        current_app.logger.info(f"Payload size: {len(payload)} bytes")
+        current_app.logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
+        current_app.logger.info(f"User-Agent: {request.headers.get('User-Agent')}")
         
         # Log the event type if we can parse it
         try:
@@ -811,34 +763,34 @@ def stripe_webhook():
             event_data = json.loads(payload)
             print(f"Event type: {event_data.get('type', 'unknown')}", flush=True)
             print(f"Event ID: {event_data.get('id', 'unknown')}", flush=True)
-            logger.info(f"Event type: {event_data.get('type', 'unknown')}")
-            logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
+            current_app.logger.info(f"Event type: {event_data.get('type', 'unknown')}")
+            current_app.logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
         except Exception as parse_err:
             print(f"Failed to parse payload: {parse_err}", flush=True)
         
         if not sig_header:
             print("ERROR: Missing Stripe signature", flush=True)
-            logger.error("Missing Stripe signature in webhook")
+            current_app.logger.error("Missing Stripe signature in webhook")
             return jsonify({'error': 'Missing signature'}), 400
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
         print(f"Webhook processed successfully: {result}", flush=True)
         print("=" * 100, flush=True)
-        logger.info(f"Webhook processed successfully: {result}")
-        logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
+        current_app.logger.info(f"Webhook processed successfully: {result}")
+        current_app.logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
         
         return jsonify(result), 200
         
     except PaymentBusinessError as e:
         print(f"WEBHOOK ERROR - Payment business error: {str(e)}", flush=True)
         print("=" * 100, flush=True)
-        logger.error(f"Payment business error in webhook: {str(e)}")
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f"Payment business error in webhook: {str(e)}")
+        return jsonify({'error': 'Payment processing error'}), 400
     except Exception as e:
         print(f"WEBHOOK ERROR - Unexpected error: {str(e)}", flush=True)
         print("=" * 100, flush=True)
-        logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
-        return jsonify({'error': f'Webhook error: {str(e)}'}), 500
+        current_app.logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Webhook processing failed'}), 500
 
 
 @student_bp.route('/refund-request/<int:line_item_id>', methods=['POST'])
@@ -881,6 +833,8 @@ def request_refund(line_item_id):
         })
         
     except PaymentValidationError as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.warning(f"Payment validation error requesting refund for line item {line_item_id}: {str(e)}")
+        return jsonify({'success': False, 'message': 'Invalid refund request. Please check your information.'}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error creating refund request: {str(e)}'}), 500
+        current_app.logger.error(f"Error creating refund request for line item {line_item_id}: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to submit refund request. Please try again.'}), 500

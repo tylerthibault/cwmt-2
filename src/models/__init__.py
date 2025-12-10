@@ -31,6 +31,7 @@ def init_db(app):
         from src.models.payable_item_model import PayableItemTemplate, CourseTemplatePayableItem, CoursePayableItem
         from src.models.enrollment_line_items import EnrollmentLineItem
         from src.models.payment_models import Payment, PaymentAllocation, Refund
+        from src.models.logs_model import Log
         
         # Create all tables if they don't exist
         db.create_all()

@@ -16,7 +16,7 @@ Does NOT contain:
 - Data validation (belongs in logic layer)
 - Complex calculations (belongs in logic layer)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from functools import wraps
 from src.models.logbook import Logbook
 from src.logic.user_logic import UserLogic
@@ -156,9 +156,11 @@ def create_course_instance():
             flash(f'Course instance "{template_name}" created successfully', 'success')
             return redirect(url_for('user_admin.schedule_management'))
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error creating course instance: {str(e)}')
+            flash('Invalid course information. Please check your input and try again.', 'error')
             return redirect(url_for('user_admin.schedule_management'))
         except Exception as e:
+            current_app.logger.error(f'Error creating course instance: {str(e)}', exc_info=True)
             flash('Failed to create course instance. Please try again.', 'error')
             return redirect(url_for('user_admin.schedule_management'))
     
@@ -198,8 +200,10 @@ def edit_course_instance(course_id):
             flash(f'Course instance "{updated_course.template.name}" updated successfully', 'success')
             return redirect(url_for('user_admin.schedule_management'))
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error updating course instance {course_id}: {str(e)}')
+            flash('Invalid course information. Please check your input and try again.', 'error')
         except Exception as e:
+            current_app.logger.error(f'Error updating course instance {course_id}: {str(e)}', exc_info=True)
             flash('Failed to update course instance. Please try again.', 'error')
     
     # GET request - display form
@@ -258,8 +262,10 @@ def delete_course_instance(course_id):
         CourseLogic.delete_course_instance(course_id)
         flash('Course instance deleted successfully', 'success')
     except ValueError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f'Validation error deleting course instance {course_id}: {str(e)}')
+        flash('Unable to delete course. This course may have active enrollments.', 'error')
     except Exception as e:
+        current_app.logger.error(f'Error deleting course instance {course_id}: {str(e)}', exc_info=True)
         flash('Failed to delete course instance. Please try again.', 'error')
     
     return redirect(url_for('user_admin.schedule_management'))
@@ -541,9 +547,11 @@ def edit_student(student_id):
             return redirect(url_for('user_admin.student_detail', student_id=student_id))
             
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error updating student profile {student_id}: {str(e)}')
+            flash('Invalid student information. Please check your input and try again.', 'error')
         except Exception as e:
-            flash(f'Failed to update student profile: {str(e)}', 'error')
+            current_app.logger.error(f'Error updating student profile {student_id}: {str(e)}', exc_info=True)
+            flash('Failed to update student profile. Please try again.', 'error')
     
     # GET request - display form
     user_context = UserLogic.get_context(view_as='admin')
@@ -583,14 +591,16 @@ def update_enrollment(student_id, enrollment_id):
         }), 200
         
     except ValueError as e:
+        current_app.logger.warning(f'Validation error updating enrollment {enrollment_id}: {str(e)}')
         return json.dumps({
             'success': False,
             'message': str(e)
         }), 400
     except Exception as e:
+        current_app.logger.error(f'Error updating enrollment {enrollment_id}: {str(e)}', exc_info=True)
         return json.dumps({
             'success': False,
-            'message': f'Failed to update enrollment: {str(e)}'
+            'message': 'Failed to update enrollment. Please try again.'
         }), 500
 
 
@@ -625,14 +635,16 @@ def update_enrollment_score(student_id, enrollment_id):
         }), 200
         
     except ValueError as e:
+        current_app.logger.warning(f'Validation error updating score for enrollment {enrollment_id}: {str(e)}')
         return json.dumps({
             'success': False,
             'message': str(e)
         }), 400
     except Exception as e:
+        current_app.logger.error(f'Error updating score for enrollment {enrollment_id}: {str(e)}', exc_info=True)
         return json.dumps({
             'success': False,
-            'message': f'Failed to update score: {str(e)}'
+            'message': 'Failed to update score. Please try again.'
         }), 500
 
 
@@ -666,14 +678,16 @@ def complete_enrollment(student_id, enrollment_id):
         }), 200
         
     except ValueError as e:
+        current_app.logger.warning(f'Validation error completing enrollment {enrollment_id}: {str(e)}')
         return json.dumps({
             'success': False,
             'message': str(e)
         }), 400
     except Exception as e:
+        current_app.logger.error(f'Error completing enrollment {enrollment_id}: {str(e)}', exc_info=True)
         return json.dumps({
             'success': False,
-            'message': f'Failed to complete course: {str(e)}'
+            'message': 'Failed to complete course. Please try again.'
         }), 500
 
 
@@ -735,9 +749,11 @@ def create_email_template():
             return redirect(url_for('user_admin.email_templates'))
             
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error creating email template: {str(e)}')
+            flash('Invalid template information. Please check all required fields.', 'error')
         except Exception as e:
-            flash(f'Failed to create template: {str(e)}', 'error')
+            current_app.logger.error(f'Error creating email template: {str(e)}', exc_info=True)
+            flash('Failed to create template. Please try again.', 'error')
     
     # GET request - show form
     user_context = UserLogic.get_context(view_as='admin')
@@ -785,9 +801,11 @@ def edit_email_template(template_id):
             return redirect(url_for('user_admin.email_templates'))
             
         except ValueError as e:
-            flash(str(e), 'error')
+            current_app.logger.warning(f'Validation error updating email template {template_id}: {str(e)}')
+            flash('Invalid template information. Please check all required fields.', 'error')
         except Exception as e:
-            flash(f'Failed to update template: {str(e)}', 'error')
+            current_app.logger.error(f'Error updating email template {template_id}: {str(e)}', exc_info=True)
+            flash('Failed to update template. Please try again.', 'error')
     
     # GET request - show form
     user_context = UserLogic.get_context(view_as='admin')
@@ -815,9 +833,11 @@ def delete_email_template(template_id):
         EmailTemplateLogic.delete_template(template_id)
         flash('Email template deleted successfully', 'success')
     except ValueError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f'Validation error deleting email template {template_id}: {str(e)}')
+        flash('Unable to delete template. This template may be in use.', 'error')
     except Exception as e:
-        flash(f'Failed to delete template: {str(e)}', 'error')
+        current_app.logger.error(f'Error deleting email template {template_id}: {str(e)}', exc_info=True)
+        flash('Failed to delete template. Please try again.', 'error')
     
     return redirect(url_for('user_admin.email_templates'))
 
@@ -845,9 +865,11 @@ def assign_template_to_action(action_id):
             flash(f'Template unassigned from action "{action.name}"', 'success')
             
     except ValueError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f'Validation error assigning template to action {action_id}: {str(e)}')
+        flash('Invalid template or action. Please verify your selection.', 'error')
     except Exception as e:
-        flash(f'Failed to assign template: {str(e)}', 'error')
+        current_app.logger.error(f'Error assigning template to action {action_id}: {str(e)}', exc_info=True)
+        flash('Failed to assign template. Please try again.', 'error')
     
     return redirect(url_for('user_admin.email_templates'))
 
@@ -892,7 +914,8 @@ def preview_email_template(template_id):
         return render_template('private/admin/email_templates/preview.html', **context)
         
     except ValueError as e:
-        flash(f'Template preview error: {str(e)}', 'error')
+        current_app.logger.warning(f'Template preview error for template {template_id}: {str(e)}')
+        flash('Unable to preview template. Please check template syntax.', 'error')
         return redirect(url_for('user_admin.email_templates'))
 
 
@@ -967,10 +990,12 @@ def override_payment_status(line_item_id):
         return redirect(request.referrer or url_for('user_admin.schedule_management'))
         
     except PaymentValidationError as e:
-        flash(str(e), 'error')
+        current_app.logger.warning(f'Payment validation error overriding line item {line_item_id} status: {str(e)}')
+        flash('Invalid payment status change. Please verify the payment details.', 'error')
         return redirect(request.referrer or url_for('user_admin.schedule_management'))
     except Exception as e:
-        flash(f'Error updating payment status: {str(e)}', 'error')
+        current_app.logger.error(f'Error overriding payment status for line item {line_item_id}: {str(e)}', exc_info=True)
+        flash('Unable to update payment status. Please try again.', 'error')
         return redirect(request.referrer or url_for('user_admin.schedule_management'))
 
 
@@ -1108,7 +1133,8 @@ def sync_stripe_payments(course_id):
         })
         
     except Exception as e:
+        current_app.logger.error(f'Error syncing Stripe payments for course {course_id}: {str(e)}', exc_info=True)
         return jsonify({
             'success': False,
-            'message': f'Error syncing payments: {str(e)}'
+            'message': 'Unable to sync payments. Please try again.'
         }), 500

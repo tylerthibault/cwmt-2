@@ -14,7 +14,7 @@ Does NOT contain:
 - Data validation (belongs in logic layer)
 - Complex calculations (belongs in logic layer)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from functools import wraps
 from decimal import Decimal, InvalidOperation
 from src.models.logbook import Logbook
@@ -28,6 +28,7 @@ from src.logic.payable_item_logic import (
 )
 from src.models.payable_item_model import PayableItemTemplate, CourseTemplatePayableItem
 from src.models.courses_model import CourseTemplate
+
 
 payable_items_bp = Blueprint('payables', __name__, url_prefix='/super/payable-items')
 
@@ -126,15 +127,19 @@ def create_item():
         try:
             # Logic layer handles validation
             item = PayableItemLogic.create_template(data)
+            current_app.logger.info(f'Successfully created payable item: {item.name} (id={item.id}, type={item.item_type})')
             flash(f'Successfully created payable item: {item.name}', 'success')
             return redirect(url_for('payables.payable_items'))
         
         except PayableItemValidationError as e:
-            flash(f'Validation error: {str(e)}', 'error')
+            current_app.logger.warning(f'Validation error creating payable item {data.get("name")}: {str(e)}')
+            flash('Invalid item information. Please check your input and try again.', 'error')
         except PayableItemBusinessError as e:
-            flash(f'Error: {str(e)}', 'error')
+            current_app.logger.warning(f'Business error creating payable item {data.get("name")}: {str(e)}')
+            flash('Unable to create payable item. Please verify your information.', 'error')
         except Exception as e:
-            flash(f'Unexpected error: {str(e)}', 'error')
+            current_app.logger.error(f'Unexpected error creating payable item {data.get("name")}: {str(e)}', exc_info=True)
+            flash('Unable to create payable item. Please try again.', 'error')
     
     # GET request - show form
     user_context = UserLogic.get_context(view_as='superuser')
@@ -218,15 +223,19 @@ def edit_item(item_id):
         try:
             # Logic layer handles validation
             updated_item = PayableItemLogic.update_template(item_id, data)
+            current_app.logger.info(f'Successfully updated payable item: {updated_item.name} (id={item_id})')
             flash(f'Successfully updated: {updated_item.name}', 'success')
             return redirect(url_for('payables.view_item', item_id=item_id))
         
         except PayableItemValidationError as e:
-            flash(f'Validation error: {str(e)}', 'error')
+            current_app.logger.warning(f'Validation error updating payable item {item_id}: {str(e)}')
+            flash('Invalid item information. Please check your input and try again.', 'error')
         except PayableItemBusinessError as e:
-            flash(f'Error: {str(e)}', 'error')
+            current_app.logger.warning(f'Business error updating payable item {item_id}: {str(e)}')
+            flash('Unable to update payable item. Please verify your information.', 'error')
         except Exception as e:
-            flash(f'Unexpected error: {str(e)}', 'error')
+            current_app.logger.error(f'Unexpected error updating payable item {item_id}: {str(e)}', exc_info=True)
+            flash('Unable to update payable item. Please try again.', 'error')
     
     # GET request - show form with current data
     user_context = UserLogic.get_context(view_as='superuser')
@@ -250,11 +259,14 @@ def delete_item(item_id):
     """
     try:
         PayableItemLogic.delete_template(item_id)
+        current_app.logger.info(f'Successfully deleted payable item (id={item_id})')
         flash('Successfully deleted payable item', 'success')
     except PayableItemBusinessError as e:
-        flash(f'Cannot delete: {str(e)}', 'error')
+        current_app.logger.warning(f'Cannot delete payable item {item_id}: {str(e)}')
+        flash('Unable to delete item. It may be in use by courses.', 'error')
     except Exception as e:
-        flash(f'Error deleting item: {str(e)}', 'error')
+        current_app.logger.error(f'Error deleting payable item {item_id}: {str(e)}', exc_info=True)
+        flash('Unable to delete payable item. Please try again.', 'error')
     
     return redirect(url_for('payables.payable_items'))
 
@@ -277,9 +289,11 @@ def toggle_active(item_id):
         PayableItemLogic.update_template(item_id, {'is_active': new_status})
         
         status_text = 'activated' if new_status else 'deactivated'
+        current_app.logger.info(f'Successfully {status_text} payable item: {item.name} (id={item_id})')
         flash(f'Successfully {status_text}: {item.name}', 'success')
     except Exception as e:
-        flash(f'Error toggling status: {str(e)}', 'error')
+        current_app.logger.error(f'Error toggling status for payable item {item_id}: {str(e)}', exc_info=True)
+        flash('Unable to update item status. Please try again.', 'error')
     
     return redirect(url_for('payables.view_item', item_id=item_id))
 
@@ -346,15 +360,19 @@ def attach_to_template(template_id):
                 is_required=is_required,
                 display_order=int(display_order)
             )
+            current_app.logger.info(f'Successfully attached payable item {item_id} to course template {template_id} (required={is_required})')
             flash('Successfully attached item to course template', 'success')
             return redirect(url_for('payables.template_management'))
         
         except PayableItemValidationError as e:
-            flash(f'Validation error: {str(e)}', 'error')
+            current_app.logger.warning(f'Validation error attaching item {item_id} to template {template_id}: {str(e)}')
+            flash('Invalid attachment configuration. Please check your input.', 'error')
         except PayableItemBusinessError as e:
-            flash(f'Error: {str(e)}', 'error')
+            current_app.logger.warning(f'Business error attaching item {item_id} to template {template_id}: {str(e)}')
+            flash('Unable to attach item. It may already be attached to this template.', 'error')
         except Exception as e:
-            flash(f'Unexpected error: {str(e)}', 'error')
+            current_app.logger.error(f'Unexpected error attaching item {item_id} to template {template_id}: {str(e)}', exc_info=True)
+            flash('Unable to attach item. Please try again.', 'error')
     
     # GET request - show form
     user_context = UserLogic.get_context(view_as='superuser')
@@ -389,11 +407,14 @@ def detach_from_template(template_id, item_id):
             course_template_id=template_id,
             payable_item_template_id=item_id
         )
+        current_app.logger.info(f'Successfully detached payable item {item_id} from course template {template_id}')
         flash('Successfully removed item from course template', 'success')
     except PayableItemBusinessError as e:
-        flash(f'Error: {str(e)}', 'error')
+        current_app.logger.warning(f'Business error detaching item {item_id} from template {template_id}: {str(e)}')
+        flash('Unable to remove item. It may be required by active courses.', 'error')
     except Exception as e:
-        flash(f'Unexpected error: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error detaching item {item_id} from template {template_id}: {str(e)}', exc_info=True)
+        flash('Unable to remove item. Please try again.', 'error')
     
     return redirect(url_for('payables.template_management'))
 
@@ -420,11 +441,12 @@ def edit_attachment(template_id, item_id):
             payable_item_template_id=item_id,
             **update_data
         )
-        
+        current_app.logger.info(f'Successfully updated attachment for item {item_id} on template {template_id}: {update_data}')
         return jsonify({'success': True, 'message': 'Updated successfully'})
     
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        current_app.logger.error(f'Error updating attachment for item {item_id} on template {template_id}: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Unable to update attachment. Please try again.'}), 400
 
 
 # ============================================================================
@@ -468,4 +490,5 @@ def api_get_template_items(template_id):
         
         return jsonify({'items': items_json})
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f'Error getting items for template {template_id}: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Unable to retrieve template items'}), 400

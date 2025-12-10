@@ -2,7 +2,7 @@
 Instructor Controller
 Handles instructor-specific routes for course schedule management
 """
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session, current_app
 from functools import wraps
 
 from src.controllers.auth_controller import login_required
@@ -13,6 +13,7 @@ from src.models.logbook import Logbook
 from src.logic.course_logic import CourseLogic, CourseLogicError
 from src.models import db
 from datetime import datetime, date, timedelta
+
 
 # Create blueprint for instructor routes
 instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
@@ -95,7 +96,7 @@ def dashboard():
         )
         
     except Exception as e:
-        flash(f'Error loading dashboard: {str(e)}', 'danger')
+        current_app.logger.error(f'Error in instructor dashboard: {str(e)}', exc_info=True)
         current_user = get_current_user()
         return render_template(
             'private/instructor/dashboard/index.html',
@@ -143,7 +144,7 @@ def schedule():
         )
         
     except Exception as e:
-        flash(f'Error loading schedule: {str(e)}', 'danger')
+        current_app.logger.error(f'Error in instructor schedule: {str(e)}', exc_info=True)
         current_user = get_current_user()
         return render_template(
             'private/instructor/shedule/index.html',
@@ -271,7 +272,7 @@ def my_courses():
         )
         
     except Exception as e:
-        flash(f'Error loading your courses: {str(e)}', 'danger')
+        current_app.logger.error(f'Error loading instructor courses: {str(e)}', exc_info=True)
         return redirect(url_for('instructor.schedule'))
 
 

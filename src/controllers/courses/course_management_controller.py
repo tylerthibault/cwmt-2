@@ -14,7 +14,7 @@ Does NOT contain:
 - Data validation (belongs in logic layer)
 - Complex calculations (belongs in logic layer)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from functools import wraps
 from src.models.logbook import Logbook
 from src.logic.user_logic import UserLogic
@@ -137,18 +137,22 @@ def create_course_template():
                     is_required=True,
                     display_order=0
                 )
-                
+                current_app.logger.info(f'Successfully created course template: {template.name} (id={template.id}) with tuition item (id={payable_item.id})')
                 flash(f'Successfully created course template: {template.name} with tuition item', 'success')
             except Exception as e:
                 # Template created but tuition failed - warn but don't fail
+                current_app.logger.error(f'Template {template.name} (id={template.id}) created but tuition setup failed: {str(e)}', exc_info=True)
                 flash(f'Course template created but tuition setup failed: {str(e)}', 'warning')
         else:
+            current_app.logger.info(f'Successfully created course template: {template.name} (id={template.id})')
             flash(f'Successfully created course template: {template.name}', 'success')
             
     except (CourseValidationError, CourseBusinessError) as e:
-        flash(f'Error creating template: {str(e)}', 'error')
+        current_app.logger.warning(f'Validation/business error creating course template {data.get("name")}: {str(e)}')
+        flash('Invalid template information. Please check your input and try again.', 'error')
     except Exception as e:
-        flash(f'Unexpected error: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error creating course template {data.get("name")}: {str(e)}', exc_info=True)
+        flash('Unable to create course template. Please try again.', 'error')
     
     return redirect(url_for('course_management.course_management'))
 
@@ -177,11 +181,14 @@ def update_course_template():
     
     try:
         template = CourseTemplateLogic.update_template(int(template_id), data)
+        current_app.logger.info(f'Successfully updated course template: {template.name} (id={template_id})')
         flash(f'Successfully updated course template: {template.name}', 'success')
     except (CourseValidationError, CourseBusinessError) as e:
-        flash(f'Error updating template: {str(e)}', 'error')
+        current_app.logger.warning(f'Validation/business error updating course template {template_id}: {str(e)}')
+        flash('Invalid template information. Please check your input and try again.', 'error')
     except Exception as e:
-        flash(f'Unexpected error: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error updating course template {template_id}: {str(e)}', exc_info=True)
+        flash('Unable to update course template. Please try again.', 'error')
     
     return redirect(url_for('course_management.course_management'))
 
@@ -201,11 +208,14 @@ def deactivate_course_template():
     
     try:
         template = CourseTemplateLogic.deactivate_template(int(template_id))
+        current_app.logger.info(f'Successfully deactivated course template: {template.name} (id={template_id})')
         flash(f'Successfully deactivated course template: {template.name}', 'success')
     except CourseBusinessError as e:
-        flash(f'Error deactivating template: {str(e)}', 'error')
+        current_app.logger.warning(f'Business error deactivating course template {template_id}: {str(e)}')
+        flash('Unable to deactivate template. It may have active courses.', 'error')
     except Exception as e:
-        flash(f'Unexpected error: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error deactivating course template {template_id}: {str(e)}', exc_info=True)
+        flash('Unable to deactivate course template. Please try again.', 'error')
     
     return redirect(url_for('course_management.course_management'))
 
@@ -227,10 +237,13 @@ def activate_course_template():
         template.is_active = True
         from src.models import db
         db.session.commit()
+        current_app.logger.info(f'Successfully activated course template: {template.name} (id={template_id})')
         flash(f'Successfully activated course template: {template.name}', 'success')
     except CourseBusinessError as e:
-        flash(f'Error activating template: {str(e)}', 'error')
+        current_app.logger.warning(f'Business error activating course template {template_id}: {str(e)}')
+        flash('Unable to activate template. Please verify the template details.', 'error')
     except Exception as e:
-        flash(f'Unexpected error: {str(e)}', 'error')
+        current_app.logger.error(f'Unexpected error activating course template {template_id}: {str(e)}', exc_info=True)
+        flash('Unable to activate course template. Please try again.', 'error')
     
     return redirect(url_for('course_management.course_management'))
