@@ -32,19 +32,19 @@
                     <h5 class="mb-0">Course Schedule</h5>
                     <div class="legend-horizontal">
                         <div class="legend-item">
-                            <span class="legend-color" style="background-color: #3788d8;"></span>
+                            <span class="legend-color legend-color--scheduled"></span>
                             <span>Scheduled</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-color" style="background-color: #ffa500;"></span>
+                            <span class="legend-color legend-color--in-progress"></span>
                             <span>In Progress</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-color" style="background-color: #28a745;"></span>
+                            <span class="legend-color legend-color--completed"></span>
                             <span>Completed</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-color" style="background-color: #dc3545;"></span>
+                            <span class="legend-color legend-color--cancelled"></span>
                             <span>Cancelled</span>
                         </div>
                     </div>
@@ -205,13 +205,13 @@
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-outline-primary wizard-btn-prev" id="wizardPrevBtn" style="display: none;">
+                    <button type="button" class="btn btn-outline-primary wizard-btn-prev" id="wizardPrevBtn">
                         <i class="fas fa-arrow-left"></i> Previous
                     </button>
                     <button type="button" class="btn btn-primary wizard-btn-next" id="wizardNextBtn">
                         Next <i class="fas fa-arrow-right"></i>
                     </button>
-                    <button type="submit" class="btn btn-success wizard-btn-submit" id="wizardSubmitBtn" style="display: none;">
+                    <button type="submit" class="btn btn-success wizard-btn-submit" id="wizardSubmitBtn">
                         <i class="fas fa-calendar-plus"></i> Create Course
                     </button>
                 </div>

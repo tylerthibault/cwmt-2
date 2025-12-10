@@ -1,0 +1,37 @@
+/**
+ * Super User Dashboard Extra Styles
+ */
+
+/* Log Container */
+.log-container {
+  max-height: 300px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for log container */
+.log-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  background: var(--border-color, #dee2e6);
+  border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, #6c757d);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .log-container {
+    max-height: 200px;
+  }
+}

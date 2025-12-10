@@ -1,0 +1,281 @@
+/**
+ * Course Management Styles
+ */
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color, #dee2e6);
+}
+
+.page-header h1 {
+  margin: 0;
+
+  font-size: 2rem;
+  color: var(--text-primary, #212529);
+}
+
+.page-header p {
+  margin: 0.5rem 0 0 0;
+
+  color: var(--text-secondary, #6c757d);
+}
+
+/* Menu Icon Container */
+.menu-icon-container {
+  position: relative;
+}
+
+.menu-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.75rem;
+  border: 2px solid var(--primary-color, #0d6efd);
+  border-radius: 50%;
+
+  background-color: var(--primary-color, #0d6efd);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.menu-icon-btn:hover {
+  background-color: #0b5ed7;
+  border-color: #0b5ed7;
+  transform: rotate(90deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  display: none;
+
+  width: 400px;
+  margin-top: 0.5rem;
+  padding: 0;
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 8px;
+
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, #dee2e6);
+
+  background-color: var(--bg-secondary, #f8f9fa);
+}
+
+.dropdown-header h4 {
+  margin: 0;
+
+  font-size: 1.25rem;
+  color: var(--text-primary, #212529);
+}
+
+.close-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background-color: transparent;
+  color: var(--text-secondary, #6c757d);
+  font-size: 1.25rem;
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.close-menu-btn:hover {
+  background-color: var(--border-color, #dee2e6);
+  color: var(--text-primary, #212529);
+}
+
+.dropdown-content {
+  padding: 1.5rem;
+}
+
+/* Form Styling */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 0.5rem;
+
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 4px;
+
+  font-size: 1rem;
+
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color, #0d6efd);
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Cards */
+.card-clickable {
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-gradient-primary {
+  border-color: var(--primary-color, #0d6efd);
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.card-gradient-border {
+  border: 2px solid transparent;
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.card-shadow {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Edit Form */
+.edit-form {
+  display: none;
+}
+
+.edit-form.show {
+  display: block;
+}
+
+/* Course Details Display */
+.card-shadow {
+  display: none;
+}
+
+.card-shadow.show {
+  display: block;
+}
+
+/* Inline Forms */
+.form-inline {
+  display: inline-block;
+}
+
+/* Course Status Display */
+.course-status-active {
+  display: block;
+}
+
+.course-status-inactive {
+  display: none;
+}
+
+.filter-show-inactive .course-status-inactive {
+  display: block;
+}
+
+/* Badge Variations */
+.badge--info {
+  background-color: #0dcaf0;
+  color: #000;
+}
+
+.badge--primary {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.badge--success {
+  background-color: #198754;
+  color: #fff;
+}
+
+.badge--warning {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.badge--danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.badge--secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    width: 320px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .menu-icon-container {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 576px) {
+  .dropdown-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+
+    width: 90%;
+    max-width: 350px;
+
+    transform: translate(-50%, -50%);
+  }
+}

@@ -132,6 +132,23 @@
     flex-shrink: 0;
 }
 
+/* Legend Color Variations */
+.legend-color--scheduled {
+    background-color: #3788d8;
+}
+
+.legend-color--in-progress {
+    background-color: #ffa500;
+}
+
+.legend-color--completed {
+    background-color: #28a745;
+}
+
+.legend-color--cancelled {
+    background-color: #dc3545;
+}
+
 /* Legend - Horizontal (in calendar header) */
 .legend-horizontal {
     display: flex;
@@ -499,6 +516,16 @@
 .wizard-btn-next,
 .wizard-btn-submit {
     min-width: 120px;
+}
+
+.wizard-btn-prev,
+.wizard-btn-submit {
+    display: none;
+}
+
+.wizard-btn-prev.show,
+.wizard-btn-submit.show {
+    display: inline-block;
 }
 
 /* Responsive Wizard */
