@@ -572,26 +572,6 @@ class PaymentLogic:
                 print("WEBHOOK: No payment_intent in charge.succeeded", flush=True)
                 return {'success': True, 'message': 'No payment intent in charge'}
             
-            # Check if we already recorded this payment
-            existing_payment = Payment.query.filter_by(
-                stripe_payment_intent_id=payment_intent_id
-            ).first()
-            
-            if existing_payment:
-                # If payment is still pending, we need to update it to completed
-                if existing_payment.status == 'pending':
-                    print(f"WEBHOOK: Updating pending payment to completed for intent {payment_intent_id}", flush=True)
-                    existing_payment.status = 'completed'
-                    existing_payment.payment_date = datetime.utcnow()
-                    existing_payment.stripe_charge_id = charge['id']
-                    existing_payment.notes = (existing_payment.notes or '') + "\nPayment confirmed via charge.succeeded webhook"
-                    db.session.commit()
-                    print(f"WEBHOOK: Payment {existing_payment.id} updated to completed", flush=True)
-                    return {'success': True, 'message': 'Payment updated to completed', 'payment_id': existing_payment.id}
-                else:
-                    print(f"WEBHOOK: Payment already completed for intent {payment_intent_id}", flush=True)
-                    return {'success': True, 'message': 'Payment already completed', 'payment_id': existing_payment.id}
-            
             # Retrieve the payment intent to get metadata
             stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
             try:
@@ -611,7 +591,17 @@ class PaymentLogic:
                 print("WEBHOOK ERROR: Missing required metadata in charge", flush=True)
                 return {'success': True, 'message': 'Missing metadata'}
             
-            # Record the payment
+            # Check if we already processed this payment
+            existing_payment = Payment.query.filter_by(
+                stripe_payment_intent_id=payment_intent_id,
+                status='completed'
+            ).first()
+            
+            if existing_payment:
+                print(f"WEBHOOK: Payment already completed for intent {payment_intent_id}", flush=True)
+                return {'success': True, 'message': 'Payment already completed', 'payment_id': existing_payment.id}
+            
+            # Record the payment (this will update pending payment or create new one AND allocate to line items)
             amount = Decimal(charge['amount']) / 100
             
             print(f"WEBHOOK: Recording payment of ${amount} for enrollment {enrollment_id} from charge.succeeded", flush=True)
