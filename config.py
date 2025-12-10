@@ -25,6 +25,9 @@ class Config:
     APP_NAME = 'CWMT Flask Application'
     APP_VERSION = '1.0.0'
     
+    # Auto-seeding configuration
+    AUTO_SEED = False  # Set to True in development to auto-seed on startup
+    
     # Logging configuration
     LOG_FILE = None  # Set in environment-specific configs
 
@@ -32,6 +35,9 @@ class DevelopmentConfig(Config):
     """Development environment configuration"""
     DEBUG = True
     TESTING = False
+    
+    # Enable auto-seeding in development
+    AUTO_SEED = True
     
     # Development-specific logging
     LOG_LEVEL = 'DEBUG'
@@ -46,6 +52,7 @@ class ProductionConfig(Config):
     LOG_LEVEL = 'INFO'
     
     # Override with production database - also in instance folder
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
 
 class TestingConfig(Config):
@@ -54,7 +61,8 @@ class TestingConfig(Config):
     TESTING = True
     
     # Use in-memory database for testing
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
     LOG_LEVEL = 'WARNING'
 
 # Configuration mapping
@@ -64,3 +72,5 @@ config = {
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }
+
+

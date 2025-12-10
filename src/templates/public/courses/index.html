@@ -1,0 +1,319 @@
+{% extends 'bases/public.html' %}
+
+{% block custom_head %}
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+<!-- Courses Page CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/courses.css') }}">
+{% endblock custom_head %}
+
+{% block content %}
+<div class="courses-page">
+    <!-- Hero Section -->
+    <div class="courses-hero">
+        <div class="container">
+            <h1>🏍️ Upcoming Courses</h1>
+            <p>Explore our motorcycle training courses and find the perfect class for you</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filter Courses</h5>
+            
+            <div class="row">
+                <!-- Experience Level Filters -->
+                <div class="mb-3 col-6">
+                    <label class="form-label small text-muted">Experience Level:</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter-type="level" data-filter="all">
+                            All Levels
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter-type="level" data-filter="beginner">
+                            Beginner
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter-type="level" data-filter="intermediate">
+                            Intermediate
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter-type="level" data-filter="advanced">
+                            Advanced
+                        </button>
+                    </div>
+                </div>
+                <!-- Location Filters -->
+                <div class="mb-3 col-6">
+                    <label class="form-label small text-muted">Location:</label>
+                    <div class="d-flex flex-wrap gap-2" id="locationFilters">
+                        <button class="btn btn-sm btn-outline-info filter-btn active" data-filter-type="location" data-filter="all">
+                            All Locations
+                        </button>
+                        <!-- Dynamic location buttons will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+            <h3 class="mb-4"><i class="fas fa-calendar-alt me-2 text-primary"></i>Course Calendar</h3>
+            <div id="coursesCalendar"></div>
+        </div>
+
+        <!-- Course List Section -->
+        <div class="course-list-section">
+            <h3 class="mb-4"><i class="fas fa-list me-2 text-primary"></i>All Courses</h3>
+            <div id="coursesList">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading courses...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let allCourses = [];
+    let allLocations = [];
+    let filters = {
+        level: 'all',
+        location: 'all',
+        availability: 'all'
+    };
+    let calendar;
+
+    // Initialize Calendar
+    const calendarEl = document.getElementById('coursesCalendar');
+    if (calendarEl) {
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek'
+            },
+            events: [],
+            eventClick: function(info) {
+                const courseId = info.event.id;
+                const course = allCourses.find(c => c.id == courseId);
+                if (course) {
+                    scrollToCourse(courseId);
+                }
+            },
+            eventDidMount: function(info) {
+                // Add tooltip
+                const course = allCourses.find(c => c.id == info.event.id);
+                if (course) {
+                    const durationText = course.duration_days > 1 ? ` (${course.duration_days} days)` : '';
+                    info.el.title = `${course.template_name}${durationText}\n${course.time}\n${course.location || 'TBD'}\n${course.available_slots} slots available`;
+                }
+            }
+        });
+        calendar.render();
+    }
+
+    // Load courses from API
+    loadCourses();
+
+    async function loadCourses() {
+        try {
+            const response = await fetch('/api/courses/available');
+            const data = await response.json();
+            
+            if (data.courses) {
+                allCourses = data.courses;
+                allLocations = data.locations || [];
+                
+                // Build location filter buttons
+                buildLocationFilters();
+                
+                updateCalendar();
+                renderCourseList();
+            }
+        } catch (error) {
+            console.error('Error loading courses:', error);
+            document.getElementById('coursesList').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load courses. Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    function buildLocationFilters() {
+        const locationFiltersContainer = document.getElementById('locationFilters');
+        
+        // Keep the "All Locations" button and add dynamic location buttons
+        allLocations.forEach(location => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-outline-info filter-btn';
+            btn.setAttribute('data-filter-type', 'location');
+            btn.setAttribute('data-filter', location);
+            btn.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i>${location}`;
+            locationFiltersContainer.appendChild(btn);
+        });
+        
+        // Re-attach event listeners to new buttons
+        attachFilterListeners();
+    }
+
+    function updateCalendar() {
+        const filteredCourses = getFilteredCourses();
+        const events = filteredCourses.map(course => ({
+            id: course.id,
+            title: course.template_name,
+            start: course.start,
+            end: course.end,  // This makes multi-day events span across days
+            backgroundColor: getEventColor(course),
+            borderColor: getEventColor(course),
+            textColor: '#ffffff',
+            allDay: true  // Display as all-day event for multi-day display
+        }));
+
+        if (calendar) {
+            calendar.removeAllEvents();
+            calendar.addEventSource(events);
+        }
+    }
+
+    function getEventColor(course) {
+        if (course.is_full) return '#ef4444'; // Red for full
+        if (course.experience_level === 'beginner') return '#3b82f6'; // Blue
+        if (course.experience_level === 'intermediate') return '#f59e0b'; // Orange
+        if (course.experience_level === 'advanced') return '#dc2626'; // Dark red
+        return '#6366f1'; // Default purple
+    }
+
+    function getFilteredCourses() {
+        return allCourses.filter(course => {
+            // Filter by level
+            if (filters.level !== 'all' && course.experience_level !== filters.level) {
+                return false;
+            }
+            
+            // Filter by location
+            if (filters.location !== 'all') {
+                if (!course.location || course.location !== filters.location) {
+                    return false;
+                }
+            }
+            
+            // Filter by availability
+            if (filters.availability === 'available' && course.is_full) {
+                return false;
+            }
+            
+            return true;
+        });
+    }
+
+    function renderCourseList() {
+        const filteredCourses = getFilteredCourses();
+        const coursesList = document.getElementById('coursesList');
+
+        if (filteredCourses.length === 0) {
+            coursesList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No courses match your filter criteria</p>
+                </div>
+            `;
+            return;
+        }
+
+        coursesList.innerHTML = filteredCourses.map(course => `
+            <div class="course-card ${course.is_full ? 'full' : ''}" id="course-${course.id}">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">
+                            ${course.template_name}
+                            <span class="course-badge badge-${course.experience_level}">
+                                ${course.experience_level.toUpperCase()}
+                            </span>
+                            ${course.is_full 
+                                ? '<span class="course-badge badge-full">FULL</span>' 
+                                : `<span class="course-badge badge-available">${course.available_slots} SPOTS</span>`
+                            }
+                        </h4>
+                        <div class="d-flex flex-wrap gap-3 text-muted">
+                            <span><i class="fas fa-calendar me-1"></i>${formatDate(course.start)}</span>
+                            <span><i class="fas fa-clock me-1"></i>${course.time}</span>
+                            <span><i class="fas fa-map-marker-alt me-1"></i>${course.location || 'TBD'}</span>
+                            <span><i class="fas fa-calendar-day me-1"></i>${course.duration_days} day${course.duration_days > 1 ? 's' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="mb-2">
+                            <strong>${course.enrolled_count}/${course.max_students}</strong> enrolled
+                        </div>
+                        ${!course.is_full 
+                            ? `<a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i>Enroll Now
+                              </a>`
+                            : `<button class="btn btn-secondary" disabled>
+                                <i class="fas fa-ban me-1"></i>Course Full
+                              </button>`
+                        }
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+
+    function scrollToCourse(courseId) {
+        const courseCard = document.getElementById(`course-${courseId}`);
+        if (courseCard) {
+            courseCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            courseCard.classList.add('border-primary');
+            setTimeout(() => {
+                courseCard.classList.remove('border-primary');
+            }, 2000);
+        }
+    }
+
+    // Attach filter button listeners
+    function attachFilterListeners() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filterType = this.getAttribute('data-filter-type');
+                const filterValue = this.getAttribute('data-filter');
+                
+                // Remove active class from buttons of the same type
+                document.querySelectorAll(`.filter-btn[data-filter-type="${filterType}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Update the appropriate filter
+                filters[filterType] = filterValue;
+                
+                // Update calendar and list
+                updateCalendar();
+                renderCourseList();
+            });
+        });
+    }
+
+    // Initialize filter listeners
+    attachFilterListeners();
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,530 @@
+/* ===================================
+   ABOUT PAGE STYLES
+   =================================== */
+
+/* About Hero Section */
+.about-hero {
+    position: relative;
+    padding: 120px 0 80px;
+    overflow: hidden;
+}
+
+.about-hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+
+.about-hero .bg-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(var(--bs-primary) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bs-primary) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.03;
+}
+
+.about-hero .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+    opacity: 0.05;
+}
+
+.about-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.about-hero-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.about-hero-label .label-line {
+    width: 40px;
+    height: 2px;
+    background: var(--bs-primary);
+    opacity: 0.5;
+}
+
+.about-hero-label .label-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--bs-primary);
+}
+
+.about-hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.about-hero-description {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin: 0;
+    animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+/* Mission & Vision Cards */
+.mission-vision-section {
+    background: var(--bg-primary);
+}
+
+.mission-card,
+.vision-card {
+    padding: 2.5rem;
+    border-radius: 16px;
+    height: 100%;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.mission-card {
+    background: linear-gradient(135deg, rgba(31, 65, 104, 0.05) 0%, rgba(31, 65, 104, 0.02) 100%);
+    border: 2px solid rgba(31, 65, 104, 0.1);
+}
+
+.vision-card {
+    background: linear-gradient(135deg, rgba(43, 156, 137, 0.05) 0%, rgba(43, 156, 137, 0.02) 100%);
+    border: 2px solid rgba(43, 156, 137, 0.1);
+}
+
+.mission-card:hover,
+.vision-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.mission-icon,
+.vision-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.mission-icon {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    color: white;
+}
+
+.vision-icon {
+    background: linear-gradient(135deg, var(--bs-secondary), var(--bs-success));
+    color: white;
+}
+
+.mission-card h2,
+.vision-card h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.mission-card p,
+.vision-card p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Our Story Section */
+.our-story-section {
+    position: relative;
+}
+
+.story-image-wrapper {
+    position: relative;
+}
+
+.story-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--bs-primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.story-image-placeholder {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    padding: 100px 40px;
+    text-align: center;
+    border: 2px dashed var(--border-color);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+.story-text p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.story-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* Core Values Section */
+.core-values-section {
+    background: var(--bg-primary);
+}
+
+.value-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    height: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.value-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.value-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+    color: white;
+}
+
+.value-icon.safety {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.value-icon.excellence {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.value-icon.community {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+}
+
+.value-icon.innovation {
+    background: linear-gradient(135deg, var(--bs-secondary), var(--bs-success));
+}
+
+.value-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.value-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Why Choose Us Section */
+.why-choose-section {
+    background: var(--bg-secondary);
+}
+
+.feature-item {
+    position: relative;
+    padding: 2rem;
+    padding-left: 5rem;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-item:hover {
+    transform: translateX(10px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: var(--bs-primary);
+}
+
+.feature-number {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--bs-primary);
+    opacity: 0.2;
+}
+
+.feature-item h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.feature-item p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Team Section */
+.team-section {
+    background: var(--bg-primary);
+}
+
+.team-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    height: 100%;
+}
+
+.team-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.team-image-placeholder {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    padding: 80px 40px;
+    text-align: center;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.team-info {
+    padding: 2rem;
+}
+
+.team-info h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.team-role {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+}
+
+.team-bio {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* CTA Section */
+.about-cta-section {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+    color: white;
+}
+
+.cta-content h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.cta-content p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.about-cta-section .btn-primary {
+    background: white;
+    color: var(--bs-primary);
+    border: none;
+}
+
+.about-cta-section .btn-primary:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.about-cta-section .btn-outline-primary {
+    color: white;
+    border-color: white;
+}
+
+.about-cta-section .btn-outline-primary:hover {
+    background: white;
+    color: var(--bs-primary);
+    border-color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 991.98px) {
+    .about-hero {
+        padding: 80px 0 60px;
+    }
+    
+    .about-hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .about-hero-description {
+        font-size: 1.125rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .cta-content h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .about-hero-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .mission-card,
+    .vision-card {
+        padding: 2rem;
+    }
+    
+    .feature-item {
+        padding-left: 2rem;
+    }
+    
+    .feature-number {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+    }
+    
+    .cta-buttons .btn {
+        width: 100%;
+    }
+}
+
+/* Dark Mode Support */
+[data-bs-theme="dark"] .about-hero .bg-pattern {
+    opacity: 0.02;
+}
+
+[data-bs-theme="dark"] .about-hero .bg-gradient {
+    opacity: 0.03;
+}
+
+[data-bs-theme="dark"] .story-image-placeholder {
+    background: var(--bg-secondary);
+}
+
+[data-bs-theme="dark"] .value-card {
+    background: var(--bg-primary);
+}
+
+[data-bs-theme="dark"] .feature-item {
+    background: var(--bg-secondary);
+}
+
+[data-bs-theme="dark"] .team-card {
+    background: var(--bg-primary);
+}

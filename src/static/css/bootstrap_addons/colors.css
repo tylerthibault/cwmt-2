@@ -5,35 +5,35 @@
 
 /* Text Color Classes */
 .text-primary {
-  color: var(--bs-text-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 .text-secondary {
-  color: var(--bs-text-secondary) !important;
+  color: var(--text-secondary) !important;
 }
 
 .text-success {
-  color: var(--bs-text-success) !important;
+  color: var(--bs-success) !important;
 }
 
 .text-info {
-  color: var(--bs-text-info) !important;
+  color: var(--bs-info) !important;
 }
 
 .text-warning {
-  color: var(--bs-text-warning) !important;
+  color: var(--bs-warning) !important;
 }
 
 .text-danger {
-  color: var(--bs-text-danger) !important;
+  color: var(--bs-danger) !important;
 }
 
 .text-light {
-  color: var(--bs-text-light) !important;
+  color: var(--bs-light) !important;
 }
 
 .text-dark {
-  color: var(--bs-text-dark) !important;
+  color: var(--bs-dark) !important;
 }
 
 /* Background Color Classes */

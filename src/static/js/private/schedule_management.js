@@ -276,6 +276,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const course = window.existingCourses.find(c => c.id === courseId);
         
         if (course) {
+            // Build students list HTML
+            let studentsHTML = '';
+            if (course.students && course.students.length > 0) {
+                studentsHTML = '<ul class="list-unstyled mb-0">';
+                course.students.forEach(student => {
+                    studentsHTML += `<li><i class="fas fa-user"></i> ${student.username} (${student.email})</li>`;
+                });
+                studentsHTML += '</ul>';
+            } else {
+                studentsHTML = '<p class="text-muted mb-0">No students enrolled</p>';
+            }
+            
+            // Get max students info
+            const maxStudents = course.max_students || (course.template ? course.template.max_students : 1);
+            const enrolledCount = course.enrolled_count || 0;
+            const availableSlots = maxStudents - enrolledCount;
+            
             contentDiv.innerHTML = `
                 <div class="row">
                     <div class="col-md-6">
@@ -289,14 +306,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-6">
                         <h6>Participants</h6>
-                        <p><strong>Student:</strong> ${course.student ? course.student.username : 'Not assigned'}</p>
+                        <div class="mb-3">
+                            <strong>Students (${enrolledCount}/${maxStudents}):</strong>
+                            ${availableSlots > 0 ? `<span class="badge bg-success ms-2">${availableSlots} slots available</span>` : '<span class="badge bg-danger ms-2">Full</span>'}
+                            <div class="mt-2">
+                                ${studentsHTML}
+                            </div>
+                        </div>
                         <p><strong>Instructor 1:</strong> ${course.instructor1 ? course.instructor1.username : 'Not assigned'}</p>
                         <p><strong>Instructor 2:</strong> ${course.instructor2 ? course.instructor2.username : 'Not assigned'}</p>
                     </div>
                 </div>
             `;
             
-            // Set edit button URL
+            // Set button URLs
+            document.getElementById('viewCourseDetailsBtn').href = `/admin/schedule/view/${courseId}`;
             document.getElementById('editCourseBtn').href = `/admin/schedule/edit/${courseId}`;
         }
         

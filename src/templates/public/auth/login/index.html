@@ -39,6 +39,44 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <!-- test login information -->
+                    <div class="card-header">
+                        <h3>Test Login Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <h5>All User Emails</h5>
+                            <p class="fs-6">All emails use the password "Pass123!!"</p>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Role</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Login</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in all_users %}
+                                    <tr>
+                                        <form action="{{ url_for('auth.login') }}" method="POST">
+                                            <td>{{ user.role_list[0].name | title }}</td>
+                                            <td>{{ user.email }}</td>
+                                            <td>
+                                                <input type="hidden" name="email" value="{{ user.email }}">
+                                                <input type="hidden" name="password" value="Pass123!!"> 
+                                                <button type="submit" class="btn btn-sm btn-secondary">Login</button>
+                                            </td>
+                                        </form>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,212 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+<div class="admin-dashboard-apple">
+    {# Page Header #}
+    <div class="ad-page-header">
+        <div class="ad-page-title-section">
+            <h1 class="ad-page-title">Admin Dashboard</h1>
+            <p class="ad-page-subtitle">Welcome back! Here's what's happening today.</p>
+        </div>
+        <div class="ad-page-actions">
+            <a href="#" class="ad-btn ad-btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Student
+            </a>
+        </div>
+    </div>
+
+    {# Stats Overview #}
+    {% include 'private/admin/dashboard/components/stats_cards.html' %}
+
+    {# Main Grid Layout #}
+    <div class="ad-main-grid">
+        {# Left Column #}
+        <div class="ad-main-col">
+            {# Quick Actions #}
+            {% include 'private/admin/dashboard/components/quick_actions.html' %}
+            
+            {# Today's Schedule #}
+            {% include 'private/admin/dashboard/components/todays_schedule.html' %}
+            
+            {# Recent Activity #}
+            {% include 'private/admin/dashboard/components/recent_activity.html' %}
+        </div>
+
+        {# Right Column #}
+        <div class="ad-sidebar-col">
+            {# Student Quick Search #}
+            {% include 'private/admin/dashboard/components/student_search.html' %}
+            
+            {# Pending Items #}
+            {% include 'private/admin/dashboard/components/pending_items.html' %}
+            
+            {# Upcoming Deadlines #}
+            {% include 'private/admin/dashboard/components/upcoming_deadlines.html' %}
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-dashboard-apple {
+    padding: 2rem;
+    background: #F5F5F7;
+    min-height: 100vh;
+}
+
+.ad-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.ad-page-title-section {
+    flex: 1;
+}
+
+.ad-page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.5px;
+}
+
+.ad-page-subtitle {
+    font-size: 1.125rem;
+    color: #86868B;
+    margin: 0;
+}
+
+.ad-page-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.ad-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.ad-btn-primary {
+    background: #007AFF;
+    color: white;
+}
+
+.ad-btn-primary:hover {
+    background: #0051D5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    color: white;
+}
+
+.ad-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.ad-main-col,
+.ad-sidebar-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.ad-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.ad-card-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-bottom: 1px solid #F5F5F7;
+}
+
+.ad-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin: 0 0 0.25rem 0;
+}
+
+.ad-card-subtitle {
+    font-size: 0.875rem;
+    color: #86868B;
+    margin: 0;
+}
+
+.ad-card-body {
+    padding: 1.5rem;
+}
+
+.ad-empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.ad-empty-state svg {
+    color: #D1D1D6;
+    margin-bottom: 1rem;
+}
+
+.ad-empty-text {
+    font-size: 1rem;
+    color: #86868B;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .ad-main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ad-sidebar-col {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard-apple {
+        padding: 1rem;
+    }
+    
+    .ad-page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .ad-page-title {
+        font-size: 2rem;
+    }
+    
+    .ad-page-actions {
+        width: 100%;
+    }
+    
+    .ad-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock content %}

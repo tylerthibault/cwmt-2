@@ -7,7 +7,7 @@
 .btn-primary {
   background-color: var(--bs-primary) !important;
   border-color: var(--bs-primary) !important;
-  color: var(--text-primary) !important;
+  /* color: var(--text-primary) !important; */
 
   transition: all 0.3s ease;
 }

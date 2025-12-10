@@ -1,28 +1,73 @@
-<div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">CWMT</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('main.index') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Pricing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login / Register</a>
-                    </li>
-                    
-                </ul>
+<nav class="navbar-v2 {% if request.endpoint == 'main.index' %}navbar-v2-animate{% endif %}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/navbar.css') }}">
+    
+    <div class="navbar-v2-container">
+        <!-- Logo/Brand -->
+        <a href="{{ url_for('main.index') }}" class="navbar-v2-brand">
+            <span class="brand-icon">🏍️</span>
+            <span class="brand-text">CWMT</span>
+        </a>
+        
+        <!-- Mobile Toggle -->
+        <button class="navbar-v2-toggle" id="navbarToggle" aria-label="Toggle navigation">
+            <span class="toggle-line"></span>
+            <span class="toggle-line"></span>
+            <span class="toggle-line"></span>
+        </button>
+        
+        <!-- Navigation Links -->
+        <div class="navbar-v2-menu" id="navbarMenu">
+            <ul class="navbar-v2-nav">
+                <li class="nav-v2-item">
+                    <a href="{{ url_for('main.index') }}" class="nav-v2-link {% if request.endpoint == 'main.index' %}active{% endif %}">Home</a>
+                </li>
+                <li class="nav-v2-item">
+                    <a href="{{ url_for('main.courses') }}" class="nav-v2-link {% if request.endpoint == 'main.courses' %}active{% endif %}">Courses</a>
+                </li>
+                <li class="nav-v2-item">
+                    <a href="{{ url_for('main.about') }}" class="nav-v2-link {% if request.endpoint == 'main.about' %}active{% endif %}">About</a>
+                </li>
+                <li class="nav-v2-item">
+                    <a href="#contact" class="nav-v2-link {% if request.endpoint == 'main.contact' %}active{% endif %}">Contact</a>
+                </li>
+            </ul>
+            
+            <!-- CTA Button -->
+            <div class="navbar-v2-actions">
+                <button id="themeToggle" class="navbar-v2-btn navbar-v2-btn-icon" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="{{ url_for('main.reset_db') }}" class="navbar-v2-btn navbar-v2-btn-icon" title="Reset Database" onclick="return confirm('Are you sure you want to reset the database? This will delete all data!');">
+                    <i class="fas fa-database"></i>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="navbar-v2-btn navbar-v2-btn-login">Login</a>
+                <a href="{{ url_for('auth.login') }}" class="navbar-v2-btn navbar-v2-btn-primary">Get Started</a>
             </div>
         </div>
-    </nav>
-</div>
+    </div>
+</nav>
+
+<script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('navbarToggle');
+        const menu = document.getElementById('navbarMenu');
+        const navbar = document.querySelector('.navbar-v2');
+        
+        if (toggle && menu) {
+            toggle.addEventListener('click', function() {
+                menu.classList.toggle('active');
+                toggle.classList.toggle('active');
+            });
+        }
+        
+        // Add scrolled class on scroll
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    });
+</script>

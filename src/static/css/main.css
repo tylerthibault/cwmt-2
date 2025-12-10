@@ -5,26 +5,33 @@
 @import url('bootstrap_addons/colors.css');
 @import url('components/cards.css');
 @import url('components/tables.css');
+<<<<<<< HEAD
 @import url('private/super_user_dashboard.css');
 @import url('utilities/responsive.css');
+=======
+@import url('components/utilities.css');
+@import url('private/superuser_dashboard.css');
+>>>>>>> development
 
 /* Light mode (default) */
 :root {
     /* Subtle variations - barely perceptible */
-    --bs-primary: #5587c0;
-    --bs-secondary: #478169;
-    --bs-success: #d1fae5;
-    --bs-info: #dbeafe;
-    --bs-warning: #fef3c7;
-    --bs-danger: #fee2e2;
+    --bs-primary: #1f4168;
+    --bs-secondary: #2b9c89;
+    --bs-success: #064e3b;
+    --bs-info: #0c4a6e;
+    --bs-warning: #78350f;
+    --bs-danger: #7f1d1d;
     --bs-light: #f9fafb;
     --bs-dark: #111827;
     
     /* Backgrounds - Ultra clean */
     --bg-primary: #ffffff;
     --bg-secondary: #f9fafb;
+
     --text-primary: #111827;
-    --text-secondary: #6b7280;
+    --text-secondary: #333;
+    
     --border-color: #e5e7eb;
     --link-color: #4f46e5;
     
@@ -48,12 +55,21 @@
     /* Dark backgrounds */
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
+
+    --text-primary: #dadada;
+    --text-secondary: #a8a8a8;
+
     --border-color: #374151;
     --link-color: #818cf8;
     
     /* Dark Gradients - Deep & Rich */
     --primary-gradient: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
     --secondary-gradient: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
+}
+
+/* Body theme support */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }

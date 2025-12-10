@@ -1,0 +1,106 @@
+<!-- TESTIMONIALS SECTION -->
+<!-- Follows style guide: NO inline styles, uses CSS classes, accessible markup -->
+<section class="testimonials" aria-labelledby="testimonials-heading">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/public/landing/testimonials.css') }}">
+	
+	<div class="container">
+		<!-- Header -->
+		<div class="testimonials__header">
+			<p class="testimonials__eyebrow">Student Success Stories</p>
+			<h2 id="testimonials-heading" class="testimonials__title">What Our Riders Say</h2>
+			<p class="testimonials__subtitle">Real feedback from students who learned to ride with confidence</p>
+		</div>
+		
+		<!-- Testimonial Cards -->
+		<div class="row g-4" role="list">
+			<!-- Testimonial 1 -->
+			<div class="col-md-6 col-lg-4" role="listitem">
+				<article class="testimonial-card">
+					<div class="testimonial-card__rating" aria-label="5 out of 5 stars">
+						★★★★★
+					</div>
+					<blockquote class="testimonial-card__quote">
+						The instructors were patient and knowledgeable. I went from never being on a bike to passing my test with confidence. Highly recommend CWMT!
+					</blockquote>
+					<div class="testimonial-card__author">
+						<img src="https://i.pravatar.cc/150?img=5" 
+						     alt="Sarah Martinez profile photo" 
+						     class="testimonial-card__avatar"
+						     loading="lazy">
+						<div class="testimonial-card__author-info">
+							<p class="testimonial-card__name">Sarah Martinez</p>
+							<p class="testimonial-card__role">New Rider, Class of 2024</p>
+						</div>
+					</div>
+				</article>
+			</div>
+			
+			<!-- Testimonial 2 -->
+			<div class="col-md-6 col-lg-4" role="listitem">
+				<article class="testimonial-card">
+					<div class="testimonial-card__rating" aria-label="5 out of 5 stars">
+						★★★★★
+					</div>
+					<blockquote class="testimonial-card__quote">
+						Best motorcycle training in Washington! The hands-on approach and small class sizes made all the difference. I felt safe and supported every step of the way.
+					</blockquote>
+					<div class="testimonial-card__author">
+						<img src="https://i.pravatar.cc/150?img=12" 
+						     alt="James Chen profile photo" 
+						     class="testimonial-card__avatar"
+						     loading="lazy">
+						<div class="testimonial-card__author-info">
+							<p class="testimonial-card__name">James Chen</p>
+							<p class="testimonial-card__role">Intermediate Course Graduate</p>
+						</div>
+					</div>
+				</article>
+			</div>
+			
+			<!-- Testimonial 3 -->
+			<div class="col-md-6 col-lg-4" role="listitem">
+				<article class="testimonial-card">
+					<div class="testimonial-card__rating" aria-label="5 out of 5 stars">
+						★★★★★
+					</div>
+					<blockquote class="testimonial-card__quote">
+						Professional, friendly, and thorough. The skills I learned here have made me a safer, more confident rider. Worth every penny!
+					</blockquote>
+					<div class="testimonial-card__author">
+						<img src="https://i.pravatar.cc/150?img=20" 
+						     alt="Emily Rodriguez profile photo" 
+						     class="testimonial-card__avatar"
+						     loading="lazy">
+						<div class="testimonial-card__author-info">
+							<p class="testimonial-card__name">Emily Rodriguez</p>
+							<p class="testimonial-card__role">Advanced Rider Training</p>
+						</div>
+					</div>
+				</article>
+			</div>
+		</div>
+		
+		<!-- Trust Statistics -->
+		<div class="testimonials__trust">
+			<h3 class="testimonials__trust-title">Trusted by the Community</h3>
+			<div class="testimonials__trust-stats">
+				<div class="trust-stat">
+					<div class="trust-stat__value">1,000+</div>
+					<div class="trust-stat__label">Students Trained</div>
+				</div>
+				<div class="trust-stat">
+					<div class="trust-stat__value">4.9/5</div>
+					<div class="trust-stat__label">Average Rating</div>
+				</div>
+				<div class="trust-stat">
+					<div class="trust-stat__value">98%</div>
+					<div class="trust-stat__label">Pass Rate</div>
+				</div>
+				<div class="trust-stat">
+					<div class="trust-stat__value">15+</div>
+					<div class="trust-stat__label">Years Experience</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

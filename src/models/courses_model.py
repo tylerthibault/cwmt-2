@@ -7,17 +7,6 @@ from src.models import db
 from src.models.base_model import BaseModel
 
 
-# Association table for many-to-many relationship between courses and students
-course_enrollments = db.Table('course_enrollments',
-    db.Column('id', db.Integer, primary_key=True),
-    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), nullable=False),
-    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), nullable=False),
-    db.Column('enrolled_at', db.DateTime, default=datetime.utcnow, nullable=False),
-    db.Column('enrolled_by_admin', db.Boolean, default=False, nullable=False),  # Track if admin enrolled vs self-enrollment
-    db.UniqueConstraint('course_id', 'student_id', name='unique_course_student')
-)
-
-
 class CourseTemplate(BaseModel):
     """
     CourseTemplate database model - THIN model pattern.
@@ -103,17 +92,17 @@ class Course(BaseModel):
     
     # Relationships
     template = db.relationship('CourseTemplate', back_populates='courses')
-    students = db.relationship('User', secondary=course_enrollments, backref='enrolled_courses')
+    enrollments = db.relationship('CourseEnrollment', back_populates='course', cascade='all, delete-orphan')
     instructor1 = db.relationship('User', foreign_keys=[instructor1_id], backref='courses_as_instructor1')
     instructor2 = db.relationship('User', foreign_keys=[instructor2_id], backref='courses_as_instructor2')
     
-    def to_dict(self, include_users=False, include_template=False):
+    def to_dict(self, include_enrollments=False, include_template=False):
         """
         Serialize course to dictionary.
         Simple serialization only - NO business logic.
         
         Args:
-            include_users (bool): Whether to include user details
+            include_enrollments (bool): Whether to include enrollment details
             include_template (bool): Whether to include template details
             
         Returns:
@@ -127,7 +116,7 @@ class Course(BaseModel):
             'status': self.status,
             'location': self.location,
             'max_students': self.max_students,
-            'enrolled_count': len(self.students) if self.students else 0,
+            'enrolled_count': len(self.enrollments) if self.enrollments else 0,
             'instructor1_id': self.instructor1_id,
             'instructor2_id': self.instructor2_id
         })
@@ -135,8 +124,8 @@ class Course(BaseModel):
         if include_template and self.template:
             base_dict['template'] = self.template.to_dict()
         
-        if include_users:
-            base_dict['students'] = [student.to_dict() for student in self.students] if self.students else []
+        if include_enrollments:
+            base_dict['enrollments'] = [enrollment.to_dict() for enrollment in self.enrollments] if self.enrollments else []
             base_dict['instructor1'] = self.instructor1.to_dict() if self.instructor1 else None
             base_dict['instructor2'] = self.instructor2.to_dict() if self.instructor2 else None
         
@@ -157,20 +146,24 @@ class Course(BaseModel):
     def get_available_slots(self):
         """
         Get the number of available slots remaining for this course.
+        Only counts active enrollments (excludes withdrawn/cancelled).
         
         Returns:
             int: Number of slots available (can be negative if overbooked)
         """
-        return self.get_max_students() - len(self.students)
+        active_enrollments = [e for e in self.enrollments if e.status not in ['withdrawn', 'cancelled']]
+        return self.get_max_students() - len(active_enrollments)
     
     def is_full(self):
         """
         Check if course is at or over capacity.
+        Only counts active enrollments (excludes withdrawn/cancelled).
         
         Returns:
             bool: True if course is full
         """
-        return len(self.students) >= self.get_max_students()
+        active_enrollments = [e for e in self.enrollments if e.status not in ['withdrawn', 'cancelled']]
+        return len(active_enrollments) >= self.get_max_students()
     
     def __repr__(self):
         """String representation of course"""

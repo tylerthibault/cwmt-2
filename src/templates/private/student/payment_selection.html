@@ -1,0 +1,1021 @@
+{% extends 'bases/student.html' %}
+
+{% block title %}Payment - {{ course.template.name }}{% endblock title %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="payment-content">
+        <!-- Header -->
+        <div class="payment-header">
+            <div>
+                <a href="{{ url_for('student.view_course', course_id=course.id) }}" class="back-link">
+                    ← Back to Course
+                </a>
+                <h1 class="payment-title">Complete Your Payment</h1>
+                <p class="payment-subtitle">{{ course.template.name }}</p>
+            </div>
+        </div>
+
+        <div class="payment-grid">
+            <!-- Left Column: Item Selection -->
+            <div class="payment-items-section">
+                <h2 class="section-title">Available Items</h2>
+
+                {% if items_with_status %}
+                {% set has_required = items_with_status | selectattr('payable_item.is_required', 'equalto', True) | list
+                | length > 0 %}
+                {% if has_required %}
+                <div class="info-banner">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="9" stroke="#0071E3" stroke-width="2" />
+                        <path d="M10 6v4M10 13h.01" stroke="#0071E3" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <div class="info-banner-content">
+                        <span>Required items are automatically selected and must be paid for enrollment.</span>
+                        <p class="fw-bolder">Want to test different payment scenarios? <button type="button" class="test-cards-btn" onclick="openTestCardsModal()">View Test Card Numbers</button></p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form id="paymentForm">
+                    <div class="items-list">
+                        {% for item_data in items_with_status %}
+                        {% set payable_item = item_data.payable_item %}
+                        {% set line_item = item_data.line_item %}
+                        {% set is_paid = item_data.is_paid %}
+                        {% set is_pending = item_data.is_pending %}
+                        {% set is_rejected = item_data.is_rejected %}
+                        {% set amount_due = item_data.amount_due %}
+                        {% set is_required = payable_item.is_required %}
+
+                        <div
+                            class="payment-item {% if is_paid %}item-paid{% elif is_pending %}item-pending{% elif is_rejected %}item-rejected{% endif %} {% if is_required %}item-required{% endif %}">
+                            <div class="item-checkbox">
+                                {% if not line_item %}
+                                <input type="checkbox" name="payable_items" value="{{ payable_item.id }}"
+                                    id="item-{{ payable_item.id }}"
+                                    class="item-select{% if is_required %} required-item{% endif %}"
+                                    data-price="{{ payable_item.price }}" {% if is_required %}checked disabled{% endif
+                                    %}>
+                                {% elif (is_pending or is_rejected) and amount_due > 0 %}
+                                <input type="checkbox" name="line_items" value="{{ line_item.id }}"
+                                    id="line-{{ line_item.id }}"
+                                    class="line-item-select{% if is_required %} required-item{% endif %}"
+                                    data-price="{{ amount_due }}" {% if is_required %}checked disabled{% endif %}>
+                                {% else %}
+                                <div class="paid-checkmark">✓</div>
+                                {% endif %}
+                            </div>
+
+                            <label
+                                for="{% if not line_item %}item-{{ payable_item.id }}{% elif is_pending or is_rejected %}line-{{ line_item.id }}{% endif %}"
+                                class="item-content">
+                                <div class="item-details">
+                                    <div class="item-name">
+                                        {{ payable_item.payable_item_template.name }}
+                                        {% if is_required %}<span class="required-badge">Required</span>{% endif %}
+                                    </div>
+                                    {% if payable_item.payable_item_template.description %}
+                                    <div class="item-description">{{ payable_item.payable_item_template.description }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="item-meta">
+                                        <span class="item-type">{{ payable_item.payable_item_template.item_type | title
+                                            }}</span>
+                                        {% if payable_item.payable_item_template.is_taxable %}
+                                        <span class="item-taxable">Taxable</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="item-price-section">
+                                    {% if is_paid %}
+                                    <span class="item-status status-paid">Paid</span>
+                                    {% elif is_rejected and amount_due > 0 %}
+                                    <span class="item-price">${{ "%.2f"|format(amount_due) }}</span>
+                                    <span class="item-status status-rejected">Rejected - Retry Payment</span>
+                                    {% elif is_pending and amount_due > 0 %}
+                                    <span class="item-price">${{ "%.2f"|format(amount_due) }}</span>
+                                    <span class="item-status status-pending">Pending</span>
+                                    {% elif (is_pending or is_rejected) and amount_due == 0 %}
+                                    <span class="item-status status-paid">Paid</span>
+                                    {% else %}
+                                    <span class="item-price">${{ "%.2f"|format(payable_item.price) }}</span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" id="addToCartBtn" class="btn btn-secondary" style="display: none;">
+                            Add Selected Items
+                        </button>
+                        <button type="button" id="proceedToPaymentBtn" class="btn btn-primary" style="display: none;">
+                            Proceed to Payment
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="no-items">
+                    <p>No payment items available for this course.</p>
+                    <a href="{{ url_for('student.view_course', course_id=course.id) }}" class="btn btn-secondary">
+                        Back to Course
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Payment Summary -->
+            <div class="payment-summary-section">
+                <div class="summary-card">
+                    <h3 class="summary-title">Payment Summary</h3>
+
+                    <div class="summary-line">
+                        <span>Selected Items</span>
+                        <span id="selectedCount">0</span>
+                    </div>
+
+                    <div class="summary-line">
+                        <span>Subtotal</span>
+                        <span id="subtotalAmount">$0.00</span>
+                    </div>
+
+                    <div class="summary-line">
+                        <span>Tax</span>
+                        <span id="taxAmount">$0.00</span>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-line summary-total">
+                        <span>Total</span>
+                        <span id="totalAmount">$0.00</span>
+                    </div>
+
+                    {% if payment_summary.amount_paid > 0 %}
+                    <div class="summary-line summary-paid">
+                        <span>Previously Paid</span>
+                        <span>-${{ "%.2f"|format(payment_summary.amount_paid) }}</span>
+                    </div>
+
+                    <div class="summary-line summary-due">
+                        <span>Amount Due</span>
+                        <span>${{ "%.2f"|format(payment_summary.amount_due) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Stripe Payment Element -->
+                <div id="paymentElementContainer" style="display: none;">
+                    <div class="payment-method-card">
+                        <h3 class="summary-title">Payment Method</h3>
+                        <div id="payment-element"></div>
+                        <button type="button" id="submitPaymentBtn" class="btn btn-primary btn-full">
+                            Pay Now
+                        </button>
+                        <div id="paymentError" class="payment-error"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Cards Modal -->
+<div id="testCardsModal" class="test-cards-modal">
+    <div class="test-cards-modal-content">
+        <div class="test-cards-modal-header">
+            <h2>Test Card Numbers</h2>
+            <button type="button" class="test-cards-close" onclick="closeTestCardsModal()">&times;</button>
+        </div>
+        <div class="test-cards-modal-body">
+            <p>Use these card numbers to test different payment scenarios. All cards accept any future expiration date and any 3-digit CVC.</p>
+            <table class="test-cards-table">
+                <thead>
+                    <tr>
+                        <th>Card Number</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>4242 4242 4242 4242</code></td>
+                        <td>Visa - Successful transaction</td>
+                    </tr>
+                    <tr>
+                        <td><code>5555 5555 5555 4444</code></td>
+                        <td>Mastercard - Successful transaction</td>
+                    </tr>
+                    <tr>
+                        <td><code>3782 822463 10005</code></td>
+                        <td>American Express - Successful transaction</td>
+                    </tr>
+                    <tr>
+                        <td><code>6011 1111 1111 1117</code></td>
+                        <td>Discover - Successful transaction</td>
+                    </tr>
+                    <tr>
+                        <td><code>4000 0000 0000 0002</code></td>
+                        <td>Visa - Card declined</td>
+                    </tr>
+                    <tr>
+                        <td><code>4000 0000 0000 9987</code></td>
+                        <td>Visa - Card declined (insufficient funds)</td>
+                    </tr>
+                    <tr>
+                        <td><code>4000 0000 0000 0069</code></td>
+                        <td>Visa - Card declined (expired card)</td>
+                    </tr>
+                    <tr>
+                        <td><code>4100 0000 0000 0019</code></td>
+                        <td>Visa - Card declined (incorrect CVC)</td>
+                    </tr>
+                    <tr>
+                        <td><code>4000 0000 0000 0259</code></td>
+                        <td>Visa - Charge succeeds, then disputed as fraudulent</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>For more information, visit <a href="https://docs.stripe.com/testing?testing-method=card-numbers" target="_blank" rel="noopener noreferrer">Stripe's Testing Documentation</a>.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-container {
+        background: #F5F5F7;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .payment-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .payment-header {
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: #0071E3;
+        text-decoration: none;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: #0051A8;
+    }
+
+    .payment-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1D1D1F;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.5px;
+    }
+
+    .payment-subtitle {
+        font-size: 1.125rem;
+        color: #86868B;
+        margin: 0;
+    }
+
+    .payment-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .payment-items-section,
+    .payment-summary-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 0;
+    }
+
+    .info-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #F0F8FF;
+        border: 1px solid #B3D9FF;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: #0051A8;
+    }
+
+    .info-banner svg {
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .info-banner-content {
+        flex: 1;
+    }
+
+    .info-banner-content p {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.875rem;
+    }
+
+    .test-cards-btn {
+        background: none;
+        border: none;
+        color: #0071E3;
+        text-decoration: underline;
+        cursor: pointer;
+        padding: 0;
+        font-size: 0.875rem;
+        font-family: inherit;
+    }
+
+    .test-cards-btn:hover {
+        color: #0051A8;
+    }
+
+    /* Test Cards Modal */
+    .test-cards-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.2s ease;
+    }
+
+    .test-cards-modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .test-cards-modal-content {
+        background: white;
+        border-radius: 12px;
+        max-width: 700px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+    }
+
+    .test-cards-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #E5E5E7;
+    }
+
+    .test-cards-modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1D1D1F;
+    }
+
+    .test-cards-close {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #86868B;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+
+    .test-cards-close:hover {
+        background: #F5F5F7;
+        color: #1D1D1F;
+    }
+
+    .test-cards-modal-body {
+        padding: 1.5rem;
+    }
+
+    .test-cards-modal-body p {
+        margin: 0 0 1.5rem 0;
+        color: #515154;
+        line-height: 1.5;
+    }
+
+    .test-cards-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .test-cards-table thead tr {
+        background: #F5F5F7;
+    }
+
+    .test-cards-table th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        font-size: 0.875rem;
+        border-bottom: 2px solid #E5E5E7;
+    }
+
+    .test-cards-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #E5E5E7;
+        font-size: 0.875rem;
+        color: #515154;
+    }
+
+    .test-cards-table tbody tr:hover {
+        background: #F5F5F7;
+    }
+
+    .test-cards-table code {
+        background: #F5F5F7;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+        font-size: 0.8125rem;
+        color: #0071E3;
+        font-weight: 500;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .payment-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s;
+    }
+
+    .payment-item:has(input:checked) {
+        border: 2px solid #0071E3;
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+    }
+
+    .payment-item.item-paid {
+        opacity: 0.7;
+        background: #F5F5F7;
+    }
+
+    .payment-item.item-required {
+        border: 2px solid #0071E3;
+        background: linear-gradient(135deg, #F0F8FF 0%, #FFFFFF 100%);
+    }
+
+    .item-checkbox {
+        flex-shrink: 0;
+        padding-top: 0.25rem;
+    }
+
+    .item-select,
+    .line-item-select {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .item-select:disabled,
+    .line-item-select:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .paid-checkmark {
+        width: 20px;
+        height: 20px;
+        background: #34C759;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .item-content {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        cursor: pointer;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .required-badge {
+        font-size: 0.625rem;
+        color: #0071E3;
+        padding: 0.2rem 0.5rem;
+        background: #E3F2FD;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .item-description {
+        font-size: 0.875rem;
+        color: #6E6E73;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-meta {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .item-type {
+        font-size: 0.75rem;
+        color: #86868B;
+        padding: 0.25rem 0.5rem;
+        background: #F5F5F7;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .item-taxable {
+        font-size: 0.75rem;
+        color: #FF9500;
+        padding: 0.25rem 0.5rem;
+        background: #FFF4E5;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .item-price-section {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .item-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1D1D1F;
+    }
+
+    .item-status {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-paid {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-pending {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .status-rejected {
+        background: #FFEBEE;
+        color: #C62828;
+        font-weight: 500;
+    }
+
+    .item-rejected {
+        border-color: #EF5350;
+        background: #FFF5F5;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .summary-card,
+    .payment-method-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        position: sticky;
+        top: 2rem;
+    }
+
+    .summary-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        color: #6E6E73;
+        font-size: 0.875rem;
+    }
+
+    .summary-divider {
+        height: 1px;
+        background: #E5E5E7;
+        margin: 0.5rem 0;
+    }
+
+    .summary-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1D1D1F;
+        padding-top: 1rem;
+    }
+
+    .summary-paid {
+        color: #34C759;
+        font-weight: 600;
+    }
+
+    .summary-due {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #0071E3;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: #0071E3;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0051A8;
+    }
+
+    .btn-secondary {
+        background: #E5E5E7;
+        color: #1D1D1F;
+    }
+
+    .btn-secondary:hover {
+        background: #D2D2D7;
+    }
+
+    .btn-full {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .payment-error {
+        color: #FF3B30;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .payment-error.active {
+        display: block;
+    }
+
+    .no-items {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .no-items p {
+        font-size: 1rem;
+        color: #6E6E73;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 968px) {
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card,
+        .payment-method-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .payment-title {
+            font-size: 2rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    let elements;
+    let paymentElement;
+    let clientSecret;
+    let selectedLineItemIds = [];
+
+    // Calculate and update totals
+    function updateSummary() {
+        // Get all checked items (including disabled/required ones)
+        const newItemCheckboxes = document.querySelectorAll('.item-select:checked:not(:disabled)');
+        const requiredNewItems = document.querySelectorAll('.item-select.required-item:disabled');
+        const lineItemCheckboxes = document.querySelectorAll('.line-item-select:checked:not(:disabled)');
+        const requiredLineItems = document.querySelectorAll('.line-item-select.required-item:disabled');
+
+        const totalSelected = newItemCheckboxes.length + requiredNewItems.length + lineItemCheckboxes.length + requiredLineItems.length;
+        let subtotal = 0;
+
+        // Calculate subtotal from new items (including required)
+        newItemCheckboxes.forEach(checkbox => {
+            subtotal += parseFloat(checkbox.dataset.price);
+        });
+        requiredNewItems.forEach(checkbox => {
+            subtotal += parseFloat(checkbox.dataset.price);
+        });
+
+        // Calculate subtotal from pending line items (including required)
+        lineItemCheckboxes.forEach(checkbox => {
+            subtotal += parseFloat(checkbox.dataset.price);
+        });
+        requiredLineItems.forEach(checkbox => {
+            subtotal += parseFloat(checkbox.dataset.price);
+        });
+
+        // TODO: Calculate tax properly
+        const tax = 0;
+        const total = subtotal + tax;
+
+        document.getElementById('selectedCount').textContent = totalSelected;
+        document.getElementById('subtotalAmount').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('taxAmount').textContent = `$${tax.toFixed(2)}`;
+        document.getElementById('totalAmount').textContent = `$${total.toFixed(2)}`;
+
+        // Show/hide buttons
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const proceedBtn = document.getElementById('proceedToPaymentBtn');
+
+        const hasNewItems = newItemCheckboxes.length > 0 || requiredNewItems.length > 0;
+        const hasLineItems = lineItemCheckboxes.length > 0 || requiredLineItems.length > 0;
+
+        if (hasNewItems) {
+            addToCartBtn.style.display = 'block';
+            proceedBtn.style.display = 'none';
+        } else {
+            addToCartBtn.style.display = 'none';
+        }
+
+        if (hasLineItems && !hasNewItems) {
+            proceedBtn.style.display = 'block';
+        } else if (!hasNewItems) {
+            proceedBtn.style.display = 'none';
+        }
+    }
+
+    // Add event listeners to checkboxes (only non-disabled ones)
+    document.querySelectorAll('.item-select:not(:disabled), .line-item-select:not(:disabled)').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSummary);
+    });
+
+    // Add items to cart (create line items)
+    document.getElementById('addToCartBtn')?.addEventListener('click', async function () {
+        // Include both checked items and required (disabled) items
+        const selectedItems = Array.from(document.querySelectorAll('.item-select:checked'))
+            .map(cb => parseInt(cb.value));
+
+        if (selectedItems.length === 0) return;
+
+        try {
+            this.disabled = true;
+            this.textContent = 'Adding...';
+
+            const response = await fetch('{{ url_for("student.add_items_to_cart", course_id=course.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    payable_item_ids: selectedItems
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Reload page to show new line items
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error adding items: ' + error.message);
+        } finally {
+            this.disabled = false;
+            this.textContent = 'Add Selected Items';
+        }
+    });
+
+    // Proceed to payment
+    document.getElementById('proceedToPaymentBtn')?.addEventListener('click', async function () {
+        // Include both checked items and required (disabled) items
+        selectedLineItemIds = Array.from(document.querySelectorAll('.line-item-select:checked'))
+            .map(cb => parseInt(cb.value));
+
+        if (selectedLineItemIds.length === 0) return;
+
+        try {
+            this.disabled = true;
+            this.textContent = 'Loading...';
+
+            const response = await fetch('{{ url_for("student.create_payment_intent", course_id=course.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    line_item_ids: selectedLineItemIds
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                clientSecret = data.client_secret;
+
+                // Initialize Stripe Elements (card only)
+                elements = stripe.elements({ clientSecret });
+                paymentElement = elements.create('payment', {
+                    layout: 'tabs',
+                    paymentMethodOrder: ['card']
+                });
+                paymentElement.mount('#payment-element');
+
+                // Show payment form
+                document.getElementById('paymentElementContainer').style.display = 'block';
+                this.style.display = 'none';
+            } else {
+                alert('Error: ' + data.message);
+                this.disabled = false;
+                this.textContent = 'Proceed to Payment';
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            this.disabled = false;
+            this.textContent = 'Proceed to Payment';
+        }
+    });
+
+    // Submit payment
+    document.getElementById('submitPaymentBtn')?.addEventListener('click', async function () {
+        this.disabled = true;
+        this.textContent = 'Processing...';
+
+        const errorElement = document.getElementById('paymentError');
+        errorElement.classList.remove('active');
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: '{{ url_for("student.view_course", course_id=course.id, _external=True) }}',
+            },
+        });
+
+        if (error) {
+            errorElement.textContent = error.message;
+            errorElement.classList.add('active');
+            this.disabled = false;
+            this.textContent = 'Pay Now';
+        }
+    });
+
+    // Initialize summary on page load
+    updateSummary();
+
+    // Test Cards Modal Functions
+    function openTestCardsModal() {
+        document.getElementById('testCardsModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeTestCardsModal() {
+        document.getElementById('testCardsModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('testCardsModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTestCardsModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTestCardsModal();
+        }
+    });
+
+    // Make functions globally available
+    window.openTestCardsModal = openTestCardsModal;
+    window.closeTestCardsModal = closeTestCardsModal;
+</script>
+{% endblock content %}

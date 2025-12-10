@@ -1,0 +1,220 @@
+{% extends "bases/private.html" %}
+
+{% block title %}{{ page_title }} - CWMT{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Back Button and Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Student Details
+        </a>
+        <h1 class="h2 mb-1">{{ page_title }}</h1>
+        <p class="text-muted">Update student profile information</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil-fill"></i> Edit Profile</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('user_admin.edit_student', student_id=student.id) }}">
+                        <!-- Student Number -->
+                        <div class="mb-3">
+                            <label for="student_number" class="form-label">
+                                Student Number <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="student_number" 
+                                   name="student_number" 
+                                   value="{{ student.student_number or '' }}" 
+                                   required>
+                            <div class="form-text">Unique identifier for the student</div>
+                        </div>
+
+                        <!-- Grade Level -->
+                        <div class="mb-3">
+                            <label for="grade_level" class="form-label">
+                                Grade Level
+                            </label>
+                            <select class="form-select" id="grade_level" name="grade_level">
+                                <option value="">Not Set</option>
+                                <option value="Beginner" {% if student.grade_level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                <option value="Intermediate" {% if student.grade_level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                <option value="Advanced" {% if student.grade_level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                                <option value="Expert" {% if student.grade_level == 'Expert' %}selected{% endif %}>Expert</option>
+                            </select>
+                            <div class="form-text">Student's current skill level</div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Emergency Contact Section -->
+                        <h6 class="mb-3"><i class="bi bi-telephone-fill"></i> Emergency Contact Information</h6>
+
+                        <!-- Emergency Contact Name -->
+                        <div class="mb-3">
+                            <label for="emergency_contact_name" class="form-label">
+                                Emergency Contact Name
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="emergency_contact_name" 
+                                   name="emergency_contact_name" 
+                                   value="{{ student.emergency_contact_name or '' }}"
+                                   placeholder="e.g., John Doe">
+                            <div class="form-text">Name of person to contact in case of emergency</div>
+                        </div>
+
+                        <!-- Emergency Contact Phone -->
+                        <div class="mb-3">
+                            <label for="emergency_contact_phone" class="form-label">
+                                Emergency Contact Phone
+                            </label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="emergency_contact_phone" 
+                                   name="emergency_contact_phone" 
+                                   value="{{ student.emergency_contact_phone or '' }}"
+                                   placeholder="e.g., (555) 123-4567"
+                                   pattern="[\d\s\-\(\)\.+]+">
+                            <div class="form-text">Phone number to reach emergency contact</div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Read-only Info -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle"></i> User Account Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ student.user.first_name }} {{ student.user.last_name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ student.user.email }}</p>
+                            <p class="mb-1"><strong>Username:</strong> @{{ student.user.username }}</p>
+                            <p class="mb-0"><small class="text-muted">To edit user account details, go to User Management</small></p>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}" 
+                               class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Academic Performance Card (Read-only) -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Academic Performance (Read-only)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4 text-center">
+                            <div class="display-6 fw-bold text-primary">{{ "%.1f"|format(student.overall_score) }}%</div>
+                            <small class="text-muted">Overall Score</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="display-6 fw-bold text-success">
+                                {% set completed = student.course_enrollments|selectattr('status', 'equalto', 'completed')|list|length %}
+                                {{ completed }}
+                            </div>
+                            <small class="text-muted">Completed Courses</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="display-6 fw-bold text-info">
+                                {% set active = student.course_enrollments|selectattr('status', 'equalto', 'active')|list|length %}
+                                {{ active }}
+                            </div>
+                            <small class="text-muted">Active Enrollments</small>
+                        </div>
+                    </div>
+                    <div class="alert alert-light mt-3 mb-0">
+                        <small><i class="bi bi-info-circle"></i> Academic scores are calculated automatically based on course performance</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Help/Info -->
+        <div class="col-lg-4 col-xl-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-question-circle"></i> Editing Guidelines</h6>
+                    
+                    <div class="mb-3">
+                        <strong>Student Number</strong>
+                        <p class="small text-muted mb-0">A unique identifier for the student (e.g., STU00123). This is required and should not be changed once set.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Grade Level</strong>
+                        <p class="small text-muted mb-0">Indicates the student's skill level. This helps instructors understand their experience.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Emergency Contact</strong>
+                        <p class="small text-muted mb-0">Important for safety. Ensure this information is up-to-date and accurate.</p>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="card-title"><i class="bi bi-shield-check"></i> Note</h6>
+                    <p class="small text-muted mb-0">
+                        Academic scores and enrollment data cannot be edited from this form. 
+                        To manage enrollments, vehicle information, or scores, visit the 
+                        <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}">Student Details</a> page.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-label {
+    font-weight: 500;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.gap-2 {
+    gap: 0.5rem !important;
+}
+</style>
+
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const studentNumber = document.getElementById('student_number').value.trim();
+    
+    if (!studentNumber) {
+        e.preventDefault();
+        alert('Student Number is required');
+        document.getElementById('student_number').focus();
+        return false;
+    }
+});
+
+// Phone number formatting (optional enhancement)
+document.getElementById('emergency_contact_phone').addEventListener('blur', function() {
+    let phone = this.value.replace(/\D/g, '');
+    if (phone.length === 10) {
+        this.value = `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+    }
+});
+</script>
+{% endblock %}

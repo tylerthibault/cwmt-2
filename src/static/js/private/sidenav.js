@@ -24,18 +24,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Role Switcher functionality
     const roleSwitcher = document.getElementById('roleSwitcher');
     if (roleSwitcher) {
-        // Listen for role changes - reload dashboard with view_as parameter
+        // Listen for role changes - navigate to role-specific dashboard
         roleSwitcher.addEventListener('change', function() {
             const selectedRole = this.value;
-            const dashboardUrl = new URL(window.location.origin + roleSwitcher.dataset.dashboardUrl);
-            dashboardUrl.searchParams.set('view_as', selectedRole);
-            window.location.href = dashboardUrl.toString();
+            // Map role to dashboard endpoint
+            const dashboardMap = {
+                'student': '/student/dashboard',
+                'instructor': '/instructor/dashboard',
+                'admin': '/admin/dashboard',
+                'superuser': '/super/dashboard'
+            };
+            const dashboardPath = dashboardMap[selectedRole];
+            if (dashboardPath) {
+                window.location.href = dashboardPath;
+            }
         });
     }
 
     function toggleSidenav() {
         const sidenav = document.querySelector('.sidenav');
-        sidenav.classList.toggle('collapsed');
+        const toggleButton = document.querySelector('.sidenav-toggle');
+        const isCollapsed = sidenav.classList.toggle('collapsed');
+        
+        // Update ARIA attribute
+        if (toggleButton) {
+            toggleButton.setAttribute('aria-expanded', !isCollapsed);
+        }
+        
         saveSidenavState();
     }
 
@@ -58,10 +73,33 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadSidenavState() {
         const isCollapsed = localStorage.getItem('sidenav-collapsed') === 'true';
         const sidenav = document.querySelector('.sidenav');
+        const toggleButton = document.querySelector('.sidenav-toggle');
+        
         if (isCollapsed) {
             sidenav.classList.add('collapsed');
         } else {
             sidenav.classList.remove('collapsed');
         }
+        
+        // Update ARIA attribute to match state
+        if (toggleButton) {
+            toggleButton.setAttribute('aria-expanded', !isCollapsed);
+        }
     }
+
+    // Expose function to clear sidenav state (called on logout)
+    window.clearSidenavState = function() {
+        // Clear main sidenav collapsed state
+        localStorage.removeItem('sidenav-collapsed');
+        
+        // Clear all category states for all roles
+        const roles = ['instructor', 'admin', 'superuser', 'student'];
+        const categories = ['instructor', 'admin', 'superuser', 'common'];
+        
+        roles.forEach(role => {
+            categories.forEach(category => {
+                localStorage.removeItem(`sidenav-${role}-${category}`);
+            });
+        });
+    };
 });

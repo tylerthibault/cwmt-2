@@ -23,7 +23,6 @@ class User(BaseModel):
     
     # User fields
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
@@ -36,7 +35,12 @@ class User(BaseModel):
     roles = db.relationship('UserHasRoles', back_populates='user', cascade='all, delete-orphan', overlaps="role_list,users_list")
     role_list = db.relationship('Role', secondary='user_has_roles', backref='users_list', overlaps="roles")
     logbooks = db.relationship('Logbook', back_populates='user', cascade='all, delete-orphan')
+    # student_profile relationship is defined in StudentProfile model as backref
     
+    @property
+    def username(self):
+        return f"{self.first_name} {self.last_name}"
+
     def to_dict(self, include_sensitive=False):
         """
         Serialize user to dictionary.
@@ -51,7 +55,6 @@ class User(BaseModel):
         data = super().to_dict()
         data.update({
             'email': self.email,
-            'username': self.username,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'is_active': self.is_active,
@@ -68,7 +71,7 @@ class User(BaseModel):
     
     def __repr__(self):
         """String representation"""
-        return f'<User {self.username} ({self.email})>'
+        return f'<User {self.first_name} {self.last_name} ({self.email})>'
     
 
     @classmethod

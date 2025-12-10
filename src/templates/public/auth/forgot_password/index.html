@@ -1,0 +1,77 @@
+{% extends 'bases/public.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-key"></i> Forgot Password
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Enter your email address and we'll send you a link to reset your password.
+                    </p>
+                    
+                    <form method="POST" action="{{ url_for('auth.forgot_password') }}">
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder="your.email@example.com"
+                                       required 
+                                       autofocus>
+                            </div>
+                            <small class="form-text text-muted">
+                                We'll never share your email with anyone else.
+                            </small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="bi bi-send"></i> Send Reset Link
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p class="mb-2">
+                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                                <i class="bi bi-arrow-left"></i> Back to Login
+                            </a>
+                        </p>
+                        <p class="mb-0">
+                            <a href="{{ url_for('auth.register') }}" class="text-decoration-none">
+                                Don't have an account? Register
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help Text -->
+            <div class="card mt-3 bg-light border-0">
+                <div class="card-body">
+                    <h6 class="mb-2">
+                        <i class="bi bi-info-circle"></i> What happens next?
+                    </h6>
+                    <ul class="mb-0 small text-muted">
+                        <li>You'll receive an email with a password reset link</li>
+                        <li>The link will be valid for 24 hours</li>
+                        <li>Click the link to create a new password</li>
+                        <li>If you don't receive an email, check your spam folder</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

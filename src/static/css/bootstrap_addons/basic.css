@@ -100,3 +100,120 @@
 .border-dark {
   border-color: var(--bs-dark) !important;
 }
+
+/* ============================================
+   Display Utilities
+   ============================================ */
+
+.d-inline-form {
+  display: inline !important;
+}
+
+.d-none {
+  display: none !important;
+}
+
+.d-block {
+  display: block !important;
+}
+
+/* ============================================
+   Sizing Utilities
+   ============================================ */
+
+.max-w-300 {
+  max-width: 300px !important;
+}
+
+.max-h-300 {
+  max-height: 300px !important;
+}
+
+.max-h-400 {
+  max-height: 400px !important;
+}
+
+.max-h-500 {
+  max-height: 500px !important;
+}
+
+.max-h-600 {
+  max-height: 600px !important;
+}
+
+.min-h-350 {
+  min-height: 350px !important;
+}
+
+.min-h-400 {
+  min-height: 400px !important;
+}
+
+.h-10px {
+  height: 10px !important;
+}
+
+.h-20px {
+  height: 20px !important;
+}
+
+.h-350 {
+  height: 350px !important;
+}
+
+.w-auto {
+  width: auto !important;
+}
+
+/* ============================================
+   Overflow Utilities
+   ============================================ */
+
+.overflow-y-auto {
+  overflow-y: auto !important;
+}
+
+.overflow-auto {
+  overflow: auto !important;
+}
+
+/* ============================================
+   Font & Text Utilities
+   ============================================ */
+
+.fs-3rem {
+  font-size: 3rem !important;
+}
+
+.fs-2rem {
+  font-size: 2rem !important;
+}
+
+.text-muted-light {
+  color: #ccc !important;
+}
+
+.font-monospace {
+  font-family: 'Courier New', monospace !important;
+}
+
+.fs-09rem {
+  font-size: 0.9rem !important;
+}
+
+.word-break-all {
+  word-break: break-word !important;
+}
+
+.whitespace-pre-wrap {
+  white-space: pre-wrap !important;
+}
+
+/* ============================================
+   Resize Utilities
+   ============================================ */
+
+.resize-vertical {
+  resize: vertical !important;
+}
+

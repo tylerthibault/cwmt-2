@@ -1,0 +1,179 @@
+<!-- PRICING SECTION -->
+<!-- Follows style guide: NO inline styles, uses CSS classes, accessible markup -->
+<section class="pricing" aria-labelledby="pricing-heading">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/public/landing/pricing.css') }}">
+	
+	<div class="container">
+		<!-- Header -->
+		<div class="pricing__header">
+			<p class="pricing__eyebrow">Transparent Pricing</p>
+			<h2 id="pricing-heading" class="pricing__title">Choose Your Course</h2>
+			<p class="pricing__subtitle">
+				Clear pricing with no hidden fees. All courses include gear and certification.
+			</p>
+		</div>
+		
+		<!-- Pricing Cards -->
+		<div class="row g-4" role="list">
+			<!-- Basic Course -->
+			<div class="col-lg-4" role="listitem">
+				<article class="pricing-card">
+					<div class="pricing-card__header">
+						<h3 class="pricing-card__name">Basic Rider</h3>
+						<p class="pricing-card__description">Perfect for beginners</p>
+						<div class="pricing-card__price">
+							<span class="pricing-card__currency">$</span>
+							<span class="pricing-card__amount">299</span>
+						</div>
+						<p class="pricing-card__note">2-day course</p>
+					</div>
+					
+					<ul class="pricing-card__features">
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">8 hours classroom instruction</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">12 hours riding practice</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">All safety gear provided</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">Motorcycle use included</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">State certification exam</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon pricing-card__feature-icon--unavailable" aria-hidden="true">✗</span>
+							<span class="pricing-card__feature-text pricing-card__feature-text--unavailable">Advanced techniques</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon pricing-card__feature-icon--unavailable" aria-hidden="true">✗</span>
+							<span class="pricing-card__feature-text pricing-card__feature-text--unavailable">One-on-one coaching</span>
+						</li>
+					</ul>
+					
+					<a href="/register?course=basic" class="pricing-card__cta pricing-card__cta--secondary">
+						Get Started
+					</a>
+				</article>
+			</div>
+			
+			<!-- Standard Course (Featured/Best Value) -->
+			<div class="col-lg-4" role="listitem">
+				<article class="pricing-card pricing-card--featured">
+					<div class="pricing-card__badge">Best Value</div>
+					
+					<div class="pricing-card__header">
+						<h3 class="pricing-card__name">Standard Rider</h3>
+						<p class="pricing-card__description">Most popular choice</p>
+						<div class="pricing-card__price">
+							<span class="pricing-card__currency">$</span>
+							<span class="pricing-card__amount">449</span>
+						</div>
+						<p class="pricing-card__note">3-day course</p>
+					</div>
+					
+					<ul class="pricing-card__features">
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">12 hours classroom instruction</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">18 hours riding practice</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">All safety gear provided</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">Motorcycle use included</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">State certification exam</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">Advanced techniques</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon pricing-card__feature-icon--unavailable" aria-hidden="true">✗</span>
+							<span class="pricing-card__feature-text pricing-card__feature-text--unavailable">One-on-one coaching</span>
+						</li>
+					</ul>
+					
+					<a href="/register?course=standard" class="pricing-card__cta pricing-card__cta--primary">
+						Enroll Now
+					</a>
+				</article>
+			</div>
+			
+			<!-- Premium Course -->
+			<div class="col-lg-4" role="listitem">
+				<article class="pricing-card">
+					<div class="pricing-card__header">
+						<h3 class="pricing-card__name">Premium Rider</h3>
+						<p class="pricing-card__description">Ultimate training experience</p>
+						<div class="pricing-card__price">
+							<span class="pricing-card__currency">$</span>
+							<span class="pricing-card__amount">699</span>
+						</div>
+						<p class="pricing-card__note">5-day course</p>
+					</div>
+					
+					<ul class="pricing-card__features">
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">16 hours classroom instruction</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">24 hours riding practice</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">All safety gear provided</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">Motorcycle use included</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">State certification exam</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">Advanced techniques</span>
+						</li>
+						<li class="pricing-card__feature">
+							<span class="pricing-card__feature-icon" aria-hidden="true">✓</span>
+							<span class="pricing-card__feature-text">One-on-one coaching</span>
+						</li>
+					</ul>
+					
+					<a href="/register?course=premium" class="pricing-card__cta pricing-card__cta--secondary">
+						Get Started
+					</a>
+				</article>
+			</div>
+		</div>
+		
+		<!-- Footer Note -->
+		<div class="pricing__footer">
+			<p class="pricing__footer-text">
+				All courses include state certification exam and lifetime access to course materials.<br>
+				Need help choosing? <a href="/contact" class="pricing__footer-link">Contact us</a> for personalized recommendations.
+			</p>
+		</div>
+	</div>
+</section>

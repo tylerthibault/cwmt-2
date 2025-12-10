@@ -1,0 +1,220 @@
+{# Admin Dashboard - Pending Items #}
+<div class="ad-card">
+    <div class="ad-card-header">
+        <h2 class="ad-card-title">Pending Items</h2>
+        <p class="ad-card-subtitle">Items requiring attention</p>
+    </div>
+    <div class="ad-card-body">
+        {% if pending_items and pending_items|length > 0 %}
+            <div class="ad-pending-list">
+                {% for item in pending_items %}
+                <div class="ad-pending-item" data-priority="{{ item.priority|default('normal') }}">
+                    <div class="ad-pending-icon ad-pending-{{ item.type|default('default') }}">
+                        {% if item.type == 'registration' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                                <line x1="20" y1="8" x2="20" y2="14"></line>
+                                <line x1="23" y1="11" x2="17" y2="11"></line>
+                            </svg>
+                        {% elif item.type == 'payment' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                        {% elif item.type == 'document' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        {% elif item.type == 'approval' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        {% else %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <div class="ad-pending-content">
+                        <div class="ad-pending-title">{{ item.title }}</div>
+                        <div class="ad-pending-desc">{{ item.description }}</div>
+                        <div class="ad-pending-meta">
+                            {% if item.student_name %}
+                                <span class="ad-pending-student">{{ item.student_name }}</span>
+                            {% endif %}
+                            <span class="ad-pending-time">{{ item.time_ago|default('Just now') }}</span>
+                        </div>
+                    </div>
+                    <div class="ad-pending-actions">
+                        {% if item.action_url %}
+                            <a href="{{ item.action_url }}" class="ad-pending-btn ad-pending-btn-primary">
+                                Review
+                            </a>
+                        {% endif %}
+                        {% if item.priority == 'high' %}
+                            <span class="ad-priority-badge ad-priority-high">Urgent</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="ad-card-footer">
+                <a href="#" class="ad-link-primary">View all pending items →</a>
+            </div>
+        {% else %}
+            <div class="ad-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <p class="ad-empty-text">All caught up! No pending items.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.ad-pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ad-pending-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #E5E5E7;
+    transition: all 0.2s ease;
+}
+
+.ad-pending-item:last-child {
+    border-bottom: none;
+}
+
+.ad-pending-item:hover {
+    background: #F5F5F7;
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.ad-pending-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.ad-pending-registration { background: linear-gradient(135deg, #007AFF, #5AC8FA); }
+.ad-pending-payment { background: linear-gradient(135deg, #34C759, #30D158); }
+.ad-pending-document { background: linear-gradient(135deg, #FF9500, #FFCC00); }
+.ad-pending-approval { background: linear-gradient(135deg, #AF52DE, #BF5AF2); }
+.ad-pending-default { background: linear-gradient(135deg, #86868B, #A1A1A6); }
+
+.ad-pending-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ad-pending-title {
+    font-size: 0.938rem;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 0.25rem;
+}
+
+.ad-pending-desc {
+    font-size: 0.875rem;
+    color: #86868B;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.ad-pending-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: #A1A1A6;
+}
+
+.ad-pending-student {
+    color: #007AFF;
+    font-weight: 500;
+}
+
+.ad-pending-time::before {
+    content: '•';
+    margin-right: 0.5rem;
+    color: #D1D1D6;
+}
+
+.ad-pending-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.ad-pending-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ad-pending-btn-primary {
+    background: #007AFF;
+    color: white;
+}
+
+.ad-pending-btn-primary:hover {
+    background: #0051D5;
+    color: white;
+}
+
+.ad-priority-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    font-size: 0.688rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ad-priority-high {
+    background: #FFE5E5;
+    color: #D70015;
+}
+
+.ad-card-footer {
+    padding-top: 1rem;
+    border-top: 1px solid #E5E5E7;
+    text-align: center;
+}
+
+.ad-link-primary {
+    color: #007AFF;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.ad-link-primary:hover {
+    opacity: 0.7;
+}
+</style>

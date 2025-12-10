@@ -1,0 +1,604 @@
+{% extends "bases/private.html" %}
+
+{% block title %}{{ page_title }} - CWMT{% endblock %}
+
+{% block content %}
+<div class="container-fluid students-edit-apple">
+    <!-- Back Button and Header -->
+    <div class="st-header">
+        <div>
+            <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}" class="st-back-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 13L5 8L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                Back to Student Details
+            </a>
+            <h1 class="st-title">{{ page_title }}</h1>
+            <p class="st-subtitle">Update student profile information</p>
+        </div>
+    </div>
+
+    <div class="st-content-grid">
+        <!-- Main Form Column -->
+        <div class="st-main-column">
+            <!-- Edit Profile Card -->
+            <div class="st-card">
+                <div class="st-card-header">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M14 3L17 6L6 17H3V14L14 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    <h5 class="st-card-title">Edit Profile</h5>
+                </div>
+                <div class="st-card-body">
+                    <form method="POST" action="{{ url_for('user_admin.edit_student', student_id=student.id) }}" class="st-form">
+                        <!-- Student Number -->
+                        <div class="st-form-group">
+                            <label for="student_number" class="st-label">
+                                Student Number <span class="st-required">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="st-input" 
+                                   id="student_number" 
+                                   name="student_number" 
+                                   value="{{ student.student_number or '' }}" 
+                                   required>
+                            <small class="st-help-text">Unique identifier for the student</small>
+                        </div>
+
+                        <!-- Grade Level -->
+                        <div class="st-form-group">
+                            <label for="grade_level" class="st-label">
+                                Grade Level
+                            </label>
+                            <select class="st-select" id="grade_level" name="grade_level">
+                                <option value="">Not Set</option>
+                                <option value="Beginner" {% if student.grade_level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                <option value="Intermediate" {% if student.grade_level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                <option value="Advanced" {% if student.grade_level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                                <option value="Expert" {% if student.grade_level == 'Expert' %}selected{% endif %}>Expert</option>
+                            </select>
+                            <small class="st-help-text">Student's current skill level</small>
+                        </div>
+
+                        <div class="st-divider"></div>
+
+                        <!-- Emergency Contact Section -->
+                        <h6 class="st-section-subtitle">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                <path d="M16.5 12.75v2.25a1.5 1.5 0 01-1.636 1.5A14.858 14.858 0 011.5 3.136 1.5 1.5 0 013 1.5h2.25a1.5 1.5 0 011.5 1.286 9.638 9.638 0 00.525 2.1 1.5 1.5 0 01-.337 1.584l-.954.954a12 12 0 005.625 5.625l.954-.954a1.5 1.5 0 011.584-.337 9.638 9.638 0 002.1.525 1.5 1.5 0 011.286 1.5z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Emergency Contact Information
+                        </h6>
+
+                        <!-- Emergency Contact Name -->
+                        <div class="st-form-group">
+                            <label for="emergency_contact_name" class="st-label">
+                                Emergency Contact Name
+                            </label>
+                            <input type="text" 
+                                   class="st-input" 
+                                   id="emergency_contact_name" 
+                                   name="emergency_contact_name" 
+                                   value="{{ student.emergency_contact_name or '' }}"
+                                   placeholder="e.g., John Doe">
+                            <small class="st-help-text">Name of person to contact in case of emergency</small>
+                        </div>
+
+                        <!-- Emergency Contact Phone -->
+                        <div class="st-form-group">
+                            <label for="emergency_contact_phone" class="st-label">
+                                Emergency Contact Phone
+                            </label>
+                            <input type="tel" 
+                                   class="st-input" 
+                                   id="emergency_contact_phone" 
+                                   name="emergency_contact_phone" 
+                                   value="{{ student.emergency_contact_phone or '' }}"
+                                   placeholder="e.g., (555) 123-4567"
+                                   pattern="[\d\s\-\(\)\.+]+">
+                            <small class="st-help-text">Phone number to reach emergency contact</small>
+                        </div>
+
+                        <div class="st-divider"></div>
+
+                        <!-- Read-only Info -->
+                        <div class="st-info-box">
+                            <div class="st-info-header">
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                    <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M9 12V9M9 6h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span>User Account Information</span>
+                            </div>
+                            <div class="st-info-content">
+                                <p><strong>Name:</strong> {{ student.user.first_name }} {{ student.user.last_name }}</p>
+                                <p><strong>Email:</strong> {{ student.user.email }}</p>
+                                <p><strong>Username:</strong> @{{ student.user.username }}</p>
+                                <p class="st-info-note">To edit user account details, go to User Management</p>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="st-form-actions">
+                            <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}" 
+                               class="st-btn st-btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="st-btn st-btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                                    <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Academic Performance Card -->
+            <div class="st-card">
+                <div class="st-card-header">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M3 17l4-4 4 4 6-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="17" cy="3" r="2" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    <h5 class="st-card-title">Academic Performance (Read-only)</h5>
+                </div>
+                <div class="st-card-body">
+                    <div class="st-stats-row">
+                        <div class="st-stat-item">
+                            <div class="st-stat-value st-stat-primary">{{ "%.1f"|format(student.overall_score) }}%</div>
+                            <div class="st-stat-label">Overall Score</div>
+                        </div>
+                        <div class="st-stat-item">
+                            <div class="st-stat-value st-stat-success">
+                                {% set completed = student.course_enrollments|selectattr('status', 'equalto', 'completed')|list|length %}
+                                {{ completed }}
+                            </div>
+                            <div class="st-stat-label">Completed Courses</div>
+                        </div>
+                        <div class="st-stat-item">
+                            <div class="st-stat-value st-stat-info">
+                                {% set active = student.course_enrollments|selectattr('status', 'equalto', 'active')|list|length %}
+                                {{ active }}
+                            </div>
+                            <div class="st-stat-label">Active Enrollments</div>
+                        </div>
+                    </div>
+                    <div class="st-note-box">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M8 11V8M8 5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>Academic scores are calculated automatically based on course performance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="st-sidebar-column">
+            <div class="st-card st-help-card">
+                <div class="st-card-header">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M10 14v-4M10 6h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <h5 class="st-card-title">Editing Guidelines</h5>
+                </div>
+                <div class="st-card-body">
+                    <div class="st-help-item">
+                        <strong>Student Number</strong>
+                        <p>A unique identifier for the student (e.g., STU00123). This is required and should not be changed once set.</p>
+                    </div>
+
+                    <div class="st-help-item">
+                        <strong>Grade Level</strong>
+                        <p>Indicates the student's skill level. This helps instructors understand their experience.</p>
+                    </div>
+
+                    <div class="st-help-item">
+                        <strong>Emergency Contact</strong>
+                        <p>Important for safety. Ensure this information is up-to-date and accurate.</p>
+                    </div>
+
+                    <div class="st-divider"></div>
+
+                    <div class="st-help-item">
+                        <strong>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: middle;">
+                                <path d="M8 1.5L13 4V8C13 11 11 13 8 15C5 13 3 11 3 8V4L8 1.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            Note
+                        </strong>
+                        <p>Academic scores and enrollment data cannot be edited from this form. To manage enrollments, vehicle information, or scores, visit the 
+                        <a href="{{ url_for('user_admin.student_detail', student_id=student.id) }}">Student Details</a> page.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Apple-inspired Student Edit Styles */
+    .students-edit-apple {
+        padding: 2rem;
+        background: #F5F5F7;
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .st-header {
+        margin-bottom: 2rem;
+    }
+
+    .st-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007AFF;
+        text-decoration: none;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        transition: opacity 0.2s ease;
+    }
+
+    .st-back-link:hover {
+        opacity: 0.7;
+        color: #007AFF;
+    }
+
+    .st-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1D1D1F;
+        margin: 0;
+        letter-spacing: -0.03em;
+    }
+
+    .st-subtitle {
+        font-size: 1.125rem;
+        color: #86868B;
+        margin: 0.25rem 0 0 0;
+    }
+
+    /* Content Grid */
+    .st-content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .st-content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Card */
+    .st-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .st-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #F5F5F7;
+        background: #FAFAFA;
+    }
+
+    .st-card-header svg {
+        color: #007AFF;
+    }
+
+    .st-card-title {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 0;
+    }
+
+    .st-card-body {
+        padding: 1.5rem;
+    }
+
+    /* Form */
+    .st-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .st-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .st-label {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: #1D1D1F;
+    }
+
+    .st-required {
+        color: #FF3B30;
+    }
+
+    .st-input,
+    .st-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid #D1D1D6;
+        border-radius: 10px;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        background: white;
+        color: #1D1D1F;
+    }
+
+    .st-input:focus,
+    .st-select:focus {
+        outline: none;
+        border-color: #007AFF;
+        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    }
+
+    .st-help-text {
+        font-size: 0.8125rem;
+        color: #86868B;
+    }
+
+    /* Divider */
+    .st-divider {
+        height: 1px;
+        background: #E5E5EA;
+        margin: 1rem 0;
+    }
+
+    /* Section Subtitle */
+    .st-section-subtitle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .st-section-subtitle svg {
+        color: #007AFF;
+    }
+
+    /* Info Box */
+    .st-info-box {
+        background: #E3F2FD;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #BBDEFB;
+    }
+
+    .st-info-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 1.25rem;
+        background: #BBDEFB;
+        font-weight: 600;
+        color: #0D47A1;
+    }
+
+    .st-info-header svg {
+        color: #0D47A1;
+    }
+
+    .st-info-content {
+        padding: 1rem 1.25rem;
+    }
+
+    .st-info-content p {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9375rem;
+        color: #1D1D1F;
+    }
+
+    .st-info-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    .st-info-note {
+        font-size: 0.8125rem !important;
+        color: #757575 !important;
+        margin-top: 0.5rem !important;
+    }
+
+    /* Form Actions */
+    .st-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 0.5rem;
+    }
+
+    .st-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .st-btn-primary {
+        background: #007AFF;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+    }
+
+    .st-btn-primary:hover {
+        background: #0051D5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+        color: white;
+    }
+
+    .st-btn-secondary {
+        background: white;
+        color: #1D1D1F;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .st-btn-secondary:hover {
+        background: #F5F5F7;
+        transform: translateY(-1px);
+        color: #1D1D1F;
+    }
+
+    /* Stats Row */
+    .st-stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .st-stats-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    .st-stat-item {
+        text-align: center;
+    }
+
+    .st-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .st-stat-primary {
+        color: #007AFF;
+    }
+
+    .st-stat-success {
+        color: #34C759;
+    }
+
+    .st-stat-info {
+        color: #5AC8FA;
+    }
+
+    .st-stat-label {
+        font-size: 0.875rem;
+        color: #86868B;
+    }
+
+    /* Note Box */
+    .st-note-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #F5F5F7;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        color: #3C3C43;
+    }
+
+    .st-note-box svg {
+        flex-shrink: 0;
+        color: #007AFF;
+        margin-top: 0.125rem;
+    }
+
+    /* Help Card */
+    .st-help-card {
+        position: sticky;
+        top: 2rem;
+    }
+
+    .st-help-item {
+        margin-bottom: 1.25rem;
+    }
+
+    .st-help-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .st-help-item strong {
+        display: block;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin-bottom: 0.375rem;
+    }
+
+    .st-help-item p {
+        font-size: 0.875rem;
+        color: #86868B;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .st-help-item a {
+        color: #007AFF;
+        text-decoration: none;
+    }
+
+    .st-help-item a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .students-edit-apple {
+            padding: 1rem;
+        }
+
+        .st-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const studentNumber = document.getElementById('student_number').value.trim();
+    
+    if (!studentNumber) {
+        e.preventDefault();
+        alert('Student Number is required');
+        document.getElementById('student_number').focus();
+        return false;
+    }
+});
+
+// Phone number formatting (optional enhancement)
+document.getElementById('emergency_contact_phone').addEventListener('blur', function() {
+    let phone = this.value.replace(/\D/g, '');
+    if (phone.length === 10) {
+        this.value = `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+    }
+});
+</script>
+{% endblock %}
