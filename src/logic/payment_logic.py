@@ -347,14 +347,21 @@ class PaymentLogic:
         # Allocate payment to line items
         remaining_amount = amount
         
+        print(f"PAYMENT ALLOCATION: Processing {len(line_items)} line items with ${remaining_amount} to allocate", flush=True)
+        
         for line_item in line_items:
             amount_due = line_item.total - line_item.amount_paid
             
+            print(f"PAYMENT ALLOCATION: Line item {line_item.id} - Total: ${line_item.total}, Paid: ${line_item.amount_paid}, Due: ${amount_due}, Status: {line_item.status}", flush=True)
+            
             if amount_due <= 0:
+                print(f"PAYMENT ALLOCATION: Line item {line_item.id} already paid, skipping", flush=True)
                 continue
             
             # Allocate up to the amount due
             allocation_amount = min(remaining_amount, amount_due)
+            
+            print(f"PAYMENT ALLOCATION: Allocating ${allocation_amount} to line item {line_item.id}", flush=True)
             
             # Create allocation
             allocation = PaymentAllocation(
@@ -366,17 +373,27 @@ class PaymentLogic:
             db.session.add(allocation)
             
             # Update line item
+            old_amount_paid = line_item.amount_paid
             line_item.amount_paid += allocation_amount
+            
+            print(f"PAYMENT ALLOCATION: Line item {line_item.id} amount_paid updated from ${old_amount_paid} to ${line_item.amount_paid}", flush=True)
             
             if line_item.amount_paid >= line_item.total:
                 line_item.status = 'paid'
+                print(f"PAYMENT ALLOCATION: Line item {line_item.id} marked as PAID", flush=True)
+            else:
+                print(f"PAYMENT ALLOCATION: Line item {line_item.id} still pending (${line_item.amount_paid}/${line_item.total})", flush=True)
             
             remaining_amount -= allocation_amount
             
             if remaining_amount <= 0:
+                print(f"PAYMENT ALLOCATION: All payment allocated, stopping", flush=True)
                 break
         
+        print(f"PAYMENT ALLOCATION: Committing changes to database", flush=True)
         db.session.commit()
+        print(f"PAYMENT ALLOCATION: Payment {payment.id} recorded successfully", flush=True)
+        
         return payment
     
     @staticmethod

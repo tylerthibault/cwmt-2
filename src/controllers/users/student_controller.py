@@ -171,9 +171,19 @@ def view_course(course_id):
         payment_summary = PaymentLogic.get_enrollment_payment_summary(enrollment.id)
         line_items = PaymentLogic.get_enrollment_line_items(enrollment.id)
         
+        # Debug logging
+        print(f"VIEW COURSE: Enrollment {enrollment.id} payment summary - Total: ${payment_summary['total_amount']}, Paid: ${payment_summary['amount_paid']}, Due: ${payment_summary['amount_due']}", flush=True)
+        print(f"VIEW COURSE: Found {len(line_items)} line items", flush=True)
+        for item in line_items:
+            print(f"VIEW COURSE: Line item {item.id} - Total: ${item.total}, Paid: ${item.amount_paid}, Status: {item.status}", flush=True)
+        
         # Get payment history including failed payments
         from src.models.payment_models import Payment
         payment_history = Payment.query.filter_by(enrollment_id=enrollment.id).order_by(Payment.payment_date.desc()).all()
+        
+        print(f"VIEW COURSE: Found {len(payment_history)} payment records", flush=True)
+        for payment in payment_history:
+            print(f"VIEW COURSE: Payment {payment.id} - Amount: ${payment.amount}, Status: {payment.status}, Method: {payment.payment_method}", flush=True)
         
         context = {
             'user': logbook_entry.user,
