@@ -1,48 +1,124 @@
 /**
- * Public Header Styles
- * Responsive navigation for public pages
+ * Modern Public Header
  */
 
 .navbar {
-  padding: 0.5rem 1rem;
+  position: relative;
+
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-light);
+
+  background: var(--surface-base);
+  backdrop-filter: blur(10px);
+
+  transition: all var(--transition-base);
 }
 
-@media (min-width: 768px) {
-  .navbar {
-    padding: 1rem 1.5rem;
-  }
+.navbar-brand {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+
+  color: var(--brand-primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+
+  transition: color var(--transition-fast);
 }
 
-/* Mobile menu improvements */
+.navbar-brand:hover {
+  color: var(--brand-accent);
+}
+
+.navbar-toggler {
+  padding: 0.5rem;
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--text-primary);
+
+  transition: all var(--transition-base);
+}
+
+.navbar-toggler:hover {
+  border-color: var(--brand-primary);
+  background: var(--neutral-50);
+}
+
+.navbar-toggler:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 41, 66, 0.1);
+}
+
+/* Navigation Links */
+.navbar-nav {
+  gap: 0.25rem;
+}
+
+.nav-link {
+  position: relative;
+
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-md);
+
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+
+  transition: all var(--transition-base);
+}
+
+.nav-link:hover {
+  color: var(--brand-primary);
+  background: var(--neutral-100);
+}
+
+.nav-link.active {
+  color: var(--brand-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0.25rem;
+  left: 1rem;
+  right: 1rem;
+
+  height: 2px;
+
+  background: var(--brand-accent);
+  border-radius: 2px;
+}
+
+/* Mobile menu */
 @media (max-width: 991px) {
   .navbar-collapse {
     margin-top: 1rem;
-    padding: 1rem 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+
+    background: var(--neutral-50);
   }
   
   .navbar-nav {
     gap: 0.5rem;
   }
   
-  .navbar-nav .nav-link {
-    padding: 0.75rem 0;
+  .nav-link {
+    padding: 0.75rem 1rem;
+  }
+  
+  .nav-link.active::after {
+    display: none;
   }
 }
 
-/* Desktop menu improvements */
+/* Desktop enhancements */
 @media (min-width: 992px) {
-  .navbar-nav {
-    gap: 0.5rem;
-  }
-  
-  .navbar-nav .nav-link {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-  }
-  
-  .navbar-nav .nav-link:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  .navbar {
+    padding: 1.25rem 0;
   }
 }

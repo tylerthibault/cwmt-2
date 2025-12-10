@@ -11,25 +11,29 @@
 
     padding: 0;
     margin: 0;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
 
-    background-color: var(--bg-primary);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-sm);
 
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+
+    transition: all var(--transition-base);
 }
 
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
 
 /* Card Header */
 .card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
 
-    background-color: var(--bg-secondary);
+    background: linear-gradient(180deg, var(--neutral-50) 0%, var(--surface-base) 100%);
     color: var(--text-primary);
     font-size: 1.125rem;
     font-weight: 600;
@@ -335,11 +339,11 @@
 
 /* Card with Shadow */
 .card-shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .card-shadow:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
 }
 
 /* Clickable Card */
