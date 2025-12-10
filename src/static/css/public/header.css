@@ -1,0 +1,48 @@
+/**
+ * Public Header Styles
+ * Responsive navigation for public pages
+ */
+
+.navbar {
+  padding: 0.5rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .navbar {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Mobile menu improvements */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    margin-top: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.75rem 0;
+  }
+}
+
+/* Desktop menu improvements */
+@media (min-width: 992px) {
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
