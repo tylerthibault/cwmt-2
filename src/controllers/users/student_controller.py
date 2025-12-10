@@ -81,8 +81,7 @@ def view_course(course_id):
     """
     View details of a specific enrolled course
     """
-    import logging
-    current_app.logger = logging.getcurrent_app.logger(__name__)
+    from src.utils.logger import Logger
     
     try:
         # Get current user
@@ -92,8 +91,6 @@ def view_course(course_id):
         if not logbook_entry or not logbook_entry.user_id:
             flash("Session expired. Please log in again.", "error")
             return redirect(url_for('auth.login'))
-        
-        current_app.logger.info(f"User {logbook_entry.user_id} accessed course details for course {course_id}")
         
         user_id = logbook_entry.user_id
         student_profile = StudentLogic.get_student_profile(user_id)
@@ -121,14 +118,14 @@ def view_course(course_id):
         # Check if returning from Stripe payment (payment_intent in query params)
         payment_intent_id = request.args.get('payment_intent')
         if payment_intent_id:
-            current_app.logger.info(f"Detected return from Stripe with payment_intent: {payment_intent_id}")
+            Logger.info(f"Detected return from Stripe with payment_intent: {payment_intent_id}")
             try:
                 # Initialize Stripe
                 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
                 
                 # Retrieve the payment intent from Stripe
                 intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-                current_app.logger.info(f"Payment intent status: {intent.status}")
+                Logger.info(f"Payment intent status: {intent.status}")
                 
                 # If payment succeeded and not already recorded
                 if intent.status == 'succeeded':
@@ -139,7 +136,7 @@ def view_course(course_id):
                     ).first()
                     
                     if not existing_payment:
-                        current_app.logger.info("Payment succeeded but not recorded - processing now")
+                        Logger.info("Payment succeeded but not recorded - processing now")
                         # Extract metadata and record payment
                         metadata = intent.metadata
                         enrollment_id = metadata.get('enrollment_id')
@@ -160,13 +157,13 @@ def view_course(course_id):
                             )
                             
                             flash("Payment successful! Your items have been paid.", "success")
-                            current_app.logger.info(f"Payment recorded successfully for intent {payment_intent_id}")
+                            Logger.info(f"Payment recorded successfully for intent {payment_intent_id}")
                     else:
-                        current_app.logger.info("Payment already recorded")
+                        Logger.info("Payment already recorded")
                         flash("Payment confirmed!", "success")
                         
             except Exception as e:
-                current_app.logger.error(f"Error checking payment intent: {str(e)}", exc_info=True)
+                Logger.error(f"Error checking payment intent: {str(e)}", exc_info=True)
                 flash("Payment may be processing. Please refresh if items still show as pending.", "info")
         
         # Get payment information for this enrollment
@@ -191,7 +188,7 @@ def view_course(course_id):
         return render_template('private/student/my_course/index.html', **context)
         
     except Exception as e:
-        current_app.logger.error(f"Error loading course details for course {course_id}: {str(e)}", exc_info=True)
+        Logger.error(f"Error loading course details for course {course_id}: {str(e)}", exc_info=True)
         flash("Unable to load course details. Please try again.", "error")
         return redirect(url_for('student.dashboard'))
 
@@ -217,19 +214,13 @@ def available_courses():
         # Get available courses (scheduled, not full, in the future)
         all_available = CourseLogic.get_available_courses()
         
-        # Debug: Log what we got
-        from flask import current_app
-        current_app.current_app.logger.info(f"Total available courses from CourseLogic: {len(all_available)}")
-        
         # Get student's current ACTIVE enrollments to filter out (allow re-enrollment if withdrawn)
         active_enrolled_course_ids = []
         if student_profile:
             enrollments = StudentLogic.get_student_courses(student_profile.id)
             active_enrolled_course_ids = [e.course_id for e in enrollments if e.status not in ['withdrawn', 'cancelled']]
-            current_app.current_app.logger.info(f"Student has {len(active_enrolled_course_ids)} active enrollments to filter out")
         
         available_courses = [c for c in all_available if c.id not in active_enrolled_course_ids]
-        current_app.current_app.logger.info(f"Available courses for student after filtering: {len(available_courses)}")
         
         context = {
             'user': logbook_entry.user,
@@ -751,11 +742,11 @@ def stripe_webhook():
         print(f"Signature present: {bool(sig_header)}", flush=True)
         print(f"Payload size: {len(payload)} bytes", flush=True)
         
-        current_app.logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
-        current_app.logger.info(f"Signature present: {bool(sig_header)}")
-        current_app.logger.info(f"Payload size: {len(payload)} bytes")
-        current_app.logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
-        current_app.logger.info(f"User-Agent: {request.headers.get('User-Agent')}")
+        Logger.info(f"===== STRIPE WEBHOOK RECEIVED =====")
+        Logger.info(f"Signature present: {bool(sig_header)}")
+        Logger.info(f"Payload size: {len(payload)} bytes")
+        Logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
+        Logger.info(f"User-Agent: {request.headers.get('User-Agent')}")
         
         # Log the event type if we can parse it
         try:
@@ -763,33 +754,33 @@ def stripe_webhook():
             event_data = json.loads(payload)
             print(f"Event type: {event_data.get('type', 'unknown')}", flush=True)
             print(f"Event ID: {event_data.get('id', 'unknown')}", flush=True)
-            current_app.logger.info(f"Event type: {event_data.get('type', 'unknown')}")
-            current_app.logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
+            Logger.info(f"Event type: {event_data.get('type', 'unknown')}")
+            Logger.info(f"Event ID: {event_data.get('id', 'unknown')}")
         except Exception as parse_err:
             print(f"Failed to parse payload: {parse_err}", flush=True)
         
         if not sig_header:
             print("ERROR: Missing Stripe signature", flush=True)
-            current_app.logger.error("Missing Stripe signature in webhook")
+            Logger.error("Missing Stripe signature in webhook")
             return jsonify({'error': 'Missing signature'}), 400
         
         result = PaymentLogic.process_stripe_webhook(payload, sig_header)
         print(f"Webhook processed successfully: {result}", flush=True)
         print("=" * 100, flush=True)
-        current_app.logger.info(f"Webhook processed successfully: {result}")
-        current_app.logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
+        Logger.info(f"Webhook processed successfully: {result}")
+        Logger.info(f"===== WEBHOOK PROCESSING COMPLETE =====")
         
         return jsonify(result), 200
         
     except PaymentBusinessError as e:
         print(f"WEBHOOK ERROR - Payment business error: {str(e)}", flush=True)
         print("=" * 100, flush=True)
-        current_app.logger.error(f"Payment business error in webhook: {str(e)}")
+        Logger.error(f"Payment business error in webhook: {str(e)}")
         return jsonify({'error': 'Payment processing error'}), 400
     except Exception as e:
         print(f"WEBHOOK ERROR - Unexpected error: {str(e)}", flush=True)
         print("=" * 100, flush=True)
-        current_app.logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
+        Logger.error(f"Unexpected webhook error: {str(e)}", exc_info=True)
         return jsonify({'error': 'Webhook processing failed'}), 500
 
 
