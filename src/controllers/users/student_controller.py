@@ -273,13 +273,15 @@ def enroll_in_course(course_id):
             
             if enrollment:
                 # Update with vehicle information from form
+                # Convert empty strings to None for integer fields
+                motorcycle_year = request.form.get('motorcycle_year', '').strip()
                 vehicle_data = {
                     'brings_motorcycle': request.form.get('brings_motorcycle') == 'on',
-                    'motorcycle_make': request.form.get('motorcycle_make'),
-                    'motorcycle_model': request.form.get('motorcycle_model'),
-                    'motorcycle_year': request.form.get('motorcycle_year'),
-                    'motorcycle_license_plate': request.form.get('motorcycle_license_plate'),
-                    'notes': request.form.get('notes')
+                    'motorcycle_make': request.form.get('motorcycle_make', '').strip() or None,
+                    'motorcycle_model': request.form.get('motorcycle_model', '').strip() or None,
+                    'motorcycle_year': int(motorcycle_year) if motorcycle_year else None,
+                    'motorcycle_license_plate': request.form.get('motorcycle_license_plate', '').strip() or None,
+                    'notes': request.form.get('notes', '').strip() or None
                 }
                 StudentLogic.update_enrollment(enrollment.id, vehicle_data)
         
@@ -325,13 +327,14 @@ def update_vehicle_info(course_id):
         if not enrollment:
             return jsonify({'success': False, 'message': 'Enrollment not found'}), 404
         
-        # Update vehicle data
+        # Update vehicle data - convert empty strings to None for integer fields
+        motorcycle_year = request.form.get('motorcycle_year', '').strip()
         vehicle_data = {
             'brings_motorcycle': request.form.get('brings_motorcycle') == 'true',
-            'motorcycle_make': request.form.get('motorcycle_make'),
-            'motorcycle_model': request.form.get('motorcycle_model'),
-            'motorcycle_year': request.form.get('motorcycle_year'),
-            'motorcycle_license_plate': request.form.get('motorcycle_license_plate')
+            'motorcycle_make': request.form.get('motorcycle_make', '').strip() or None,
+            'motorcycle_model': request.form.get('motorcycle_model', '').strip() or None,
+            'motorcycle_year': int(motorcycle_year) if motorcycle_year else None,
+            'motorcycle_license_plate': request.form.get('motorcycle_license_plate', '').strip() or None
         }
         
         StudentLogic.update_enrollment(enrollment.id, vehicle_data)

@@ -234,6 +234,9 @@ class StudentLogic:
         try:
             for key, value in update_data.items():
                 if hasattr(enrollment, key):
+                    # Convert empty strings to None for cleaner database storage
+                    if isinstance(value, str) and value.strip() == '':
+                        value = None
                     setattr(enrollment, key, value)
             db.session.commit()
             return enrollment
