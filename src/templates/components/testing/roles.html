@@ -1,0 +1,40 @@
+<div>
+    <!-- role change -->
+    <h3>Role Management</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>Add</th>
+                <th>Remove</th>
+                <th>Dashboard</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Student</td>
+                <td><a href="{{ url_for('student.student_status', user_id=current_user.id, status='add') }}" class="btn btn-sm btn-success">Become a Student</a></td>
+                <td><a href="{{ url_for('student.student_status', user_id=current_user.id, status='remove') }}" class="btn btn-sm btn-danger">Remove Student Role</a></td>
+                <td><a href="{{ url_for('student.dashboard') }}" class="btn btn-sm btn-primary">Go to Dashboard</a></td>
+            </tr>
+            <tr>
+                <td>Instructor</td>
+                <td><a href="{{ url_for('instructor.instructor_status', user_id=current_user.id, status='add') }}" class="btn btn-sm btn-success">Become an Instructor</a></td>
+                <td><a href="{{ url_for('instructor.instructor_status', user_id=current_user.id, status='remove') }}" class="btn btn-sm btn-danger">Remove Instructor Role</a></td>
+                <td><a href="{{ url_for('instructor.dashboard') }}" class="btn btn-sm btn-primary">Go to Dashboard</a></td>
+            </tr>
+            <tr>
+                <td>Admin</td>
+                <td><a href="{{ url_for('admin.admin_status', user_id=current_user.id, status='add') }}" class="btn btn-sm btn-success">Become an Admin</a></td>
+                <td><a href="{{ url_for('admin.admin_status', user_id=current_user.id, status='remove') }}" class="btn btn-sm btn-danger">Remove Admin Role</a></td>
+                <td><a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-primary">Go to Dashboard</a></td>
+            </tr>
+            <tr>
+                <td>Superuser</td>
+                <td><a href="{{ url_for('superuser.superuser_status', user_id=current_user.id, status='add') }}" class="btn btn-sm btn-success">Become a Superuser</a></td>
+                <td><a href="{{ url_for('superuser.superuser_status', user_id=current_user.id, status='remove') }}" class="btn btn-sm btn-danger">Remove Superuser Role</a></td>
+                <td><a href="{{ url_for('superuser.dashboard') }}" class="btn btn-sm btn-primary">Go to Dashboard</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

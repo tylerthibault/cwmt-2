@@ -1,0 +1,10 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+<div>
+    <h1>Superuser Dashboard</h1>
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+</div>
+
+{% include 'components/testing/roles.html' %}
+{% endblock content %}

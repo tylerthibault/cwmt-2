@@ -20,6 +20,11 @@ class Config:
     # Database configuration - stored in instance folder
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Stripe configuration
+    STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+    STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
     
     # Application settings
     APP_NAME = 'CWMT Flask Application'

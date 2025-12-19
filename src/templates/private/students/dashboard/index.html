@@ -1,0 +1,12 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+<div>
+    <h1 class="mt-4">Student Dashboard</h1>
+    <p>Welcome to your dashboard! Here you can access your courses, assignments, and profile settings.</p>
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+</div>
+
+{% include 'components/testing/roles.html' %}
+
+{% endblock content %}
