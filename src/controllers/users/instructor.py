@@ -20,7 +20,7 @@ def dashboard():
 
 @instructor_bp.route('/set-instructor/<int:user_id>/<status>', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('instructor', 'admin', 'superuser')
 def instructor_status(user_id, status='add'):
     """
         Route to set a user as an instructor.
@@ -54,8 +54,7 @@ def instructor_status(user_id, status='add'):
         existing_instructor.is_active = False
         existing_instructor.status_change_date = datetime.utcnow()
         existing_instructor.save()
-
-   
+        return redirect(url_for('auth.login'))
 
 
 

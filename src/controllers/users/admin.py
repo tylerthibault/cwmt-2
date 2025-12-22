@@ -20,7 +20,7 @@ def dashboard():
 
 @admin_bp.route('/set-admin/<int:user_id>/<status>', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'superuser')
 def admin_status(user_id, status='add'):
     """
         Route to set a user as an admin.
@@ -49,7 +49,7 @@ def admin_status(user_id, status='add'):
         # Delete the admin entry
         existing_admin.delete()
 
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('auth.login'))
 
 
 # ------------------------------------------------------

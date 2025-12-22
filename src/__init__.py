@@ -54,6 +54,9 @@ def init_blueprints(app):
 
     from src.controllers.users.superuser import superuser_bp
     app.register_blueprint(superuser_bp)
+
+    from src.controllers.seeding import seed_bp
+    app.register_blueprint(seed_bp)
     
     return app
 

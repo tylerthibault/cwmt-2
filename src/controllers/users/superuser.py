@@ -49,7 +49,7 @@ def superuser_status(user_id, status='add'):
         # Delete the superuser entry
         existing_superuser.delete()
 
-        return redirect(url_for('superuser.dashboard'))
+        return redirect(url_for('auth.dashboard'))
 
 
 # ------------------------------------------------------

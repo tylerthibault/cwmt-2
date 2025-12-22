@@ -65,6 +65,41 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="d-flex gap-3 justify-content-center mt-4 align-items-center">
+                    <a href="{{ url_for('seed.seed_superusers') }}">Seed Superusers</a>
+                    <a href="{{ url_for('seed.seed_admins') }}">Seed Admins</a>
+                    <a href="{{ url_for('seed.seed_instructors') }}">Seed Instructors</a>
+                    <a href="{{ url_for('seed.seed_students') }}">Seed Students</a>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in all_users %}
+                        <tr>
+                            <td>{{ user.first_name }}</td>
+                            <td>{{ user.last_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <form action="{{ url_for('auth.login') }}" method="post">
+                                    <input type="hidden" name="email" value="{{ user.email }}">
+                                    <input type="hidden" name="password" value="Pass123!!">
+                                    <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Login</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -20,7 +20,7 @@ def dashboard():
 
 @student_bp.route('/set-student/<int:user_id>/<status>', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('instructor', 'admin', 'superuser')
 def student_status(user_id, status='add'):
     """
         Route to set a user as a student.
@@ -53,7 +53,7 @@ def student_status(user_id, status='add'):
         # Delete the student entry
         existing_student.delete()
 
-        return redirect(url_for('student.dashboard'))
+        return redirect(url_for('auth.dashboard'))
 
 
 # ------------------------------------------------------

@@ -3,6 +3,7 @@ from datetime import datetime
 from src.models.user_folder.users import User
 from src.models.user_folder.students import Student
 from src.models.doorman import Doorman
+from src.utils.custom_decorators import login_required
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -11,8 +12,32 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login-reg')
 def loginReg():
     """Login page route."""
-    return render_template('public/auth/loginReg.html')
+    context = {
+        'all_users': User.query.all()
+    }
+    return render_template('public/auth/loginReg.html', **context)
 
+@auth_bp.route('/dashboard')
+@login_required
+def dashboard():
+    """Dashboard redirect route based on user role."""
+    if 'doorman_token' not in session:
+        return redirect(url_for('auth.loginReg'))
+
+    doorman = Doorman.get_by_token(session['doorman_token'])
+    if not doorman:
+        return redirect(url_for('auth.loginReg'))
+
+    user = doorman.user
+
+    if user.is_superuser:
+        return redirect(url_for('superuser.dashboard'))
+    elif user.is_admin:
+        return redirect(url_for('admin.dashboard'))
+    elif user.is_instructor:
+        return redirect(url_for('instructor.dashboard'))
+    else:
+        return redirect(url_for('student.dashboard'))
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
