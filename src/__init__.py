@@ -55,6 +55,13 @@ def init_blueprints(app):
     from src.controllers.users.superuser import superuser_bp
     app.register_blueprint(superuser_bp)
 
+    from src.controllers.courses.course_template import course_temp_bp
+    app.register_blueprint(course_temp_bp)
+
+    from src.controllers.courses.payable_template import payable_temp_bp
+    app.register_blueprint(payable_temp_bp)
+    
+    # DEV
     from src.controllers.seeding import seed_bp
     app.register_blueprint(seed_bp)
     

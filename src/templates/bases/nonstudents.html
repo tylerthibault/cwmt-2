@@ -1,0 +1,64 @@
+{% extends 'bases/public.html' %}
+
+{% block styles %}
+<style>
+    .container-3ddf343b {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        height: 100vh;
+        width: 100%;
+    }
+
+    .sidenav-3ddf343b {
+        height: 100vh;
+        width: 13em;
+        padding: 15px;
+        background-color: #f0f0f0;
+        flex-grow: 1;
+        
+    }
+
+    .content-3ddf343b {
+        width: 100%;
+        background-color: white;
+        flex-grow: 1;
+    }
+    .sidenav-list-3ddf343b {
+        list-style-type: none;
+        padding: 0;
+    }
+    .sidenav-title-3ddf343b {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .sidenav-btn-3ddf343b {
+        text-decoration: none;
+        color: #333;
+        display: block;
+        padding: 8px 0.25em;
+    }
+    .sidenav-btn-3ddf343b:hover {
+        background-color: #ddd;
+    }
+
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container-3ddf343b">
+
+    <div class="sidenav-3ddf343b">
+        {% block sidenav %}
+        <p>Side navigation</p>
+        {% endblock sidenav %}
+    </div>
+
+    <div class="content-3ddf343b">
+        {% block inner_content %}
+        <p>inner_content</p>
+        {% endblock inner_content %}
+    </div>
+
+</div>
+{% endblock content %}

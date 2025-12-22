@@ -51,6 +51,19 @@ def superuser_status(user_id, status='add'):
 
         return redirect(url_for('auth.dashboard'))
 
+@superuser_bp.route('/manage-users')
+@login_required
+@role_required('superuser')
+def manage_users():
+    """Route to manage users."""
+    focus = request.args.get('focus', None)
+    all_users = users.User.query.all()
+    context = {
+        'users': all_users,
+        'current_user': Doorman.get_by_token(session['doorman_token']).user,
+        'focus': focus
+    }
+    return render_template('private/superusers/users/index.html', **context)
 
 # ------------------------------------------------------
 # --------------------- API ROUTES ---------------------

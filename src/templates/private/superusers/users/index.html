@@ -1,0 +1,53 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+    {% include 'private/superusers/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div>
+    <h1>Manage Users</h1>
+
+    <div>
+        <!-- tabs for all the roles: superusers, admin, instructors, students -->
+         <ul class="tabs">
+            <li><a href="{{ url_for('superuser.manage_users', focus='superuser') }}">Superusers</a></li>
+            <li><a href="{{ url_for('superuser.manage_users', focus='admin') }}">Admins</a></li>
+            <li><a href="{{ url_for('superuser.manage_users', focus='instructor') }}">Instructors</a></li>
+            <li><a href="{{ url_for('superuser.manage_users', focus='student') }}">Students</a></li>
+         </ul>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                {% set roles = user.get_roles() %}
+                
+                {% if focus in roles %}
+                <tr>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% for role in user.get_roles() %}
+                        <span class="badge bg-secondary">{{ role }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock inner_content %}

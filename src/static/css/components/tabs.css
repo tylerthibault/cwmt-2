@@ -1,0 +1,44 @@
+/* Tab Navigation Styles */
+.tabs {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    border-bottom: 2px solid #dee2e6;
+    gap: 5px;
+}
+
+.tabs li {
+    margin: 0;
+}
+
+.tabs li a {
+    display: block;
+    padding: 12px 24px;
+    text-decoration: none;
+    color: #6c757d;
+    font-weight: 500;
+    border: 2px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    top: 2px;
+}
+
+.tabs li a:hover {
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.tabs li a.active {
+    color: #0d6efd;
+    background-color: #fff;
+    border-color: #dee2e6;
+    border-bottom-color: #fff;
+}
+
+/* Tab Content Area */
+.tab-content {
+    padding: 20px 0;
+}

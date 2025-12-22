@@ -76,7 +76,18 @@ people = [
     }
 ]
 
+
 def get_person():
+    from src.models.user_folder import users
     import random
     random_indx = random.randint(0, len(people)-1)
-    return people[random_indx]
+    
+    user = people[random_indx]
+    # see if user is already in the db by the email
+    existing_user = users.User.query.filter_by(email=user['email']).first()
+    if existing_user:
+        # find a different user
+        return get_person()
+    
+    return user
+        
