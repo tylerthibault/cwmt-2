@@ -28,7 +28,7 @@ def init_db(app):
     from src.models.user_folder.admins import Admin
     from src.models.user_folder.superusers import Superuser
     from src.models.course_folder.course_templates import CourseTemplate
-    # from src.models.course_folder.course_instances import CourseInstance
+    from src.models.course_folder.course_instances import CourseInstance
     from src.models.course_folder.payable_templates import PayableTemplate
 
     
@@ -61,6 +61,9 @@ def init_blueprints(app):
 
     from src.controllers.courses.course_template import course_temp_bp
     app.register_blueprint(course_temp_bp)
+
+    from src.controllers.courses.course_instances import courses_bp
+    app.register_blueprint(courses_bp)
 
     from src.controllers.courses.payable_template import payable_temp_bp
     app.register_blueprint(payable_temp_bp)

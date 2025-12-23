@@ -6,8 +6,10 @@
 
 {% block inner_content %}
 <div>
-    <h1>Admin Dashboard</h1>
+    <h1>Manage Courses</h1>
+
+    <div>
+        {% include 'private/admins/courses/components/calendar_editable.html' %}
+    </div>
 </div>
-
-
 {% endblock inner_content %}

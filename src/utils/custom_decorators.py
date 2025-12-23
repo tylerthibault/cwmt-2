@@ -12,7 +12,7 @@ def login_required(f):
         # Check if doorman_token exists in session
         if 'doorman_token' not in session:
             flash('Please log in to access this page.', 'warning')
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.loginReg'))
         
         # Import here to avoid circular imports
         from src.models.doorman import Doorman
@@ -24,13 +24,13 @@ def login_required(f):
             # Token not found in database
             session.pop('doorman_token', None)
             flash('Invalid session. Please log in again.', 'warning')
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.loginReg'))
         
         # Check if session was signed out
         if doorman.sign_out_time:
             session.pop('doorman_token', None)
             flash('Your session has ended. Please log in again.', 'info')
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.loginReg'))
         
         # Check if last activity is within 10 minutes
         from datetime import datetime, timedelta
@@ -41,7 +41,7 @@ def login_required(f):
             doorman.sign_out()
             session.pop('doorman_token', None)
             flash('Your session has expired due to inactivity. Please log in again.', 'info')
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.loginReg'))
         
         # Update last activity
         doorman.update_activity()
@@ -99,7 +99,7 @@ def role_required(*role_names):
         def decorated_function(*args, **kwargs):
             if 'doorman_token' not in session:
                 flash('Please log in to access this page.', 'warning')
-                return redirect(url_for('auth.login', next=request.url))
+                return redirect(url_for('auth.login'))
             
             # Import here to avoid circular imports
             from ..models.doorman import Doorman
@@ -108,7 +108,7 @@ def role_required(*role_names):
             
             if not doorman:
                 flash('Invalid session.', 'warning')
-                return redirect(url_for('auth.login', next=request.url))
+                return redirect(url_for('auth.login'))
             
             user = doorman.user
             

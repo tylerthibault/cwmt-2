@@ -13,7 +13,7 @@ class PayableTemplate(db.Model, CRUDMixin):
     # Payable Information
     name = db.Column(db.String(100), nullable=False, index=True)
     amount = db.Column(db.Numeric(10, 2), nullable=False)  # Decimal for currency
-    description = db.Column(db.String(255), nullable=False, index=True)
+    description = db.Column(db.String(255), nullable=True, index=True)
     is_required = db.Column(db.Boolean, default=True, nullable=False)
     
     # Timestamps

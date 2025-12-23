@@ -48,3 +48,40 @@ def create_payable_temp():
         return redirect(url_for('payable_temp.list_payable_temps'))
     
     return redirect(url_for('payable_temp.list_payable_temps'))
+
+@payable_temp_bp.route('/update', methods=['POST'])
+@login_required
+@role_required('superuser')
+def update_payable_temp():
+    """Update an existing payable template."""
+    template_id = request.form.get('template_id')
+    name = request.form.get('name')
+    amount = request.form.get('amount')
+    description = request.form.get('description')
+    
+    template = payable_templates.PayableTemplate.query.get(template_id)
+    if not template:
+        flash('Payable template not found.', 'error')
+        return redirect(url_for('payable_temp.list_payable_temps'))
+    
+    # Update fields
+    template.name = name
+    template.amount = float(amount)
+    template.description = description
+    template.save()
+    
+    flash('Payable template updated successfully!', 'success')
+    return redirect(url_for('payable_temp.list_payable_temps'))
+
+@payable_temp_bp.route('/delete', methods=['POST'])
+@login_required
+@role_required('superuser')
+def delete_payable_temp():
+    template_id = request.form.get('template_id')
+    template = payable_templates.PayableTemplate.get_by_id(int(template_id))
+    if template:
+        template.delete()
+        flash('Payable template deleted successfully!', 'success')
+    else:
+        flash('Payable template not found!', 'error')
+    return redirect(url_for('payable_temp.list_payable_temps'))

@@ -2,6 +2,13 @@ from datetime import datetime
 from ..main import db, CRUDMixin
 
 
+# Association table 
+course_payables = db.Table('course_payables',
+    db.Column('course_template_id', db.Integer, db.ForeignKey('course_templates.id'), primary_key=True),
+    db.Column('payable_template_id', db.Integer, db.ForeignKey('payable_templates.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
+
 class CourseTemplate(db.Model, CRUDMixin):
     """Course template model for defining types of courses."""
     
@@ -23,6 +30,12 @@ class CourseTemplate(db.Model, CRUDMixin):
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Many-to-many relationship
+    payable_templates = db.relationship('PayableTemplate',
+                                       secondary=course_payables,
+                                       backref=db.backref('course_templates', lazy='dynamic'),
+                                       lazy='dynamic')
     
     def __init__(self, name, experience_level, duration_days, max_students, **kwargs):
         """Initialize course template."""

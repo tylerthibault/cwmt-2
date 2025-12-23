@@ -1,0 +1,775 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+<style>
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background-color: #dee2e6;
+        border: 1px solid #dee2e6;
+        position: relative;
+    }
+    
+    .calendar-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    .calendar-day {
+        background-color: white;
+        min-height: 120px;
+        padding: 8px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .calendar-day:hover {
+        background-color: #f0f7ff;
+    }
+    
+    .calendar-day.other-month {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+    
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .calendar-event {
+        background-color: #0d6efd;
+        color: white;
+        padding: 4px 6px;
+        margin: 2px 0;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .calendar-event.spanning {
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: 4px 0 0 4px;
+    }
+    
+    .calendar-event.spanning.event-end {
+        border-radius: 0 4px 4px 0;
+    }
+    
+    .calendar-event.spanning.event-middle {
+        border-radius: 0;
+    }
+    
+    .calendar-event.spanning.event-single {
+        border-radius: 4px;
+    }
+    
+    .calendar-event:hover {
+        background-color: #0b5ed7;
+    }
+    
+    .calendar-event.status-completed {
+        background-color: #198754;
+    }
+    
+    .calendar-event.status-cancelled {
+        background-color: #dc3545;
+    }
+    
+    .calendar-event.status-active {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .calendar-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    /* Wizard styles */
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    
+    .wizard-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        padding: 10px;
+    }
+    
+    .wizard-step::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #dee2e6;
+        z-index: 0;
+    }
+    
+    .wizard-step:first-child::before {
+        left: 50%;
+    }
+    
+    .wizard-step:last-child::before {
+        right: 50%;
+    }
+    
+    .wizard-step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #dee2e6;
+        color: #6c757d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 8px;
+    }
+    
+    .wizard-step.active .wizard-step-number {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .wizard-step.completed .wizard-step-number {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .wizard-content {
+        min-height: 300px;
+    }
+    
+    .wizard-form-section {
+        display: none;
+    }
+    
+    .wizard-form-section.active {
+        display: block;
+    }
+</style>
+
+<div>
+    <div class="calendar-controls">
+        <button class="btn btn-primary" id="prevMonth">
+            <i class="bi bi-chevron-left"></i> Previous
+        </button>
+        <h3 id="currentMonth"></h3>
+        <button class="btn btn-primary" id="nextMonth">
+            Next <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+    
+    <div class="calendar" id="calendar">
+        <div class="calendar-header">Sunday</div>
+        <div class="calendar-header">Monday</div>
+        <div class="calendar-header">Tuesday</div>
+        <div class="calendar-header">Wednesday</div>
+        <div class="calendar-header">Thursday</div>
+        <div class="calendar-header">Friday</div>
+        <div class="calendar-header">Saturday</div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+<script>
+    const events = {{ events_json|safe }};
+    const courseTemplates = [
+        {% for template in all_course_templates %}
+        { id: {{ template.id }}, name: "{{ template.name }}", max_students: {{ template.max_students }}, duration_days: {{ template.duration_days }} },
+        {% endfor %}
+    ];
+    const instructors = [
+        {% for instructor in instructors %}
+        { id: {{ instructor.id }}, name: "{{ instructor.user.full_name if instructor.user else 'Unknown' }}" },
+        {% endfor %}
+    ];
+    let currentDate = new Date();
+    let currentWizardStep = 1;
+    
+    function renderCalendar(year, month) {
+        const calendar = document.getElementById('calendar');
+        const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        document.getElementById('currentMonth').textContent = monthName;
+        
+        // Remove existing day cells
+        const dayCells = calendar.querySelectorAll('.calendar-day');
+        dayCells.forEach(cell => cell.remove());
+        
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+        
+        // Create array to store all day cells
+        const dayCellsArray = [];
+        
+        // Add previous month days
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const dayDiv = createDayCell(daysInPrevMonth - i, true);
+            calendar.appendChild(dayDiv);
+            dayCellsArray.push({ div: dayDiv, date: new Date(year, month - 1, daysInPrevMonth - i) });
+        }
+        
+        // Add current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayDiv = createDayCell(day, false);
+            const date = new Date(year, month, day);
+            calendar.appendChild(dayDiv);
+            dayCellsArray.push({ div: dayDiv, date: date });
+        }
+        
+        // Add next month days
+        const totalCells = calendar.children.length - 7; // Subtract header cells
+        const remainingCells = 42 - totalCells; // 6 weeks
+        for (let day = 1; day <= remainingCells; day++) {
+            const dayDiv = createDayCell(day, true);
+            calendar.appendChild(dayDiv);
+            dayCellsArray.push({ div: dayDiv, date: new Date(year, month + 1, day) });
+        }
+        
+        // Render spanning events
+        renderSpanningEvents(dayCellsArray);
+    }
+    
+    function renderSpanningEvents(dayCellsArray) {
+        const renderedEvents = new Set();
+        
+        events.forEach(event => {
+            if (!event.start || renderedEvents.has(event.id)) return;
+            
+            // Parse ISO date strings in local timezone to avoid UTC conversion issues
+            const parseLocalDate = (isoString) => {
+                const [year, month, day] = isoString.split('T')[0].split('-').map(Number);
+                return new Date(year, month - 1, day);
+            };
+            
+            const eventStart = parseLocalDate(event.start);
+            const eventEnd = event.end ? parseLocalDate(event.end) : eventStart;
+            
+            // Find all days this event spans
+            const eventDays = dayCellsArray.filter(cell => {
+                const cellDate = new Date(cell.date.getFullYear(), cell.date.getMonth(), cell.date.getDate());
+                const startDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+                const endDate = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+                return cellDate >= startDate && cellDate <= endDate;
+            });
+            
+            if (eventDays.length === 0) return;
+            
+            // Group consecutive days by week rows
+            let currentRow = [];
+            let currentRowStart = Math.floor(dayCellsArray.indexOf(eventDays[0]) / 7);
+            
+            eventDays.forEach((dayCell, index) => {
+                const dayIndex = dayCellsArray.indexOf(dayCell);
+                const rowIndex = Math.floor(dayIndex / 7);
+                
+                if (rowIndex !== currentRowStart) {
+                    // New row, render current row's event
+                    if (currentRow.length > 0) {
+                        renderEventSpan(currentRow, event, index === 0, false);
+                    }
+                    currentRow = [dayCell];
+                    currentRowStart = rowIndex;
+                } else {
+                    currentRow.push(dayCell);
+                }
+            });
+            
+            // Render last row
+            if (currentRow.length > 0) {
+                renderEventSpan(currentRow, event, currentRow[0] === eventDays[0], true);
+            }
+            
+            renderedEvents.add(event.id);
+        });
+    }
+    
+    function renderEventSpan(dayCells, event, isStart, isEnd) {
+        const firstCell = dayCells[0].div;
+        const spanCount = dayCells.length;
+        
+        const eventDiv = document.createElement('div');
+        eventDiv.className = `calendar-event spanning status-${event.status}`;
+        
+        // Add position classes
+        if (isStart && isEnd && spanCount === 1) {
+            eventDiv.classList.add('event-single');
+        } else if (isStart) {
+            eventDiv.classList.add('event-start');
+        } else if (isEnd) {
+            eventDiv.classList.add('event-end');
+        } else {
+            eventDiv.classList.add('event-middle');
+        }
+        
+        eventDiv.textContent = event.title;
+        eventDiv.title = `${event.title}\n${event.location}\n${event.enrollment} enrolled`;
+        eventDiv.onclick = (e) => {
+            e.stopPropagation();
+            showEventDetails(event);
+        };
+        
+        // Position the event - calculate width to span across days
+        const cellWidth = firstCell.offsetWidth;
+        const gap = 1; // Grid gap
+        eventDiv.style.width = `calc(${spanCount * 100}% + ${(spanCount - 1) * gap}px)`;
+        eventDiv.style.top = '30px'; // Below day number
+        
+        firstCell.appendChild(eventDiv);
+    }
+    
+    function createDayCell(day, isOtherMonth) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day' + (isOtherMonth ? ' other-month' : '');
+        
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = day;
+        dayDiv.appendChild(dayNumber);
+        
+        // Add click handler for day cell (not for events)
+        dayDiv.addEventListener('click', (e) => {
+            // Only open modal if clicking the day itself, not an event
+            if (e.target === dayDiv || e.target === dayNumber) {
+                const clickedDate = getDateForDayCell(dayDiv, day, isOtherMonth);
+                openScheduleWizard(clickedDate);
+            }
+        });
+        
+        return dayDiv;
+    }
+    
+    function getDateForDayCell(dayDiv, day, isOtherMonth) {
+        const calendar = document.getElementById('calendar');
+        const allDays = Array.from(calendar.querySelectorAll('.calendar-day'));
+        const dayIndex = allDays.indexOf(dayDiv);
+        
+        if (isOtherMonth) {
+            // Determine if it's previous or next month
+            if (dayIndex < 7) {
+                // Previous month
+                const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day);
+                return prevMonth;
+            } else {
+                // Next month
+                const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day);
+                return nextMonth;
+            }
+        } else {
+            return new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+        }
+    }
+    
+    function openScheduleWizard(selectedDate) {
+        currentWizardStep = 1;
+        const dateStr = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        
+        const wizardContent = `
+            <div class="wizard-steps">
+                <div class="wizard-step active" data-step="1">
+                    <div class="wizard-step-number">1</div>
+                    <div>Course</div>
+                </div>
+                <div class="wizard-step" data-step="2">
+                    <div class="wizard-step-number">2</div>
+                    <div>Details</div>
+                </div>
+                <div class="wizard-step" data-step="3">
+                    <div class="wizard-step-number">3</div>
+                    <div>Review</div>
+                </div>
+            </div>
+            
+            <div class="wizard-content">
+                <!-- Step 1: Select Course Template -->
+                <div class="wizard-form-section active" data-step="1">
+                    <h5>Select Course Template</h5>
+                    <p class="text-muted">Scheduled for: ${dateStr}</p>
+                    <div class="mb-3">
+                        <label class="form-label">Course Template <span class="text-danger">*</span></label>
+                        <select class="form-select" id="course_template_id" required>
+                            <option value="">Select a course...</option>
+                            ${courseTemplates.map(t => `<option value="${t.id}" data-max="${t.max_students}" data-duration="${t.duration_days}">${t.name}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Course Details -->
+                <div class="wizard-form-section" data-step="2">
+                    <h5>Course Details</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="start_time" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="location" placeholder="e.g., Building A, Room 101" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Duration (Days) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="duration_days" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maximum Students <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="max_students" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">C1 Instructor</label>
+                        <select class="form-select" id="c1_instructor_id">
+                            <option value="">Unassigned</option>
+                            ${instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">C2 Instructor</label>
+                        <select class="form-select" id="c2_instructor_id">
+                            <option value="">Unassigned</option>
+                            ${instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="Optional notes about this course instance"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Review -->
+                <div class="wizard-form-section" data-step="3">
+                    <h5>Review & Confirm</h5>
+                    <div id="review-content" class="alert alert-info">
+                        <p><strong>Date:</strong> ${dateStr}</p>
+                        <p id="review-details"></p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const footer = `
+            <button type="button" class="btn btn-secondary" id="wizard-prev" style="display: none;">Previous</button>
+            <button type="button" class="btn btn-primary" id="wizard-next">Next</button>
+            <button type="button" class="btn btn-success" id="wizard-submit" style="display: none;">Schedule Course</button>
+        `;
+        
+        const modal = Modal.show({
+            title: 'Schedule New Course',
+            content: wizardContent,
+            footer: footer,
+            size: 'lg',
+            closeOnOverlay: false
+        });
+        
+        // Store selected date
+        modal.selectedDate = selectedDate;
+        
+        // Setup wizard navigation
+        setupWizardNavigation(modal);
+        
+        // Add event listener for course template selection to auto-fill values
+        const templateSelect = modal.container.querySelector('#course_template_id');
+        templateSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (selectedOption.value) {
+                const maxStudents = selectedOption.dataset.max;
+                const duration = selectedOption.dataset.duration;
+                // These fields will be populated when user navigates to Step 2
+                modal.templateData = { maxStudents, duration };
+            }
+        });
+    }
+    
+    function setupWizardNavigation(modal) {
+        const nextBtn = modal.container.querySelector('#wizard-next');
+        const prevBtn = modal.container.querySelector('#wizard-prev');
+        const submitBtn = modal.container.querySelector('#wizard-submit');
+        
+        nextBtn.addEventListener('click', () => {
+            if (validateStep(currentWizardStep)) {
+                currentWizardStep++;
+                updateWizardStep(modal);
+            }
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            currentWizardStep--;
+            updateWizardStep(modal);
+        });
+        
+        submitBtn.addEventListener('click', () => {
+            submitCourse(modal);
+        });
+    }
+    
+    function updateWizardStep(modal) {
+        const container = modal.container;
+        
+        // Update step indicators
+        container.querySelectorAll('.wizard-step').forEach(step => {
+            const stepNum = parseInt(step.dataset.step);
+            step.classList.remove('active', 'completed');
+            if (stepNum === currentWizardStep) {
+                step.classList.add('active');
+            } else if (stepNum < currentWizardStep) {
+                step.classList.add('completed');
+            }
+        });
+        
+        // Update form sections
+        container.querySelectorAll('.wizard-form-section').forEach(section => {
+            section.classList.remove('active');
+            if (parseInt(section.dataset.step) === currentWizardStep) {
+                section.classList.add('active');
+            }
+        });
+        
+        // Update buttons
+        const nextBtn = container.querySelector('#wizard-next');
+        const prevBtn = container.querySelector('#wizard-prev');
+        const submitBtn = container.querySelector('#wizard-submit');
+        
+        prevBtn.style.display = currentWizardStep > 1 ? 'inline-block' : 'none';
+        
+        if (currentWizardStep === 3) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+            updateReview(modal);
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+            
+            // Auto-fill fields when moving to Step 2
+            if (currentWizardStep === 2 && modal.templateData) {
+                const maxStudentsInput = container.querySelector('#max_students');
+                const durationInput = container.querySelector('#duration_days');
+                if (!maxStudentsInput.value) {
+                    maxStudentsInput.value = modal.templateData.maxStudents;
+                }
+                if (!durationInput.value) {
+                    durationInput.value = modal.templateData.duration;
+                }
+            }
+        }
+    }
+    
+    function validateStep(step) {
+        const container = document.querySelector('.modal-container');
+        const currentSection = container.querySelector(`.wizard-form-section[data-step="${step}"]`);
+        
+        if (step === 1) {
+            const template = currentSection.querySelector('#course_template_id').value;
+            if (!template) {
+                Modal.alert({ title: 'Required Field', message: 'Please select a course template.' });
+                return false;
+            }
+        } else if (step === 2) {
+            const time = currentSection.querySelector('#start_time').value;
+            const location = currentSection.querySelector('#location').value;
+            const durationDays = currentSection.querySelector('#duration_days').value;
+            const maxStudents = currentSection.querySelector('#max_students').value;
+            if (!time || !location || !durationDays || !maxStudents) {
+                Modal.alert({ title: 'Required Fields', message: 'Please fill in all required fields (Start Time, Location, Duration, Maximum Students).' });
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    function updateReview(modal) {
+        const container = modal.container;
+        const reviewDetails = container.querySelector('#review-details');
+        
+        const templateSelect = container.querySelector('#course_template_id');
+        const templateText = templateSelect.options[templateSelect.selectedIndex].text;
+        const time = container.querySelector('#start_time').value;
+        const location = container.querySelector('#location').value;
+        const durationDays = container.querySelector('#duration_days').value;
+        const maxStudents = container.querySelector('#max_students').value;
+        const notes = container.querySelector('#notes').value;
+        
+        const c1InstructorSelect = container.querySelector('#c1_instructor_id');
+        const c1InstructorText = c1InstructorSelect.value ? c1InstructorSelect.options[c1InstructorSelect.selectedIndex].text : 'Unassigned';
+        
+        const c2InstructorSelect = container.querySelector('#c2_instructor_id');
+        const c2InstructorText = c2InstructorSelect.value ? c2InstructorSelect.options[c2InstructorSelect.selectedIndex].text : 'Unassigned';
+        
+        reviewDetails.innerHTML = `
+            <p><strong>Course:</strong> ${templateText}</p>
+            <p><strong>Time:</strong> ${time}</p>
+            <p><strong>Location:</strong> ${location}</p>
+            <p><strong>Duration:</strong> ${durationDays} day(s)</p>
+            <p><strong>Maximum Students:</strong> ${maxStudents}</p>
+            <p><strong>C1 Instructor:</strong> ${c1InstructorText}</p>
+            <p><strong>C2 Instructor:</strong> ${c2InstructorText}</p>
+            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+        `;
+    }
+    
+    function submitCourse(modal) {
+        // Collect form data BEFORE showing loading state
+        const container = modal.container;
+        
+        // Get all form elements with null checks
+        const courseTemplateElem = container.querySelector('#course_template_id');
+        const startTimeElem = container.querySelector('#start_time');
+        const locationElem = container.querySelector('#location');
+        const durationDaysElem = container.querySelector('#duration_days');
+        const maxStudentsElem = container.querySelector('#max_students');
+        const c1InstructorElem = container.querySelector('#c1_instructor_id');
+        const c2InstructorElem = container.querySelector('#c2_instructor_id');
+        const notesElem = container.querySelector('#notes');
+        
+        // Check if all required elements exist
+        if (!courseTemplateElem || !startTimeElem || !locationElem || !durationDaysElem || !maxStudentsElem) {
+            Modal.alert({ 
+                title: 'Error', 
+                message: 'Form elements not found. Please try again.' 
+            });
+            modal.close();
+            return;
+        }
+        
+        // Format date in local timezone to avoid UTC conversion issues
+        const year = modal.selectedDate.getFullYear();
+        const month = String(modal.selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(modal.selectedDate.getDate()).padStart(2, '0');
+        const localDateString = `${year}-${month}-${day}`;
+        
+        const formData = {
+            course_template_id: courseTemplateElem.value,
+            start_date: localDateString,
+            start_time: startTimeElem.value,
+            location: locationElem.value,
+            duration_days: durationDaysElem.value,
+            max_students: maxStudentsElem.value,
+            c1_instructor_id: c1InstructorElem ? (c1InstructorElem.value || null) : null,
+            c2_instructor_id: c2InstructorElem ? (c2InstructorElem.value || null) : null,
+            notes: notesElem ? (notesElem.value || null) : null
+        };
+        
+        // Now show loading after we've collected all the data
+        modal.showLoading();
+        
+        // Submit to server
+        fetch('/courses/admin/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.close();
+                Modal.alert({ 
+                    title: 'Success', 
+                    message: 'Course scheduled successfully!' 
+                }).then(() => {
+                    location.reload(); // Refresh to show new course
+                });
+            } else {
+                modal.close();
+                Modal.alert({ 
+                    title: 'Error', 
+                    message: data.message || 'Failed to schedule course.' 
+                });
+            }
+        })
+        .catch(error => {
+            modal.close();
+            Modal.alert({ 
+                title: 'Error', 
+                message: 'An error occurred while scheduling the course.' 
+            });
+        });
+    }          
+    
+    function showEventDetails(event) {
+        const content = `
+            <p><strong>Date:</strong> ${new Date(event.start).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p><strong>Location:</strong> ${event.location}</p>
+            <p><strong>Instructor:</strong> ${event.instructor}</p>
+            <p><strong>Status:</strong> <span class="badge bg-secondary">${event.status}</span></p>
+            <p><strong>Enrollment:</strong> ${event.enrollment}</p>
+        `;
+        
+        const footer = `
+            <button type="button" class="btn btn-secondary modal-close-btn">Close</button>
+            <a href="/courses/admin/view/${event.id}" class="btn btn-primary">View Full Details</a>
+        `;
+        
+        const modal = Modal.show({
+            title: event.title,
+            content: content,
+            footer: footer,
+            size: 'md'
+        });
+        
+        // Add close button handler
+        modal.container.querySelector('.modal-close-btn').addEventListener('click', () => {
+            modal.close();
+        });
+    }
+    
+    function createDayCell(day, isOtherMonth) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day' + (isOtherMonth ? ' other-month' : '');
+        
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = day;
+        dayDiv.appendChild(dayNumber);
+        
+        // Add click handler for day cell (not for events)
+        dayDiv.addEventListener('click', (e) => {
+            // Only open modal if clicking the day itself, not an event
+            if (e.target === dayDiv || e.target === dayNumber) {
+                const clickedDate = getDateForDayCell(dayDiv, day, isOtherMonth);
+                openScheduleWizard(clickedDate);
+            }
+        });
+        
+        return dayDiv;
+    }
+    
+    // Navigation
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    });
+    
+    // Initial render
+    renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+</script>

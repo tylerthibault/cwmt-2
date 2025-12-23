@@ -5,17 +5,23 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/tabs.css') }}">
+
 <div>
     <h1>Payables</h1>
     <div class="row">
         <div class="col-4">
             <!-- show all payable templates -->
-            <div class="list-group">
+            <div class="list-group" id="payableTemplateList">
                 {% for template in payable_templates %}
-                <a href="{{ url_for('payable_temp.create_payable_temp') }}?template_id={{ template.id }}" class="list-group-item list-group-item-action 
-                   {% if payable_template and payable_template.id == template.id %}active{% endif %}">
+                <a href="#" class="list-group-item list-group-item-action payable-template-item"
+                   data-template-id="{{ template.id }}"
+                   data-name="{{ template.name }}"
+                   data-description="{{ template.description }}"
+                   data-amount="{{ template.amount }}"
+                   data-is-required="{{ template.is_required }}">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span>{{ template.description }}</span>
+                        <span>{{ template.name }}</span>
                         <span class="badge bg-primary rounded-pill">${{ "%.2f"|format(template.amount) }}</span>
                     </div>
                 </a>
@@ -23,58 +29,220 @@
             </div>
         </div>
         <div class="col-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>{{ 'Edit' if payable_template else 'Create' }} Payable Template</h3>
+            <!-- Tabs -->
+            <ul class="tabs">
+                <li><a href="#" class="tab-link active" data-tab="details">Details</a></li>
+                <li><a href="#" class="tab-link" data-tab="create">Create New</a></li>
+            </ul>
+
+            <!-- Details Tab Content -->
+            <div id="detailsTab" class="tab-content active">
+                <div id="detailsView" class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Payable Template Details</h3>
+                        <div id="actionButtons" style="display: none;">
+                            <button type="button" class="btn btn-sm btn-primary" id="editBtn">Edit</button>
+                            <button type="button" class="btn btn-sm btn-danger" id="deleteBtn">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Select a payable template from the list to view details</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('payable_temp.create_payable_temp') }}">
-                        <input type="hidden" name="template_id" value="{{ payable_template.id if payable_template else '' }}">
 
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" 
-                                   value="{{ payable_template.name if payable_template else '' }}" 
-                                   placeholder="e.g., Registration Fee, Lab Fee" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description <span class="text-danger"></span></label>
-                            <input type="text" class="form-control" id="description" name="description" 
-                                   value="{{ payable_template.description if payable_template else '' }}" 
-                                   placeholder="e.g., Course Registration Fee, Materials Fee">
-                        </div>
+                <div id="editView" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Edit Payable Template</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('payable_temp.update_payable_temp') }}" id="editForm">
+                            <input type="hidden" name="template_id" id="edit_template_id">
 
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="amount" name="amount" 
-                                       value="{{ payable_template.amount if payable_template else '' }}" 
-                                       step="0.01" min="0" placeholder="0.00" required>
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_name" name="name" 
+                                       placeholder="e.g., Registration Fee, Lab Fee" required>
                             </div>
-                        </div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="is_required" name="is_required" 
-                                   {% if not payable_template or payable_template.is_required %}checked{% endif %}>
-                            <label class="form-check-label" for="is_required">Required Payment</label>
-                            <div class="form-text">Check if this payment is mandatory for course enrollment</div>
-                        </div>
+                            <div class="mb-3">
+                                <label for="edit_description" class="form-label">Description <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="edit_description" name="description" 
+                                       placeholder="e.g., Course Registration Fee, Materials Fee">
+                            </div>
 
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                {{ 'Update' if payable_template else 'Create' }} Template
-                            </button>
-                            {% if payable_template %}
-                            <a href="{{ url_for('payable_temp.create_payable_temp') }}" class="btn btn-secondary">Cancel</a>
-                            {% endif %}
-                        </div>
-                    </form>
+                            <div class="mb-3">
+                                <label for="edit_amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="edit_amount" name="amount" 
+                                           step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="edit_is_required" name="is_required">
+                                <label class="form-check-label" for="edit_is_required">Required Payment</label>
+                                <div class="form-text">Check if this payment is mandatory for course enrollment</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Update Template</button>
+                                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Tab Content -->
+            <div id="createTab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Create Payable Template</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('payable_temp.create_payable_temp') }}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="e.g., Registration Fee, Lab Fee" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="description" name="description" 
+                                       placeholder="e.g., Course Registration Fee, Materials Fee">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="amount" name="amount" 
+                                           step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_required" name="is_required" checked>
+                                <label class="form-check-label" for="is_required">Required Payment</label>
+                                <div class="form-text">Check if this payment is mandatory for course enrollment</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Create Template</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
+
+<script>
+    // Tab switching
+    document.querySelectorAll('.tab-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabName = this.dataset.tab;
+            
+            // Update active tab
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+        });
+    });
+
+    // Payable template selection
+    document.querySelectorAll('.payable-template-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active item
+            document.querySelectorAll('.payable-template-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get data
+            const data = {
+                id: this.dataset.templateId,
+                name: this.dataset.name,
+                description: this.dataset.description,
+                amount: parseFloat(this.dataset.amount),
+                isRequired: this.dataset.isRequired === 'True'
+            };
+            
+            // Show details view, hide edit view
+            document.getElementById('detailsView').style.display = 'block';
+            document.getElementById('editView').style.display = 'none';
+            
+            // Update details view
+            const detailsBody = document.querySelector('#detailsView .card-body');
+            detailsBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> ${data.name}</p>
+                        <p><strong>Amount:</strong> $${data.amount.toFixed(2)}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Required:</strong> <span class="badge ${data.isRequired ? 'bg-success' : 'bg-secondary'}">${data.isRequired ? 'Yes' : 'No'}</span></p>
+                    </div>
+                </div>
+                ${data.description ? `<hr><p><strong>Description:</strong></p><p>${data.description}</p>` : ''}
+            `;
+            
+            // Show edit button
+            document.getElementById('actionButtons').style.display = 'block';
+            document.getElementById('editBtn').dataset.templateData = JSON.stringify(data);
+            document.getElementById('deleteBtn').dataset.templateId = data.id;
+        });
+    });
+
+    // Edit button click
+    document.getElementById('editBtn').addEventListener('click', function() {
+        const data = JSON.parse(this.dataset.templateData);
+        
+        // Populate edit form
+        document.getElementById('edit_template_id').value = data.id;
+        document.getElementById('edit_name').value = data.name;
+        document.getElementById('edit_description').value = data.description;
+        document.getElementById('edit_amount').value = data.amount.toFixed(2);
+        document.getElementById('edit_is_required').checked = data.isRequired;
+        
+        // Show edit view, hide details view
+        document.getElementById('detailsView').style.display = 'none';
+        document.getElementById('editView').style.display = 'block';
+    });
+
+    // Cancel edit button
+    document.getElementById('cancelEditBtn').addEventListener('click', function() {
+        document.getElementById('editView').style.display = 'none';
+        document.getElementById('detailsView').style.display = 'block';
+    });
+
+    // Delete button click
+    document.getElementById('deleteBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete this payable template? This action cannot be undone.')) {
+            const templateId = this.dataset.templateId;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('payable_temp.delete_payable_temp') }}";
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'template_id';
+            input.value = templateId;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+</script>
+
 {% endblock inner_content %}
