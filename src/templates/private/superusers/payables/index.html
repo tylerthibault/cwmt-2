@@ -1,11 +1,80 @@
 {% extends 'bases/nonstudents.html' %}
 
 {% block sidenav %}
-    {% include 'private/superusers/components/navbar.html' %}
+{% include 'private/superusers/components/navbar.html' %}
 {% endblock sidenav %}
 
 {% block inner_content %}
 <div>
     <h1>Payables</h1>
-</div>    
+    <div class="row">
+        <div class="col-4">
+            <!-- show all payable templates -->
+            <div class="list-group">
+                {% for template in payable_templates %}
+                <a href="{{ url_for('payable_temp.create_payable_temp') }}?template_id={{ template.id }}" class="list-group-item list-group-item-action 
+                   {% if payable_template and payable_template.id == template.id %}active{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{{ template.description }}</span>
+                        <span class="badge bg-primary rounded-pill">${{ "%.2f"|format(template.amount) }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ 'Edit' if payable_template else 'Create' }} Payable Template</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('payable_temp.create_payable_temp') }}">
+                        <input type="hidden" name="template_id" value="{{ payable_template.id if payable_template else '' }}">
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ payable_template.name if payable_template else '' }}" 
+                                   placeholder="e.g., Registration Fee, Lab Fee" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description <span class="text-danger"></span></label>
+                            <input type="text" class="form-control" id="description" name="description" 
+                                   value="{{ payable_template.description if payable_template else '' }}" 
+                                   placeholder="e.g., Course Registration Fee, Materials Fee">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       value="{{ payable_template.amount if payable_template else '' }}" 
+                                       step="0.01" min="0" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_required" name="is_required" 
+                                   {% if not payable_template or payable_template.is_required %}checked{% endif %}>
+                            <label class="form-check-label" for="is_required">Required Payment</label>
+                            <div class="form-text">Check if this payment is mandatory for course enrollment</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                {{ 'Update' if payable_template else 'Create' }} Template
+                            </button>
+                            {% if payable_template %}
+                            <a href="{{ url_for('payable_temp.create_payable_temp') }}" class="btn btn-secondary">Cancel</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock inner_content %}

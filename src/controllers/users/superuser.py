@@ -56,7 +56,7 @@ def superuser_status(user_id, status='add'):
 @role_required('superuser')
 def manage_users():
     """Route to manage users."""
-    focus = request.args.get('focus', None)
+    focus = request.args.get('focus', 'superuser')
     all_users = users.User.query.all()
     context = {
         'users': all_users,

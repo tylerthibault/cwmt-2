@@ -27,6 +27,10 @@ def init_db(app):
     from src.models.user_folder.instructors import Instructor
     from src.models.user_folder.admins import Admin
     from src.models.user_folder.superusers import Superuser
+    from src.models.course_folder.course_templates import CourseTemplate
+    # from src.models.course_folder.course_instances import CourseInstance
+    from src.models.course_folder.payable_templates import PayableTemplate
+
     
     # Create all tables
     with app.app_context():

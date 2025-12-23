@@ -13,7 +13,7 @@ course_temp_bp = Blueprint('course_temp', __name__)
 @role_required('superuser')
 def list_course_temps():
     """List all course templates."""
-    templates = course_templates.CourseTemplate.query.all()
+    templates = course_templates.CourseTemplate.get_all()
     context = {
         'course_templates': templates,
         'current_user': Doorman.get_by_token(session['doorman_token']).user
@@ -22,7 +22,7 @@ def list_course_temps():
 
 @course_temp_bp.route('/create', methods=['GET', 'POST'])
 @login_required
-@role_required(['superuser'])
+@role_required('superuser')
 def create_course_temp():
     """Create a new course template."""
     if request.method == 'POST':

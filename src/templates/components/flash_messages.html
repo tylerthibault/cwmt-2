@@ -1,0 +1,23 @@
+<style>
+.alert {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050; /* Ensure it appears above other elements */
+    padding-right: 3rem; /* Space for the close button */
+}
+</style>
+
+
+<div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show m-3" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
