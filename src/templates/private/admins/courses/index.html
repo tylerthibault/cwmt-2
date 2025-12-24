@@ -9,7 +9,8 @@
     <h1>Manage Courses</h1>
 
     <div>
-        {% include 'private/admins/courses/components/calendar_editable.html' %}
+        {% set role = 'admin' %}
+        {% include 'private/components/calendar.html' %}
     </div>
 </div>
 {% endblock inner_content %}

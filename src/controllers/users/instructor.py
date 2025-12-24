@@ -3,6 +3,9 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from src.models.user_folder import instructors, users
 from src.models.doorman import Doorman
 from src.utils.custom_decorators import login_required, role_required
+from src.models.course_folder import course_instances
+from src.services.calendar import format_course_instances_for_calendar
+import json
 
 # Create blueprint
 instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
@@ -12,8 +15,21 @@ instructor_bp = Blueprint('instructor', __name__, url_prefix='/instructor')
 @role_required('instructor')
 def dashboard():
     """instructor dashboard route."""
+
+    instances = course_instances.CourseInstance.get_all()
+    events = format_course_instances_for_calendar(instances)
+    
+    # Get current user's instructor record
+    current_user = Doorman.get_by_token(session['doorman_token']).user
+    current_instructor = instructors.Instructor.query.filter_by(user_id=current_user.id).first()
+
     context = {
-        'current_user': Doorman.get_by_token(session['doorman_token']).user
+        'current_user': current_user,
+        'current_instructor_id': current_instructor.id if current_instructor else None,
+        'course_instances': instances,
+        'instructors': instructors.Instructor.get_all(),
+        'events_json': json.dumps(events),
+        'role': 'instructor'
     }
     return render_template('private/instructors/dashboard/index.html', **context)
 

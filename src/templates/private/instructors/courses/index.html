@@ -1,0 +1,17 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+    {% include 'private/instructors/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div>
+    <h1>Course Calendar</h1>
+    <p class="text-muted">View available courses and sign up as C1 or C2 instructor.</p>
+
+    <div>
+        {% set role = 'instructor' %}
+        {% include 'private/components/calendar.html' %}
+    </div>
+</div>
+{% endblock inner_content %}
