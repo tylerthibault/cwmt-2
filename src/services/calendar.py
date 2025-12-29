@@ -1,7 +1,3 @@
-
-
-
-
 from datetime import timedelta
 
 
@@ -15,6 +11,8 @@ def format_course_instances_for_calendar(instances):
     Returns:
         List of event dictionaries formatted for calendar
     """
+    from src.models.course_folder.enrollments import Enrollment
+    
     events = []
     for instance in instances:
         # Calculate end date from start date + duration
@@ -33,6 +31,9 @@ def format_course_instances_for_calendar(instances):
             instructors_list.append(c2_instructor_name)
         instructor_text = ', '.join(instructors_list) if instructors_list else 'Unassigned'
         
+        # Get actual enrollment count
+        enrollment_count = Enrollment.count_active_enrollments_for_course(instance.id)
+        
         events.append({
             'id': instance.id,
             'title': instance.course_template.name if instance.course_template else 'Unknown Course',
@@ -45,7 +46,9 @@ def format_course_instances_for_calendar(instances):
             'c1_instructor_id': instance.c1_instructor_id,
             'c2_instructor_id': instance.c2_instructor_id,
             'status': instance.status,
-            'enrollment': f"0/{instance.max_students}"  # No current_enrollment tracking yet
+            'enrollment': f"{enrollment_count}/{instance.max_students}",
+            'course_template_id': instance.course_template_id if instance.course_template_id else 0,
+            'color': instance.course_template.color if instance.course_template and instance.course_template.color else '#0d6efd'
         })
     
     return events

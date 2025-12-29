@@ -1,0 +1,198 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Students Management</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" onclick="exportStudents()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.students') }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="searchInput" class="form-label small">Search</label>
+                        <input type="text" class="form-control form-control-sm" id="searchInput" name="search" 
+                               placeholder="Search by name or email..." value="{{ request.args.get('search', '') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="statusFilter" class="form-label small">Account Status</label>
+                        <select class="form-select form-select-sm" id="statusFilter" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
+                            <option value="guest" {% if request.args.get('status') == 'guest' %}selected{% endif %}>Guest Accounts</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="enrollmentFilter" class="form-label small">Enrollments</label>
+                        <select class="form-select form-select-sm" id="enrollmentFilter" name="enrollments">
+                            <option value="">All</option>
+                            <option value="has" {% if request.args.get('enrollments') == 'has' %}selected{% endif %}>Has Enrollments</option>
+                            <option value="none" {% if request.args.get('enrollments') == 'none' %}selected{% endif %}>No Enrollments</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limitFilter" class="form-label small">Show</label>
+                        <select class="form-select form-select-sm" id="limitFilter" name="limit">
+                            <option value="50" {% if request.args.get('limit', '50') == '50' %}selected{% endif %}>50</option>
+                            <option value="100" {% if request.args.get('limit') == '100' %}selected{% endif %}>100</option>
+                            <option value="250" {% if request.args.get('limit') == '250' %}selected{% endif %}>250</option>
+                            <option value="500" {% if request.args.get('limit') == '500' %}selected{% endif %}>500</option>
+                            <option value="all" {% if request.args.get('limit') == 'all' %}selected{% endif %}>All</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-funnel"></i> Apply
+                        </button>
+                        <a href="{{ url_for('admin.students') }}" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center py-3">
+                    <h3 class="text-primary mb-1">{{ total_count }}</h3>
+                    <p class="mb-0 text-muted small">Total Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center py-3">
+                    <h3 class="text-success mb-1">{{ active_count }}</h3>
+                    <p class="mb-0 text-muted small">Active Accounts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center py-3">
+                    <h3 class="text-info mb-1">{{ guest_count }}</h3>
+                    <p class="mb-0 text-muted small">Guest Accounts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center py-3">
+                    <h3 class="text-warning mb-1">{{ enrolled_count }}</h3>
+                    <p class="mb-0 text-muted small">With Enrollments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="studentsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small">ID</th>
+                            <th class="small">Name</th>
+                            <th class="small">Email</th>
+                            <th class="small">Phone</th>
+                            <th class="small">Type</th>
+                            <th class="small">Enrollments</th>
+                            <th class="small">Registered</th>
+                            <th class="small text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="small">#{{ student.id }}</td>
+                            <td class="small">
+                                <strong>{{ student.first_name }} {{ student.last_name }}</strong>
+                                {% if student.created_by_student_id %}
+                                <br><span class="badge bg-info text-white small">Guest</span>
+                                {% if student.relationship %}
+                                <span class="badge bg-secondary small">{{ student.relationship }}</span>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="small">{{ student.user.email if student.user else 'N/A' }}</td>
+                            <td class="small">{{ student.user.phone_number if student.user and student.user.phone_number else 'N/A' }}</td>
+                            <td class="small">
+                                {% if student.created_by_student_id %}
+                                <span class="text-info">Guest Account</span>
+                                {% else %}
+                                <span class="text-success">Primary Account</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                <span class="badge bg-primary">{{ student.enrollments.count() }}</span>
+                            </td>
+                            <td class="small">{{ student.user.created_at.strftime('%b %d, %Y') if student.user else 'N/A' }}</td>
+                            <td class="small text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" onclick="viewStudent({{ student.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="editStudent({{ student.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Showing {{ students|length }} of {{ total_count }} students
+                    {% if request.args.get('search') or request.args.get('status') or request.args.get('enrollments') %}
+                    <span class="text-primary">(filtered)</span>
+                    {% endif %}
+                </small>
+                <small class="text-muted">
+                    {% if request.args.get('limit') and request.args.get('limit') != 'all' %}
+                    Limited to {{ request.args.get('limit') }} results
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewStudent(studentId) {
+        window.location.href = `/admin/students/${studentId}`;
+    }
+    
+    function editStudent(studentId) {
+        window.location.href = `/admin/students/${studentId}/edit`;
+    }
+    
+    function exportStudents() {
+        // Export with current filters
+        const params = new URLSearchParams(window.location.search);
+        params.set('export', 'csv');
+        window.location.href = `{{ url_for('admin.students') }}?${params.toString()}`;
+    }
+</script>
+
+{% endblock inner_content %}

@@ -212,6 +212,40 @@
     let currentDate = new Date();
     let currentWizardStep = 1;
     
+    // Generate a color for each course template based on its ID
+    function getCourseColor(courseTemplateId) {
+        const colors = [
+            '#0d6efd', // Blue
+            '#198754', // Green
+            '#dc3545', // Red
+            '#fd7e14', // Orange
+            '#6f42c1', // Purple
+            '#20c997', // Teal
+            '#d63384', // Pink
+            '#0dcaf0', // Cyan
+            '#ffc107', // Yellow (with dark text)
+            '#6c757d', // Gray
+        ];
+        
+        // Use modulo to cycle through colors
+        return colors[courseTemplateId % colors.length];
+    }
+    
+    // Check if color needs dark text for readability based on luminance
+    function needsDarkText(hexColor) {
+        // Convert hex to RGB
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16) / 255;
+        const g = parseInt(hex.substr(2, 2), 16) / 255;
+        const b = parseInt(hex.substr(4, 2), 16) / 255;
+        
+        // Calculate relative luminance
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        
+        // If luminance is high (bright color), use dark text
+        return luminance > 0.5;
+    }
+    
     function renderCalendar(year, month) {
         const calendar = document.getElementById('calendar');
         const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -259,6 +293,8 @@
     
     function renderSpanningEvents(dayCellsArray) {
         const renderedEvents = new Set();
+        // Track vertical positions used in each cell to prevent overlap
+        const cellEventPositions = new Map();
         
         events.forEach(event => {
             if (!event.start || renderedEvents.has(event.id)) return;
@@ -282,6 +318,32 @@
             
             if (eventDays.length === 0) return;
             
+            // Find the first available vertical position across all days this event spans
+            let eventLayer = 0;
+            let foundAvailableLayer = false;
+            while (!foundAvailableLayer) {
+                foundAvailableLayer = true;
+                for (const dayCell of eventDays) {
+                    const cellIndex = dayCellsArray.indexOf(dayCell);
+                    const cellKey = cellIndex;
+                    if (!cellEventPositions.has(cellKey)) {
+                        cellEventPositions.set(cellKey, new Set());
+                    }
+                    if (cellEventPositions.get(cellKey).has(eventLayer)) {
+                        foundAvailableLayer = false;
+                        eventLayer++;
+                        break;
+                    }
+                }
+            }
+            
+            // Mark this layer as used for all days
+            for (const dayCell of eventDays) {
+                const cellIndex = dayCellsArray.indexOf(dayCell);
+                const cellKey = cellIndex;
+                cellEventPositions.get(cellKey).add(eventLayer);
+            }
+            
             // Group consecutive days by week rows
             let currentRow = [];
             let currentRowStart = Math.floor(dayCellsArray.indexOf(eventDays[0]) / 7);
@@ -293,7 +355,7 @@
                 if (rowIndex !== currentRowStart) {
                     // New row, render current row's event
                     if (currentRow.length > 0) {
-                        renderEventSpan(currentRow, event, index === 0, false);
+                        renderEventSpan(currentRow, event, index === 0, false, eventLayer);
                     }
                     currentRow = [dayCell];
                     currentRowStart = rowIndex;
@@ -304,19 +366,26 @@
             
             // Render last row
             if (currentRow.length > 0) {
-                renderEventSpan(currentRow, event, currentRow[0] === eventDays[0], true);
+                renderEventSpan(currentRow, event, currentRow[0] === eventDays[0], true, eventLayer);
             }
             
             renderedEvents.add(event.id);
         });
     }
     
-    function renderEventSpan(dayCells, event, isStart, isEnd) {
+    function renderEventSpan(dayCells, event, isStart, isEnd, layer = 0) {
         const firstCell = dayCells[0].div;
         const spanCount = dayCells.length;
         
         const eventDiv = document.createElement('div');
         eventDiv.className = `calendar-event spanning status-${event.status}`;
+        
+        // Apply course-specific color from database or fallback to generated color
+        const courseColor = event.color || (event.course_template_id ? getCourseColor(event.course_template_id) : '#0d6efd');
+        eventDiv.style.backgroundColor = courseColor;
+        if (needsDarkText(courseColor)) {
+            eventDiv.style.color = '#000';
+        }
         
         // Add position classes
         if (isStart && isEnd && spanCount === 1) {
@@ -340,7 +409,8 @@
         const cellWidth = firstCell.offsetWidth;
         const gap = 1; // Grid gap
         eventDiv.style.width = `calc(${spanCount * 100}% + ${(spanCount - 1) * gap}px)`;
-        eventDiv.style.top = '30px'; // Below day number
+        // Stack events vertically based on layer, with each event taking ~28px of height
+        eventDiv.style.top = `${30 + (layer * 28)}px`;
         
         firstCell.appendChild(eventDiv);
     }

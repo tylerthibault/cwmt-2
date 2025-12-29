@@ -1,1 +1,35 @@
 @import url(components/tabs.css);
+@import url(components/info_box.css);
+
+
+
+:root {
+    /* background */
+    --primary-color: #0d6efd;
+    --primary-color-alt: #0b5ed7;
+    --secondary-color: #6c757d;
+    --secondary-color-alt: #5c636a;
+    --tertiary-color: #adb5bd;
+    --tertiary-color-alt: #868e96;
+    
+    /* status */
+    --success-color: #198754;
+    --success-color-alt: #157347;
+    --info-color: #0dcaf0;
+    --info-color-alt: #31d2f2;
+    --warning-color: #ffc107;
+    --warning-color-alt: #ffca2c;
+    --danger-color: #dc3545;
+    --danger-color-alt: #bb2d3b;
+    
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+
+    /* text */
+    --text-color: #212529;
+    --text-muted-color: #6c757d;
+    --text-inverse-color: #ffffff;
+    --text-inverse-muted-color: #ced4da;
+    --link-color: #0d6efd;
+    --link-hover-color: #0a58ca;
+}

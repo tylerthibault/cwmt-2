@@ -23,6 +23,7 @@ class CourseTemplate(db.Model, CRUDMixin):
     experience_level = db.Column(db.String(50), nullable=False)  # e.g., Beginner, Intermediate, Advanced
     duration_days = db.Column(db.Integer, nullable=False)  # Duration in days
     max_students = db.Column(db.Integer, nullable=False)  # Maximum number of students allowed
+    color = db.Column(db.String(7), nullable=False, default='#0d6efd')  # Hex color code for calendar display
     
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
@@ -37,13 +38,14 @@ class CourseTemplate(db.Model, CRUDMixin):
                                        backref=db.backref('course_templates', lazy='dynamic'),
                                        lazy='dynamic')
     
-    def __init__(self, name, experience_level, duration_days, max_students, **kwargs):
+    def __init__(self, name, experience_level, duration_days, max_students, color='#0d6efd', **kwargs):
         """Initialize course template."""
         super(CourseTemplate, self).__init__(**kwargs)
         self.name = name
         self.experience_level = experience_level
         self.duration_days = duration_days
         self.max_students = max_students
+        self.color = color
     
     def __repr__(self):
         return f'<CourseTemplate {self.name} ({self.experience_level})>'

@@ -1,0 +1,209 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+
+<div>
+    {% include 'private/students/components/navbar.html' %}
+</div>
+
+<div class="container-fluid mt-4 px-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <div class="mb-3">
+                <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to My Enrollments
+                </a>
+            </div>
+
+            <!-- Enrollment Header -->
+            <div class="card shadow mb-3">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-bookmark-check"></i> 
+                        {{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'Course Enrollment' }}
+                    </h3>
+                    {% if enrollment.status == 'enrolled' %}
+                    <span class="badge bg-light text-dark fs-6">Enrolled</span>
+                    {% elif enrollment.status == 'completed' %}
+                    <span class="badge bg-success fs-6">Completed</span>
+                    {% elif enrollment.status == 'dropped' %}
+                    <span class="badge bg-warning fs-6">Dropped</span>
+                    {% elif enrollment.status == 'canceled' %}
+                    <span class="badge bg-danger fs-6">Canceled</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-lg-6">
+                            <!-- Enrolled Student Section (if different from current user) -->
+                            {% if enrolling_student and enrolling_student.id != current_student_id %}
+                            <div class="mb-3">
+                                <h6 class="border-bottom pb-2 mb-2">Enrolled Student</h6>
+                                <p class="mb-1"><strong>Name:</strong> <span class="text-muted">{{ enrolling_student.first_name }} {{ enrolling_student.last_name }}</span></p>
+                                {% if enrolling_student.relationship %}
+                                <p class="mb-0"><strong>Relationship:</strong> <span class="badge bg-info text-capitalize">{{ enrolling_student.relationship }}</span></p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Course Information -->
+                            <div class="mb-3">
+                                <h6 class="border-bottom pb-2 mb-2">Course Details</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1 small"><strong>Course Name:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'N/A' }}</p>
+                                        
+                                        <p class="mb-1 small"><strong>Start Date:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.start_date.strftime('%B %d, %Y') }}</p>
+                                        
+                                        <p class="mb-1 small"><strong>Duration:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.duration_days }} days</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1 small"><strong>Location:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.location }}</p>
+                                        
+                                        <p class="mb-1 small"><strong>End Date:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.end_date.strftime('%B %d, %Y') if enrollment.course_instance.end_date else 'N/A' }}</p>
+                                        
+                                        <p class="mb-1 small"><strong>Experience Level:</strong></p>
+                                        <p class="text-muted mb-2">{{ enrollment.course_instance.course_template.experience_level if enrollment.course_instance.course_template else 'N/A' }}</p>
+                                    </div>
+                                    {% if enrollment.course_instance.course_template and enrollment.course_instance.course_template.description %}
+                                    <div class="col-12 mt-2">
+                                        <p class="mb-1 small"><strong>Description:</strong></p>
+                                        <p class="text-muted small mb-0">{{ enrollment.course_instance.course_template.description }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Enrollment Information -->
+                            <div class="mb-3">
+                                <h6 class="border-bottom pb-2 mb-2">Enrollment Information</h6>
+                                <p class="mb-1 small"><strong>Enrollment Date:</strong> <span class="text-muted">{{ enrollment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span></p>
+                                <p class="mb-1 small"><strong>Status:</strong> 
+                                {% if enrollment.status == 'enrolled' %}
+                                <span class="badge bg-success text-capitalize">{{ enrollment.status }}</span>
+                                {% elif enrollment.status == 'completed' %}
+                                <span class="badge bg-primary text-capitalize">{{ enrollment.status }}</span>
+                                {% elif enrollment.status == 'dropped' %}
+                                <span class="badge bg-warning text-capitalize">{{ enrollment.status }}</span>
+                                {% elif enrollment.status == 'canceled' %}
+                                <span class="badge bg-danger text-capitalize">{{ enrollment.status }}</span>
+                                {% endif %}
+                                </p>
+                                {% if enrollment.updated_at != enrollment.created_at %}
+                                <p class="mb-0 small"><strong>Last Updated:</strong> <span class="text-muted">{{ enrollment.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</span></p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+
+                        <div class="col-lg-6">
+                            <!-- Payment Information -->
+                            {% if payment %}
+                            <div class="mb-3">
+                                <h6 class="border-bottom pb-2 mb-2">Payment Information</h6>
+                                <p class="mb-1 small"><strong>Payment ID:</strong> <span class="text-muted"><code>{{ payment.id }}</code></span></p>
+                                <p class="mb-1"><strong>Total Amount:</strong> <span class="text-success fw-bold fs-5">${{ "%.2f"|format(payment.total_cost / 100) }}</span></p>
+                                <p class="mb-1 small"><strong>Payment Status:</strong> 
+                                {% if payment.status == 'succeeded' %}
+                                <span class="badge bg-success text-capitalize">{{ payment.status }}</span>
+                                {% elif payment.status == 'pending' %}
+                                <span class="badge bg-warning text-capitalize">{{ payment.status }}</span>
+                                {% elif payment.status == 'failed' %}
+                                <span class="badge bg-danger text-capitalize">{{ payment.status }}</span>
+                                {% endif %}
+                                </p>
+                                <p class="mb-1 small"><strong>Transaction Date:</strong> <span class="text-muted">{{ payment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span></p>
+                                {% if payment.stripe_payment_intent_id %}
+                                <p class="mb-0 small"><strong>Stripe Payment Intent:</strong> <span class="text-muted"><code class="small">{{ payment.stripe_payment_intent_id }}</code></span></p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Payment Line Items -->
+                            {% set line_items = payment.line_items.all() if payment.line_items else [] %}
+                            {% if line_items|length > 0 %}
+                            <div class="mb-3">
+                                <h6 class="mb-2">Payment Breakdown</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="small">Item</th>
+                                                <th class="small">Description</th>
+                                                <th class="text-end small">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for line_item in line_items %}
+                                            <tr>
+                                                <td class="small">{{ line_item.payable_template.name if line_item.payable_template else 'Item' }}</td>
+                                                <td class="small text-muted">{{ line_item.payable_template.description if line_item.payable_template else '' }}</td>
+                                                <td class="text-end small">${{ "%.2f"|format(line_item.cost_of_item / 100) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-active">
+                                                <td colspan="2" class="fw-bold small">Total</td>
+                                                <td class="text-end fw-bold small">${{ "%.2f"|format(payment.total_cost / 100) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+
+                            <!-- Course Instructions / Next Steps -->
+                            <div class="infobox mb-0">
+                                <h6 class="alert-heading small">
+                                    <i class="bi bi-info-circle"></i> Important Information
+                                </h6>
+                                <hr class="my-2">
+                                {% if enrollment.status == 'enrolled' %}
+                                <p class="mb-1 small">• Please arrive 15 minutes before the course start time</p>
+                                <p class="mb-1 small">• Bring a valid ID and any required materials</p>
+                                <p class="mb-1 small">• Check your email for pre-course materials and updates</p>
+                                <p class="mb-0 small">• Contact support if you need to make any changes</p>
+                                {% elif enrollment.status == 'completed' %}
+                                <p class="mb-1 small">• Thank you for completing this course!</p>
+                                <p class="mb-1 small">• Your certificate will be emailed within 5-7 business days</p>
+                                <p class="mb-0 small">• Please provide feedback to help us improve</p>
+                                {% elif enrollment.status == 'dropped' or enrollment.status == 'canceled' %}
+                                <p class="mb-0 small">• This enrollment has been {{ enrollment.status }}. If you have questions, please contact support.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 justify-content-center mb-3">
+                <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-primary">
+                    <i class="bi bi-list-ul"></i> View All Enrollments
+                </a>
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-calendar"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="text-center mb-3">
+                <p class="text-muted small mb-0">
+                    Questions about this enrollment? <a href="mailto:support@example.com">Contact Support</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

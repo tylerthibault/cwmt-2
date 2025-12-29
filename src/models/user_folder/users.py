@@ -74,6 +74,13 @@ class User(db.Model, CRUDMixin):
         return self.has_role_by_name('student')
     
     @property
+    def student(self):
+        """Return the Student object if user is a student."""
+        if self.is_student:
+            return students.Student.query.filter_by(user_id=self.id).first()
+        return None
+    
+    @property
     def is_instructor(self):
         """Check if user has instructor role."""
         return self.has_role_by_name('instructor')

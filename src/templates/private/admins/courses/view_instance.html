@@ -5,16 +5,204 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
-<div>
-    <h1>Course Instance Details</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Course Instance Details</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 
-    <div>
-        <h3>{{ course_instance.course_template.title }}</h3>
-        <p><strong>Start Date:</strong> {{ course_instance.start_date.strftime('%Y-%m-%d') }}</p>
-        <p><strong>Location:</strong> {{ course_instance.location }}</p>
-        <p><strong>Duration (days):</strong> {{ course_instance.duration_days }}</p>
-        <p><strong>Start Time:</strong> {{ course_instance.start_time.strftime('%H:%M') }}</p>
-        <p><strong>Description:</strong> {{ course_instance.course_template.description }}</p>
+    <!-- Course Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ course_instance.course_template.title }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Start Date:</strong> {{ course_instance.start_date.strftime('%B %d, %Y') }}</p>
+                    <p class="mb-2"><strong>Start Time:</strong> {{ course_instance.start_time.strftime('%I:%M %p') }}</p>
+                    <p class="mb-2"><strong>Duration:</strong> {{ course_instance.duration_days }} days</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Location:</strong> {{ course_instance.location }}</p>
+                    <p class="mb-2"><strong>Max Students:</strong> {{ course_instance.max_students }}</p>
+                    <p class="mb-2"><strong>Enrolled:</strong> {{ course_instance.enrollments.count() }} / {{ course_instance.max_students }}</p>
+                </div>
+            </div>
+            {% if course_instance.course_template.description %}
+            <hr>
+            <p class="mb-0"><strong>Description:</strong> {{ course_instance.course_template.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Student Roster -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Student Roster ({{ course_instance.enrollments.count() }})</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportRoster()">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    {% if course_instance.enrollments.count() > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="rosterTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="small">Student</th>
+                                    <th class="small">Email</th>
+                                    <th class="small">Phone</th>
+                                    <th class="small">Payment Status</th>
+                                    <th class="small">Enrolled Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in course_instance.enrollments %}
+                                <tr>
+                                    <td class="small">
+                                        <strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong>
+                                        {% if enrollment.student.created_by_student_id %}
+                                        <br><span class="badge bg-info text-white">Guest</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ enrollment.student.user.email if enrollment.student.user else 'N/A' }}</td>
+                                    <td class="small">{{ enrollment.student.user.phone_number if enrollment.student.user and enrollment.student.user.phone_number else 'N/A' }}</td>
+                                    <td class="small">
+                                        {% set payment = enrollment.get_payment() %}
+                                        {% if payment %}
+                                            {% if payment.status == 'succeeded' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Paid
+                                            </span>
+                                            {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-clock"></i> Pending
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle"></i> {{ payment.status|title }}
+                                            </span>
+                                            {% endif %}
+                                        {% else %}
+                                        <span class="badge bg-secondary">No Payment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ enrollment.enrollment_date.strftime('%b %d, %Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-people" style="font-size: 3rem;"></i>
+                        <p class="mb-0 mt-3">No students enrolled yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructors -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Instructors</h5>
+                </div>
+                <div class="card-body">
+                    {% if course_instance.instructors and course_instance.instructors|length > 0 %}
+                    <div class="list-group list-group-flush">
+                        {% for instructor_assignment in course_instance.instructors %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ instructor_assignment.instructor.first_name }} {{ instructor_assignment.instructor.last_name }}</h6>
+                                    <p class="mb-1 small text-muted">{{ instructor_assignment.instructor.user.email if instructor_assignment.instructor.user else 'N/A' }}</p>
+                                    {% if instructor_assignment.role %}
+                                    <span class="badge bg-primary">{{ instructor_assignment.role }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-person-badge" style="font-size: 2.5rem;"></i>
+                        <p class="mb-0 mt-2 small">No instructors assigned</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Total Enrolled:</span>
+                        <strong>{{ course_instance.enrollments.count() }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Paid:</span>
+                        <strong class="text-success">
+                            {% set paid_count = namespace(value=0) %}
+                            {% for enrollment in course_instance.enrollments %}
+                                {% set payment = enrollment.get_payment() %}
+                                {% if payment and payment.status == 'succeeded' %}
+                                    {% set paid_count.value = paid_count.value + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ paid_count.value }}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Spots Left:</span>
+                        <strong>{{ course_instance.max_students - course_instance.enrollments.count() }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">Instructors:</span>
+                        <strong>{{ course_instance.instructors|length if course_instance.instructors else 0 }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    function exportRoster() {
+        // Basic CSV export for roster
+        let csv = 'Student Name,Email,Phone,Payment Status,Enrolled Date\n';
+        
+        const rows = document.querySelectorAll('#rosterTable tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const studentName = cells[0].querySelector('strong').textContent.trim();
+            const email = cells[1].textContent.trim();
+            const phone = cells[2].textContent.trim();
+            const paymentStatus = cells[3].textContent.trim();
+            const enrolledDate = cells[4].textContent.trim();
+            
+            const rowData = [studentName, email, phone, paymentStatus, enrolledDate];
+            csv += rowData.map(cell => `"${cell}"`).join(',') + '\n';
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `roster_course_{{ course_instance.id }}_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+
 {% endblock inner_content %}

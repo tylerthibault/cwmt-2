@@ -1,0 +1,407 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Payment Details</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.view_student', student_id=payment.student_id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Payment Information Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Payment #{{ payment.id }}</h4>
+            <span class="badge bg-light text-dark">
+                {% if payment.status == 'succeeded' %}
+                <i class="bi bi-check-circle text-success"></i> Succeeded
+                {% elif payment.status == 'pending' %}
+                <i class="bi bi-clock text-warning"></i> Pending
+                {% elif payment.status == 'failed' %}
+                <i class="bi bi-x-circle text-danger"></i> Failed
+                {% else %}
+                {{ payment.status|title }}
+                {% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-3">Student Information</h6>
+                    <p class="mb-2"><strong>Name:</strong> {{ payment.student.first_name }} {{ payment.student.last_name }}</p>
+                    <p class="mb-2"><strong>Email:</strong> {{ payment.student.user.email if payment.student.user else 'N/A' }}</p>
+                    <p class="mb-2"><strong>Phone:</strong> {{ payment.student.user.phone_number if payment.student.user and payment.student.user.phone_number else 'N/A' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-3">Course Information</h6>
+                    <p class="mb-2"><strong>Course:</strong> {{ payment.course_instance.course_template.name if payment.course_instance.course_template else 'N/A' }}</p>
+                    <p class="mb-2"><strong>Start Date:</strong> {{ payment.course_instance.start_date.strftime('%B %d, %Y') if payment.course_instance else 'N/A' }}</p>
+                    <p class="mb-2"><strong>Location:</strong> {{ payment.course_instance.location if payment.course_instance else 'N/A' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-3">Payment Details</h6>
+                    <p class="mb-2"><strong>Total Amount:</strong> ${{ "%.2f"|format(payment.total_cost / 100) }}</p>
+                    <p class="mb-2"><strong>Payment Date:</strong> {{ payment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    <p class="mb-2"><strong>Stripe Charge ID:</strong> <small class="text-muted">{{ payment.stripe_charge_id if payment.stripe_charge_id else 'N/A' }}</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Itemized Payment Breakdown -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Itemized Breakdown</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% set line_items = payment.line_items.all() %}
+                    {% if line_items and line_items|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="small">Item</th>
+                                    <th class="small">Description</th>
+                                    <th class="small text-center">Qty</th>
+                                    <th class="small text-end">Amount</th>
+                                    <th class="small text-end">Refunded</th>
+                                    <th class="small text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line_item in line_items %}
+                                <tr>
+                                    <td class="small">
+                                        <strong>{{ line_item.payable_template.name if line_item.payable_template else 'Item' }}</strong>
+                                        {% if line_item.payable_template and line_item.payable_template.is_required %}
+                                        <span class="badge bg-primary ms-1">Required</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-muted">
+                                        {{ line_item.payable_template.description if line_item.payable_template and line_item.payable_template.description else '' }}
+                                    </td>
+                                    <td class="small text-center">{{ line_item.quantity }}</td>
+                                    <td class="small text-end">${{ "%.2f"|format(line_item.cost_of_item / 100) }}</td>
+                                    <td class="small text-end">
+                                        {% if line_item.amount_refunded %}
+                                        <span class="text-danger">${{ "%.2f"|format(line_item.amount_refunded / 100) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">$0.00</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-center">
+                                        {% set remaining_amount = line_item.cost_of_item - (line_item.amount_refunded if line_item.amount_refunded else 0) %}
+                                        {% if payment.status == 'succeeded' and remaining_amount > 0 %}
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="refundLineItem({{ line_item.id }}, {{ remaining_amount }}, '{{ line_item.payable_template.name if line_item.payable_template else 'Item' }}')">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Refund
+                                        </button>
+                                        {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="3" class="small fw-bold">Total</td>
+                                    <td class="small fw-bold text-end">${{ "%.2f"|format(payment.total_cost / 100) }}</td>
+                                    <td class="small fw-bold text-end text-danger">
+                                        {% set total_refunded = namespace(value=0) %}
+                                        {% for item in line_items %}
+                                            {% if item.amount_refunded %}
+                                                {% set total_refunded.value = total_refunded.value + item.amount_refunded %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        ${{ "%.2f"|format(total_refunded.value / 100) }}
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-receipt" style="font-size: 3rem;"></i>
+                        <p class="mb-0 mt-3">No line items found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Refund Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Refund Actions</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="syncWithStripe()" title="Sync refund status with Stripe">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if payment.status == 'succeeded' %}
+                    <!-- Calculate total refunded and remaining amount -->
+                    {% set total_refunded = namespace(value=0) %}
+                    {% set line_items = payment.line_items.all() %}
+                    {% for item in line_items %}
+                        {% if item.amount_refunded %}
+                            {% set total_refunded.value = total_refunded.value + item.amount_refunded %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set remaining_refundable = payment.total_cost - total_refunded.value %}
+                    
+                    <!-- Custom Amount Refund -->
+                    <div class="mb-3">
+                        <label for="customRefundAmount" class="form-label small fw-bold">Custom Refund Amount</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="customRefundAmount" 
+                                   step="0.01" min="0.01" max="{{ "%.2f"|format(remaining_refundable / 100) }}" 
+                                   placeholder="0.00"
+                                   {% if remaining_refundable <= 0 %}disabled{% endif %}>
+                        </div>
+                        <small class="text-muted">Maximum: ${{ "%.2f"|format(remaining_refundable / 100) }}</small>
+                        {% if total_refunded.value > 0 %}
+                        <br><small class="text-danger">Already refunded: ${{ "%.2f"|format(total_refunded.value / 100) }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="refundReason" class="form-label small fw-bold">Reason (optional)</label>
+                        <textarea class="form-control form-control-sm" id="refundReason" rows="2" 
+                                  placeholder="Internal note about refund reason"></textarea>
+                    </div>
+
+                    <button class="btn btn-danger btn-sm w-100 mb-3" onclick="issueCustomRefund()"
+                            {% if remaining_refundable <= 0 %}disabled{% endif %}>
+                        <i class="bi bi-arrow-counterclockwise"></i> Issue Custom Refund
+                    </button>
+
+                    <hr>
+
+                    <!-- Full Refund -->
+                    {% if remaining_refundable > 0 %}
+                    <div class="infobox infobox-warning small mb-0">
+                        <strong>{% if total_refunded.value > 0 %}Refund Remaining{% else %}Full Refund{% endif %}</strong>
+                        <p class="mb-2 small">Refund {% if total_refunded.value > 0 %}the remaining{% else %}the entire{% endif %} payment amount.</p>
+                        <button class="btn btn-sm btn-outline-danger w-100" onclick="issueFullRefund()">
+                            <i class="bi bi-arrow-counterclockwise"></i> Refund ${{ "%.2f"|format(remaining_refundable / 100) }}
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="infobox infobox-success small mb-0">
+                        <i class="bi bi-check-circle"></i> This payment has been fully refunded.
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="infobox infobox-info small mb-0">
+                        <i class="bi bi-info-circle"></i> Refunds are only available for succeeded payments.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Refund History -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Refund History</h6>
+                </div>
+                <div class="card-body">
+                    {% set line_items = payment.line_items.all() %}
+                    {% set has_refunds = namespace(value=False) %}
+                    {% for item in line_items %}
+                        {% if item.amount_refunded and item.amount_refunded > 0 %}
+                            {% set has_refunds.value = True %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if has_refunds.value %}
+                    <ul class="list-unstyled small mb-0">
+                        {% for item in line_items %}
+                            {% if item.amount_refunded and item.amount_refunded > 0 %}
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">{{ item.payable_template.name if item.payable_template else 'Item' }}</span>
+                                    <strong class="text-danger">-${{ "%.2f"|format(item.amount_refunded / 100) }}</strong>
+                                </div>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted small mb-0">No refunds issued yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Messages -->
+<div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;"></div>
+
+<script>
+    const PAYMENT_ID = {{ payment.id }};
+    const REMAINING_REFUNDABLE = {{ remaining_refundable }};
+
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `infobox infobox-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.getElementById('alert-container').appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
+    async function refundLineItem(lineItemId, amount, itemName) {
+        const amountInDollars = (amount / 100).toFixed(2);
+        
+        if (!confirm(`Refund $${amountInDollars} for "${itemName}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/api/payments/${PAYMENT_ID}/refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    line_item_id: lineItemId,
+                    amount: amount
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Refund issued successfully', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to issue refund'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
+    async function syncWithStripe() {
+        if (!confirm('Sync refund status with Stripe? This will check Stripe for any refunds not recorded in the database.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/api/payments/${PAYMENT_ID}/sync-stripe`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to sync with Stripe'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
+    async function issueCustomRefund() {
+        const amount = parseFloat(document.getElementById('customRefundAmount').value);
+        const reason = document.getElementById('refundReason').value;
+
+        if (!amount || amount <= 0) {
+            showAlert('Please enter a valid refund amount', 'warning');
+            return;
+        }
+
+        const maxAmount = REMAINING_REFUNDABLE / 100;
+        if (amount > maxAmount) {
+            showAlert(`Amount cannot exceed $${maxAmount.toFixed(2)} (remaining refundable amount)`, 'warning');
+            return;
+        }
+
+        if (!confirm(`Issue custom refund of $${amount.toFixed(2)}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/api/payments/${PAYMENT_ID}/refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: Math.round(amount * 100),
+                    reason: reason || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Custom refund issued successfully', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to issue refund'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
+    async function issueFullRefund() {
+        const totalAmount = (REMAINING_REFUNDABLE / 100).toFixed(2);
+        
+        if (!confirm(`Issue refund of $${totalAmount}? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/api/payments/${PAYMENT_ID}/refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: REMAINING_REFUNDABLE,
+                    full_refund: true
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Refund issued successfully', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to issue refund'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+</script>
+
+{% endblock inner_content %}

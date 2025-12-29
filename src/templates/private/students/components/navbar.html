@@ -1,0 +1,39 @@
+<style>
+    .sidenav-b4552cb1 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 1em;
+    }
+    .sidenav-list-b4552cb1 {
+        display: flex;
+        gap: 1em;
+        list-style-type: none;
+        padding: 0;
+    }
+    .sidenav-list-b4552cb1 li a {
+        text-decoration: none;
+        color: black;
+    }
+    .sidenav-list-b4552cb1 li a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<nav class="sidenav-b4552cb1">
+    <div>
+        <h2>CWMT</h2>
+    </div>
+    <ul class="sidenav-list-b4552cb1">
+        <li >
+            <a href="{{ url_for('student.dashboard') }}">Home</a>
+        </li>
+        <li>
+            <a href="{{ url_for('student.my_enrollments') }}">Your Courses</a>
+        </li>
+        <li>
+            <a class="text-danger" href="{{ url_for('auth.logout') }}">Logout</a>
+        </li>
+    </ul>
+</nav>

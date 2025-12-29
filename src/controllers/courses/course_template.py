@@ -27,28 +27,90 @@ def list_course_temps():
 @login_required
 @role_required('superuser')
 def create_course_temp():
-    """Create a new course template."""
+    """Create a new course template or update an existing one."""
     if request.method == 'POST':
+        template_id = request.form.get('template_id')
         name = request.form.get('name')
         experience_level = request.form.get('experience_level')
         duration_days = request.form.get('duration_days')
         max_students = request.form.get('max_students')
+        tuition = request.form.get('tuition')
+        color = request.form.get('color', '#0d6efd')
         
         # Validate inputs
-        if not name or not experience_level or not duration_days or not max_students:
+        if not name or not experience_level or not duration_days or not max_students or not tuition:
             flash('All fields are required!', 'error')
             return redirect(url_for('course_temp.create_course_temp'))
         
-        # Create and save the new course template
-        new_template = course_templates.CourseTemplate(
-            name=name,
-            experience_level=experience_level,
-            duration_days=int(duration_days),
-            max_students=int(max_students)
-        )
-        new_template.save()
+        # Check if we're updating an existing template
+        if template_id:
+            # UPDATE existing template
+            template = course_templates.CourseTemplate.query.get(template_id)
+            if not template:
+                flash('Course template not found!', 'error')
+                return redirect(url_for('course_temp.list_course_temps'))
+            
+            # Update template fields
+            old_name = template.name  # Store old name before updating
+            template.name = name
+            template.experience_level = experience_level
+            template.duration_days = int(duration_days)
+            template.max_students = int(max_students)
+            template.color = color
+            template.save()
+            
+            # Find the tuition payable template using the OLD name
+            tuition_payable = None
+            for payable in template.payable_templates:
+                if payable.name == f"{old_name} Tuition" or "Tuition" in payable.name:
+                    tuition_payable = payable
+                    break
+            
+            if tuition_payable:
+                # Update existing tuition payable with new values
+                tuition_payable.name = f"{name} Tuition"
+                tuition_payable.amount = float(tuition)
+                tuition_payable.description = f"Tuition for {name}"
+                tuition_payable.save()
+            else:
+                # Create new tuition payable if it doesn't exist
+                tuition_payable = payable_templates.PayableTemplate(
+                    name=f"{name} Tuition",
+                    amount=float(tuition),
+                    description=f"Tuition for {name}",
+                    is_required=True
+                )
+                tuition_payable.save()
+                template.payable_templates.append(tuition_payable)
+                template.save()
+            
+            flash('Course template updated successfully!', 'success')
+        else:
+            # CREATE new template
+            new_template = course_templates.CourseTemplate(
+                name=name,
+                experience_level=experience_level,
+                duration_days=int(duration_days),
+                max_students=int(max_students),
+                color=color
+            )
+            new_template.save()
+            
+            # Create tuition payable template
+            tuition_payable = payable_templates.PayableTemplate(
+                name=f"{name} Tuition",
+                amount=float(tuition),
+                description=f"Tuition for {name}",
+                is_required=True
+            )
+            tuition_payable.save()
+            
+            # Attach the tuition payable to the course template
+            new_template.payable_templates.append(tuition_payable)
+            new_template.save()
+            
+            flash('Course template created successfully with tuition!', 'success')
         
-        flash('Course template created successfully!', 'success')
         return redirect(url_for('course_temp.list_course_temps'))
     
     return render_template('create_course_temp.html')

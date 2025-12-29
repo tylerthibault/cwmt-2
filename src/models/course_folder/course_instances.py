@@ -85,3 +85,11 @@ class CourseInstance(db.Model, CRUDMixin):
         return cls.query.filter(
             (cls.c1_instructor_id == instructor_id) | (cls.c2_instructor_id == instructor_id)
         ).order_by(cls.start_date.desc()).all()
+
+    def get_total_tuition(self):
+        """Calculate total tuition based on associated payable templates."""
+        total = 0.0
+        if self.course_template:
+            for payable in self.course_template.payable_templates:
+                total += float(payable.amount)
+        return total

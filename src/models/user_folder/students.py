@@ -22,6 +22,10 @@ class Student(db.Model, CRUDMixin):
     phone_number = db.Column(db.String(20))
     student_id = db.Column(db.String(50), unique=True, index=True)
     
+    # Guest Account Tracking
+    created_by_student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=True, index=True)
+    relationship = db.Column(db.String(50))  # child, spouse, parent, sibling, friend, other
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -29,7 +33,10 @@ class Student(db.Model, CRUDMixin):
     # Relationship to User
     user = db.relationship('User', backref=db.backref('students', lazy='dynamic'))
     
-    def __init__(self, user_id, first_name, last_name, phone_number=None, student_id=None, **kwargs):
+    # Self-referential relationship for guest accounts
+    created_by = db.relationship('Student', remote_side=[id], backref='guest_students', foreign_keys=[created_by_student_id])
+    
+    def __init__(self, user_id, first_name, last_name, phone_number=None, student_id=None, created_by_student_id=None, relationship=None, **kwargs):
         """Initialize student profile."""
         super(Student, self).__init__(**kwargs)
         self.user_id = user_id
@@ -37,6 +44,19 @@ class Student(db.Model, CRUDMixin):
         self.last_name = last_name
         self.phone_number = phone_number
         self.student_id = student_id
+        self.created_by_student_id = created_by_student_id
+        self.relationship = relationship
+
+    @property
+    def enrollments(self):
+        """Return all enrollments for this student."""
+        from src.models.course_folder.enrollments import Enrollment
+        return Enrollment.query.filter_by(student_id=self.id).all()
+    
+    @property
+    def is_guest_account(self):
+        """Check if this is a guest account created by another student."""
+        return self.created_by_student_id is not None
     
     @property
     def full_name(self):

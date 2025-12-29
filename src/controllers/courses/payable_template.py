@@ -58,6 +58,7 @@ def update_payable_temp():
     name = request.form.get('name')
     amount = request.form.get('amount')
     description = request.form.get('description')
+    is_required = 1 if request.form.get('is_required') else 0
     
     template = payable_templates.PayableTemplate.query.get(template_id)
     if not template:
@@ -68,6 +69,7 @@ def update_payable_temp():
     template.name = name
     template.amount = float(amount)
     template.description = description
+    template.is_required = is_required
     template.save()
     
     flash('Payable template updated successfully!', 'success')

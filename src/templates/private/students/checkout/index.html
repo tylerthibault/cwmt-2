@@ -1,0 +1,350 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+
+<div>
+    {% include 'private/students/components/navbar.html' %}
+</div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Course Enrollment - Payment</h4>
+                </div>
+                <div class="card-body">
+                    {% if is_guest_enrollment %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>Enrolling Guest Student</strong>
+                        <p class="mb-0">You are enrolling <strong>{{ enrolling_student.first_name }} {{ enrolling_student.last_name }}</strong> ({{ enrolling_student.relationship }}) in this course.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Course Summary -->
+                    <div class="infobox">
+                        <h5 class="alert-heading">Course Details</h5>
+                        <hr>
+                        <p class="mb-1"><strong>Course:</strong> {{ course.course_template.name if course.course_template else 'N/A' }}</p>
+                        <p class="mb-1"><strong>Start Date:</strong> {{ course.start_date.strftime('%B %d, %Y') }}</p>
+                        <p class="mb-1"><strong>Duration:</strong> {{ course.duration_days }} days</p>
+                        <p class="mb-0"><strong>Location:</strong> {{ course.location }}</p>
+                    </div>
+
+                    <!-- Payment Items Breakdown -->
+                    {% if payable_items %}
+                    <div class="mb-4">
+                        <h5>Payment Details</h5>
+                        <p class="text-muted small">Select optional items you'd like to include in this payment.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"></th>
+                                        <th>Item</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payable-items-body">
+                                    {% for item in payable_items %}
+                                    <tr data-item-id="{{ item.id }}" 
+                                        data-amount="{{ item.amount_dollars }}" 
+                                        data-required="{{ 'true' if item.is_required else 'false' }}">
+                                        <td>
+                                            {% if item.is_required %}
+                                            <input type="checkbox" class="form-check-input payable-checkbox" 
+                                                   value="{{ item.id }}" checked disabled>
+                                            {% else %}
+                                            <input type="checkbox" class="form-check-input payable-checkbox" 
+                                                   value="{{ item.id }}" checked>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ item.name }}
+                                            {% if item.is_required %}
+                                            <span class="badge bg-primary ms-1">Required</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary ms-1">Optional</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small class="text-muted">{{ item.description if item.description else '' }}</small></td>
+                                        <td class="text-end item-amount">${{ "%.2f"|format(item.amount_dollars) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active fw-bold">
+                                        <td colspan="3">Total</td>
+                                        <td class="text-end" id="total-amount">${{ "%.2f"|format(total_amount_dollars) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Alert Messages -->
+                    <div id="payment-messages"></div>
+
+                    <!-- Stripe Payment Form -->
+                    <form id="payment-form">
+                        <h5 class="mb-3">Payment Information</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" id="cardholder-name" 
+                                   value="{{ current_user.first_name }} {{ current_user.last_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Card Details</label>
+                            <div id="card-element" class="form-control" style="height: 40px; padding-top: 10px;">
+                                <!-- Stripe Card Element will be inserted here -->
+                            </div>
+                            <div id="card-errors" class="text-danger small mt-1"></div>
+                            <small class="text-muted">Test card: 4242 4242 4242 4242, any future expiry, any CVC</small>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Total Amount:</h5>
+                            <h4 class="mb-0 text-primary" id="total-amount-display">${{ "%.2f"|format(total_amount_dollars) }}</h4>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-payment">
+                                <i class="bi bi-lock-fill"></i> Complete Payment
+                            </button>
+                            <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Load Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+    const COURSE_INSTANCE_ID = {{ course.id }};
+    const GUEST_STUDENT_ID = {{ guest_student_id if guest_student_id else 'null' }};
+    const STRIPE_PUBLISHABLE_KEY = "{{ stripe_publishable_key or '' }}";
+    
+    // Calculate total based on selected items
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.payable-checkbox:checked').forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const amount = parseFloat(row.dataset.amount);
+            total += amount;
+        });
+        
+        document.getElementById('total-amount').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('total-amount-display').textContent = `$${total.toFixed(2)}`;
+        
+        // Disable submit if no items selected
+        const submitButton = document.getElementById('submit-payment');
+        if (total === 0) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Select at least one item';
+        } else {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Complete Payment';
+        }
+    }
+    
+    // Attach change listeners to checkboxes
+    document.querySelectorAll('.payable-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateTotal);
+    });
+    
+    // Get selected payable item IDs
+    function getSelectedPayableIds() {
+        const selectedIds = [];
+        document.querySelectorAll('.payable-checkbox:checked').forEach(checkbox => {
+            selectedIds.push(parseInt(checkbox.value));
+        });
+        return selectedIds;
+    }
+    
+    // Check if Stripe key is available
+    if (!STRIPE_PUBLISHABLE_KEY) {
+        document.getElementById('payment-messages').innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                <strong>Configuration Error:</strong> Stripe publishable key is not configured.
+            </div>
+        `;
+        document.getElementById('submit-payment').disabled = true;
+        throw new Error('Stripe publishable key not configured');
+    }
+    
+    // Initialize Stripe
+    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    const elements = stripe.elements();
+    
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#32325d',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#dc3545',
+                iconColor: '#dc3545'
+            }
+        }
+    });
+    
+    // Mount card element,
+                    payable_template_ids: getSelectedPayableIds()
+    cardElement.mount('#card-element');
+    
+    // Handle real-time validation errors
+    cardElement.on('change', (event) => {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-payment');
+    const messagesDiv = document.getElementById('payment-messages');
+    
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        // Disable submit button
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        
+        // Clear previous messages
+        messagesDiv.innerHTML = '';
+        
+        try {
+            // Step 1: Create payment intent on the server
+            const response = await fetch('/api/payments/create-intent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_instance_id: COURSE_INSTANCE_ID,
+                    guest_student_id: GUEST_STUDENT_ID
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create payment intent');
+            }
+            
+            // Step 2: Confirm payment with Stripe
+            const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+                data.clientSecret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: document.getElementById('cardholder-name').value,
+                        }
+                    }
+                }
+            );
+            
+            if (stripeError) {
+                // Show error to customer
+                showError(stripeError.message);
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Complete Payment';
+            } else if (paymentIntent.status === 'succeeded') {
+                // Payment succeeded, poll for enrollment creation
+                showSuccess('Payment successful! Creating your enrollment...');
+                await pollPaymentStatus(data.paymentId);
+            } else {
+                // Payment requires additional action or failed
+                showError('Payment status: ' + paymentIntent.status);
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Complete Payment';
+            }
+            
+        } catch (error) {
+            showError(error.message || 'An unexpected error occurred');
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Complete Payment';
+        }
+    });
+    
+    // Poll payment status until enrollment is created
+    async function pollPaymentStatus(paymentId, attempts = 0, maxAttempts = 20) {
+        if (attempts >= maxAttempts) {
+            showWarning('Payment processed but enrollment is taking longer than expected. Please check "My Enrollments" page.');
+            setTimeout(() => {
+                window.location.href = "{{ url_for('student.my_enrollments') }}";
+            }, 3000);
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/payments/status/${paymentId}`);
+            const data = await response.json();
+            
+            if (data.enrollment_id) {
+                // Enrollment created, redirect to success page
+                window.location.href = `/student/payment-success/${data.enrollment_id}`;
+            } else if (data.status === 'succeeded' || data.status === 'pending') {
+                // Wait and poll again
+                setTimeout(() => pollPaymentStatus(paymentId, attempts + 1, maxAttempts), 1000);
+            } else {
+                // Payment failed
+                window.location.href = "{{ url_for('student.payment_failed') }}";
+            }
+        } catch (error) {
+            // Retry on error
+            setTimeout(() => pollPaymentStatus(paymentId, attempts + 1, maxAttempts), 1000);
+        }
+    }
+    
+    // Helper functions for displaying messages
+    function showError(message) {
+        messagesDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+    
+    function showSuccess(message) {
+        messagesDiv.innerHTML = `
+            <div class="alert alert-success" role="alert">
+                <strong>Success:</strong> ${message}
+            </div>
+        `;
+    }
+    
+    function showWarning(message) {
+        messagesDiv.innerHTML = `
+            <div class="alert alert-warning" role="alert">
+                <strong>Note:</strong> ${message}
+            </div>
+        `;
+    }
+</script>
+
+{% endblock content %}

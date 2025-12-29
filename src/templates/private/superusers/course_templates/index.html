@@ -23,7 +23,9 @@
                    data-duration-days="{{ template.duration_days }}"
                    data-max-students="{{ template.max_students }}"
                    data-is-active="{{ template.is_active }}"
-                   data-payables="{{ template.payable_templates.all()|map(attribute='id')|list|tojson }}">
+                   data-color="{{ template.color }}"
+                   data-payables="{{ template.payable_templates.all()|map(attribute='id')|list|tojson }}"
+                   data-tuition="{{ template.payable_templates.filter_by(name=template.name + ' Tuition').first().amount if template.payable_templates.filter_by(name=template.name + ' Tuition').first() else 0 }}">
                     {{ template.name }}
                 </a>
                 {% endfor %}
@@ -86,6 +88,17 @@
                                 <input type="number" class="form-control" id="edit_max_students" name="max_students" min="1" required>
                             </div>
 
+                            <div class="mb-3">
+                                <label for="edit_tuition" class="form-label">Tuition Amount <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="edit_tuition" name="tuition" min="0" step="0.01" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit_color" class="form-label">Calendar Color <span class="text-danger">*</span></label>
+                                <input type="color" class="form-control form-control-color" id="edit_color" name="color" required>
+                                <small class="form-text text-muted">Choose a color for this course on the calendar</small>
+                            </div>
+
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="edit_is_active" name="is_active">
                                 <label class="form-check-label" for="edit_is_active">Active</label>
@@ -136,6 +149,17 @@
                             <div class="mb-3">
                                 <label for="max_students" class="form-label">Maximum Students <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="max_students" name="max_students" min="1" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tuition" class="form-label">Tuition Amount <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="tuition" name="tuition" min="0" step="0.01" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="color" class="form-label">Calendar Color <span class="text-danger">*</span></label>
+                                <input type="color" class="form-control form-control-color" id="color" name="color" value="#0d6efd" required>
+                                <small class="form-text text-muted">Choose a color for this course on the calendar</small>
                             </div>
 
                             <div class="mb-3 form-check">
@@ -191,6 +215,8 @@
                 durationDays: this.dataset.durationDays,
                 maxStudents: this.dataset.maxStudents,
                 isActive: this.dataset.isActive === 'True',
+                color: this.dataset.color,
+                tuition: this.dataset.tuition,
                 payables: JSON.parse(this.dataset.payables || '[]')
             };
             
@@ -206,6 +232,7 @@
                 {% for p in payable_templates %}
                 {
                     id: {{ p.id }},
+                    name: "{{ p.name }}",
                     description: "{{ p.description }}",
                     amount: {{ p.amount }}
                 }{{ "," if not loop.last else "" }}
@@ -222,7 +249,7 @@
                     payablesHtml += `
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>${p.description}</strong>
+                                <strong>${p.name}</strong>
                                 <span class="badge bg-primary ms-2">$${parseFloat(p.amount).toFixed(2)}</span>
                             </div>
                             <form method="POST" action="{{ url_for('course_temp.add_payable_to_course') }}" style="display:inline;">
@@ -247,7 +274,7 @@
                             <div class="input-group">
                                 <select name="payable_template_id" class="form-select" required>
                                     <option value="">Select a payable...</option>
-                                    ${availablePayables.map(p => `<option value="${p.id}">${p.description} - $${parseFloat(p.amount).toFixed(2)}</option>`).join('')}
+                                    ${availablePayables.map(p => `<option value="${p.id}">${p.name} - $${parseFloat(p.amount).toFixed(2)}</option>`).join('')}
                                 </select>
                                 <button type="submit" class="btn btn-primary">Add</button>
                             </div>
@@ -290,6 +317,8 @@
         document.getElementById('edit_experience_level').value = data.experienceLevel;
         document.getElementById('edit_duration_days').value = data.durationDays;
         document.getElementById('edit_max_students').value = data.maxStudents;
+        document.getElementById('edit_tuition').value = data.tuition;
+        document.getElementById('edit_color').value = data.color;
         document.getElementById('edit_is_active').checked = data.isActive;
         
         // Show edit view, hide details view

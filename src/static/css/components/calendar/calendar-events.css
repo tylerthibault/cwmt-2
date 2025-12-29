@@ -1,0 +1,106 @@
+/* Calendar Event Styling */
+.calendar-event {
+    background-color: #0d6efd;
+    color: white;
+    padding: 4px 6px;
+    margin: 2px 0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 1;
+}
+
+.calendar-event.spanning {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0;
+    border-radius: 4px 0 0 4px;
+}
+
+.calendar-event.spanning.event-end {
+    border-radius: 0 4px 4px 0;
+}
+
+.calendar-event.spanning.event-middle {
+    border-radius: 0;
+}
+
+.calendar-event.spanning.event-single {
+    border-radius: 4px;
+}
+
+.calendar-event:hover {
+    background-color: #0b5ed7;
+}
+
+.calendar-event.status-completed {
+    background-color: #198754;
+}
+
+.calendar-event.status-cancelled {
+    background-color: #dc3545;
+}
+
+.calendar-event.status-active {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.calendar-event.my-course {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.calendar-event.my-course::after {
+    content: attr(data-instructor-role);
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: bold;
+    background-color: #ffd700;
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 3px;
+    line-height: 1;
+}
+
+.calendar-event.has-instructors::after {
+    content: attr(data-instructor-slots);
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #0d6efd;
+    padding: 2px 6px;
+    border-radius: 3px;
+    line-height: 1;
+    letter-spacing: 2px;
+}
+
+.instructor-slot {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.instructor-slot.available {
+    background-color: #d1e7dd;
+    border-color: #198754;
+}
+
+.instructor-slot.taken {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}

@@ -30,6 +30,12 @@ def init_db(app):
     from src.models.course_folder.course_templates import CourseTemplate
     from src.models.course_folder.course_instances import CourseInstance
     from src.models.course_folder.payable_templates import PayableTemplate
+    from src.models.course_folder.enrollments import Enrollment
+
+    # stripe models
+    from src.models.stripe.payments import Payment
+    from src.models.stripe.payment_line_items import PaymentLineItem
+    from src.models.stripe.stripe_webhook_events import StripeWebhookEvent 
 
     
     # Create all tables
@@ -67,6 +73,13 @@ def init_blueprints(app):
 
     from src.controllers.courses.payable_template import payable_temp_bp
     app.register_blueprint(payable_temp_bp)
+    
+    # Stripe payments
+    from src.controllers.payments.stripe_payments import stripe_payments_bp
+    app.register_blueprint(stripe_payments_bp)
+    
+    from src.controllers.payments.stripe_webhooks import stripe_webhooks_bp
+    app.register_blueprint(stripe_webhooks_bp)
     
     # DEV
     from src.controllers.seeding import seed_bp

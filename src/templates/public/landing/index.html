@@ -1,10 +1,12 @@
 {% extends 'bases/public.html' %}
 
 {% block content %}
+{% include 'public/components/navbar.html' %}
 <div>
     <h1>cwmt</h1>
     <p>Login or Register</p>
     <a href="{{ url_for('auth.loginReg' )}}">Login</a>
+    <a href="{{ url_for('main.public_courses') }}">Courses</a>
 </div>
 
 {% endblock content %}

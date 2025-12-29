@@ -75,6 +75,7 @@ def register():
     from src.utils.password_management import generate_random_password
 
     data = {**request.form}
+    course_id = data.get('course_id')  # Get course ID if provided
 
     # password_generation = generate_random_password()
     password_generation = 'Pass123!!'
@@ -105,6 +106,9 @@ def register():
     session['doorman_token'] = doorman_session.session_token
 
     if 'doorman_token' in session:
+        # If course_id is provided, redirect to checkout
+        if course_id:
+            return redirect(url_for('student.checkout', course_instance_id=course_id))
         return redirect(url_for('student.dashboard'))
 
     return redirect(url_for('auth.loginReg'))

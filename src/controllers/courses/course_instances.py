@@ -153,39 +153,39 @@ def instructor_signup_for_course():
         role = data.get('role')  # 'c1' or 'c2'
         
         if not course_instance_id or not role:
-            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            return jsonify({'success - 67f50d19': False, 'message': 'Missing required fields'}), 400
         
         if role not in ['c1', 'c2']:
-            return jsonify({'success': False, 'message': 'Invalid role. Must be c1 or c2.'}), 400
+            return jsonify({'success - 00a9cf40': False, 'message': 'Invalid role. Must be c1 or c2.'}), 400
         
         # Get the course instance
         instance = course_instances.CourseInstance.query.get(course_instance_id)
         if not instance:
-            return jsonify({'success': False, 'message': 'Course instance not found'}), 404
+            return jsonify({'success - 776423dc': False, 'message': 'Course instance not found'}), 404
         
         # Get current user's instructor record
         current_user = Doorman.get_by_token(session['doorman_token']).user
         instructor = instructors.Instructor.query.filter_by(user_id=current_user.id).first()
         
         if not instructor:
-            return jsonify({'success': False, 'message': 'Instructor record not found'}), 404
+            return jsonify({'success - e352da0d': False, 'message': 'Instructor record not found'}), 404
         
         # Check if slot is available
         if role == 'c1':
             if instance.c1_instructor_id:
-                return jsonify({'success': False, 'message': 'C1 instructor slot is already taken'}), 400
+                return jsonify({'success - a75c5cbe': False, 'message': 'C1 instructor slot is already taken'}), 400
             instance.c1_instructor_id = instructor.id
         else:  # c2
             if instance.c2_instructor_id:
-                return jsonify({'success': False, 'message': 'C2 instructor slot is already taken'}), 400
+                return jsonify({'success - 272babe8': False, 'message': 'C2 instructor slot is already taken'}), 400
             instance.c2_instructor_id = instructor.id
         
         instance.save()
         
-        return jsonify({'success': True, 'message': f'Successfully signed up as {role.upper()} instructor'}), 200
+        return jsonify({'success - b82d6859': True, 'message': f'Successfully signed up as {role.upper()} instructor'}), 200
         
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+        return jsonify({'success - f607efb0': False, 'message': str(e)}), 400
 
 @courses_bp.route('/instructor/withdraw', methods=['POST'])
 @login_required
@@ -199,12 +199,12 @@ def instructor_withdraw_from_course():
         course_instance_id = data.get('course_instance_id')
         
         if not course_instance_id:
-            return jsonify({'success': False, 'message': 'Missing course_instance_id'}), 400
+            return jsonify({'success - d104c389': False, 'message': 'Missing course_instance_id'}), 400
         
         # Get the course instance
         instance = course_instances.CourseInstance.query.get(course_instance_id)
         if not instance:
-            return jsonify({'success': False, 'message': 'Course instance not found'}), 404
+            return jsonify({'success - ea977684': False, 'message': 'Course instance not found'}), 404
         
         # Get current user's instructor record
         current_user = Doorman.get_by_token(session['doorman_token']).user
@@ -224,6 +224,80 @@ def instructor_withdraw_from_course():
         instance.save()
         
         return jsonify({'success': True, 'message': 'Successfully withdrawn from course'}), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@courses_bp.route('/student/checkout/<int:course_id>')
+@login_required
+@role_required('student')
+def student_checkout(course_id):
+    """Display checkout page for course enrollment."""
+    from src.models.course_folder import course_instances
+    from src.models.user_folder import students
+    
+    # Get the course instance
+    instance = course_instances.CourseInstance.query.get(course_id)
+    if not instance:
+        flash('Course not found', 'error')
+        return redirect(url_for('student.dashboard'))
+    
+    # Get current user's student record
+    current_user = Doorman.get_by_token(session['doorman_token']).user
+    student = students.Student.query.filter_by(user_id=current_user.id).first()
+    
+    if not student:
+        flash('Student record not found', 'error')
+        return redirect(url_for('student.dashboard'))
+    
+    context = {
+        'current_user': current_user,
+        'student': student,
+        'course': instance,
+        'course_name': instance.course_template.name if instance.course_template else 'Unknown Course',
+        'course_price': instance.get_total_tuition() if instance.course_template else 0.0
+    }
+    
+    return render_template('private/students/checkout/index.html', **context)
+
+@courses_bp.route('/student/process-payment', methods=['POST'])
+@login_required
+@role_required('student')
+def student_process_payment():
+    """Process mock payment and create enrollment."""
+    from src.models.course_folder import course_instances
+    from src.models.user_folder import students
+    
+    try:
+        data = request.get_json()
+        course_instance_id = data.get('course_instance_id')
+        
+        if not course_instance_id:
+            return jsonify({'success': False, 'message': 'Missing course_instance_id'}), 400
+        
+        # Get the course instance
+        instance = course_instances.CourseInstance.query.get(course_instance_id)
+        if not instance:
+            return jsonify({'success': False, 'message': 'Course instance not found'}), 404
+        
+        # Get current user's student record
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        student = students.Student.query.filter_by(user_id=current_user.id).first()
+        
+        if not student:
+            return jsonify({'success': False, 'message': 'Student record not found'}), 404
+        
+        # TODO: Check if course is full
+        # TODO: Check if student is already enrolled
+        # TODO: Create enrollment record
+        # TODO: In future, integrate with Stripe here
+        
+        # Mock payment success
+        return jsonify({
+            'success': True, 
+            'message': 'Payment processed successfully',
+            'redirect_url': url_for('student.dashboard')
+        }), 200
         
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400

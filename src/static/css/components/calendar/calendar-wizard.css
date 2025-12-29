@@ -1,0 +1,70 @@
+/* Wizard Modal Styles */
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 10px;
+}
+
+.wizard-step::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: 0;
+}
+
+.wizard-step:first-child::before {
+    left: 50%;
+}
+
+.wizard-step:last-child::before {
+    right: 50%;
+}
+
+.wizard-step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 8px;
+}
+
+.wizard-step.active .wizard-step-number {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.wizard-step.completed .wizard-step-number {
+    background-color: #198754;
+    color: white;
+}
+
+.wizard-content {
+    min-height: 300px;
+}
+
+.wizard-form-section {
+    display: none;
+}
+
+.wizard-form-section.active {
+    display: block;
+}

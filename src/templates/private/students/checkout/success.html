@@ -1,0 +1,141 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+
+<div>
+    {% include 'private/students/components/navbar.html' %}
+</div>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Success Message -->
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                </div>
+                <h1 class="text-success">Payment Successful!</h1>
+                {% if is_guest_enrollment %}
+                    <p class="lead text-muted">
+                        You have successfully enrolled <strong>{{ enrolling_student.first_name }} {{ enrolling_student.last_name }}</strong>
+                        {% if enrolling_student.relationship %}
+                            <span class="badge bg-info">{{ enrolling_student.relationship }}</span>
+                        {% endif %}
+                        in the course.
+                    </p>
+                {% else %}
+                    <p class="lead text-muted">You have been successfully enrolled in the course.</p>
+                {% endif %}
+            </div>
+
+            <!-- Enrollment Details Card -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-bookmark-check"></i> Enrollment Confirmation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Enrolled Student Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Enrolled Student</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Name:</strong></p>
+                                <p class="text-muted">{{ enrolling_student.first_name }} {{ enrolling_student.last_name }}</p>
+                            </div>
+                            {% if is_guest_enrollment and enrolling_student.relationship %}
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Relationship:</strong></p>
+                                <span class="badge bg-info text-capitalize">{{ enrolling_student.relationship }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Course Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Course Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Course Name:</strong></p>
+                                <p class="text-muted">{{ course.course_template.name if course.course_template else 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Location:</strong></p>
+                                <p class="text-muted">{{ course.location }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Start Date:</strong></p>
+                                <p class="text-muted">{{ course.start_date.strftime('%B %d, %Y') }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Duration:</strong></p>
+                                <p class="text-muted">{{ course.duration_days }} days</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Enrollment Status:</strong></p>
+                                <span class="badge bg-success">{{ enrollment.status|upper }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    {% if payment %}
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Payment Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Payment ID:</strong></p>
+                                <p class="text-muted"><code>{{ payment.id }}</code></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Total Amount:</strong></p>
+                                <p class="text-success fw-bold fs-5">${{ "%.2f"|format(payment.total_cost / 100) }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Payment Status:</strong></p>
+                                <span class="badge bg-success">{{ payment.status|upper }}</span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-2"><strong>Transaction Date:</strong></p>
+                                <p class="text-muted">{{ payment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Enrollment Information -->
+                    <div class="infobox mb-0">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> What's Next?
+                        </h6>
+                        <hr>
+                        <p class="mb-2">• You will receive a confirmation email shortly at <strong>{{ current_user.email }}</strong></p>
+                        <p class="mb-2">• Course materials and details will be sent before the start date</p>
+                        <p class="mb-0">• You can view all your enrollments anytime from your dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-list-ul"></i> View My Enrollments
+                </a>
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-calendar"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Receipt Download (Optional) -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="bi bi-envelope"></i> A receipt has been sent to your email address
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

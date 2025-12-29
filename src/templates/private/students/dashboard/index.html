@@ -1,12 +1,287 @@
 {% extends 'bases/private.html' %}
 
 {% block content %}
+
 <div>
-    <h1 class="mt-4">Student Dashboard</h1>
-    <p>Welcome to your dashboard! Here you can access your courses, assignments, and profile settings.</p>
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
+    {% include 'private/students/components/navbar.html' %}
 </div>
 
-{% include 'components/testing/roles.html' %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Student Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ current_user.first_name }}!</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary me-2" onclick="showCreateGuestModal()">
+                <i class="bi bi-person-plus"></i> Add Family/Friend
+            </button>
+            <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-primary">
+                <i class="bi bi-list-ul"></i> My Enrollments
+            </a>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card mb-3 border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Active Courses</h5>
+                    <h2 class="text-primary">{{ active_count }}</h2>
+                    <small class="text-muted">Currently enrolled</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card mb-3 border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Completed</h5>
+                    <h2 class="text-success">{{ completed_count }}</h2>
+                    <small class="text-muted">Finished courses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card mb-3 border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Upcoming</h5>
+                    <h2 class="text-info">{{ upcoming_count }}</h2>
+                    <small class="text-muted">Starting soon</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card mb-3 border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total</h5>
+                    <h2 class="text-warning">{{ total_enrollments }}</h2>
+                    <small class="text-muted">All time enrollments</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guest Students Section -->
+    {% if guest_students %}
+    <div class="mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Family & Friends</h5>
+                <span class="badge bg-primary">{{ guest_students|length }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    {% for guest in guest_students %}
+                    <div class="col">
+                        <div class="card h-100 border-info">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-0">{{ guest.full_name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-heart"></i> {{ guest.relationship|capitalize }}
+                                        </small>
+                                    </div>
+                                    <span class="badge {% if guest.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ 'Active' if guest.is_active else 'Inactive' }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small"><i class="bi bi-envelope"></i> {{ guest.email }}</p>
+                                {% if guest.phone_number %}
+                                <p class="mb-2 small"><i class="bi bi-telephone"></i> {{ guest.phone_number }}</p>
+                                {% endif %}
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-check"></i> 
+                                        {{ guest.enrollments.count() }} enrollment(s)
+                                    </small>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewGuestDetails({{ guest.id }})">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Current Enrollments Section -->
+    {% if enrollments %}
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>My Enrolled Courses</h3>
+            <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            {% for enrollment in enrollments[:3] %}
+            <div class="col">
+                <div class="card h-100 {% if enrollment.status == 'enrolled' %}border-primary{% elif enrollment.status == 'completed' %}border-success{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'Course' }}</h6>
+                        {% if enrollment.status == 'enrolled' %}
+                        <span class="badge bg-success">Enrolled</span>
+                        {% elif enrollment.status == 'completed' %}
+                        <span class="badge bg-primary">Completed</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1 small"><i class="bi bi-calendar-event"></i> <strong>Start:</strong> {{ enrollment.course_instance.start_date.strftime('%b %d, %Y') }}</p>
+                        <p class="mb-0 small"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ enrollment.course_instance.location }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <h3>Available Courses</h3>
+        {% set role = 'student' %}
+        {% include 'private/components/calendar.html' %}
+    </div>
+</div>
+
+<script>
+    function showCreateGuestModal() {
+        const content = `
+            <div class="infobox">
+                <i class="bi bi-info-circle"></i> <strong>Create Guest Account</strong>
+                <p class="mb-0 small">Add a family member or friend so you can enroll and pay for their courses.</p>
+            </div>
+            
+            <form id="createGuestForm">
+                <div class="mb-3">
+                    <label for="guest_first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="guest_first_name" name="first_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="guest_last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="guest_last_name" name="last_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="guest_email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="guest_email" name="email" required>
+                    <small class="form-text text-muted">They'll receive course notifications at this email.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="guest_phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="guest_phone" name="phone_number" placeholder="(555) 123-4567">
+                </div>
+
+                <div class="mb-3">
+                    <label for="relationship" class="form-label">Relationship <span class="text-danger">*</span></label>
+                    <select class="form-select" id="relationship" name="relationship" required>
+                        <option value="">Select relationship...</option>
+                        <option value="child">Child</option>
+                        <option value="spouse">Spouse</option>
+                        <option value="parent">Parent</option>
+                        <option value="sibling">Sibling</option>
+                        <option value="friend">Friend</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="infobox infobox-warning small">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    A temporary password will be generated and sent to their email. They can change it after logging in.
+                </div>
+            </form>
+        `;
+
+        const footer = `
+            <button type="button" class="btn btn-secondary" id="cancel-guest-btn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="create-guest-btn">
+                <i class="bi bi-check-circle"></i> Create Account
+            </button>
+        `;
+
+        const modal = Modal.show({
+            title: 'Add Family Member or Friend',
+            content: content,
+            footer: footer,
+            size: 'lg',
+            closeOnOverlay: false
+        });
+
+        modal.container.querySelector('#cancel-guest-btn').addEventListener('click', () => {
+            modal.close();
+        });
+
+        modal.container.querySelector('#create-guest-btn').addEventListener('click', () => {
+            submitCreateGuest(modal);
+        });
+    }
+
+    function submitCreateGuest(modal) {
+        const form = modal.container.querySelector('#createGuestForm');
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = {
+            first_name: modal.container.querySelector('#guest_first_name').value,
+            last_name: modal.container.querySelector('#guest_last_name').value,
+            email: modal.container.querySelector('#guest_email').value,
+            phone_number: modal.container.querySelector('#guest_phone').value,
+            relationship: modal.container.querySelector('#relationship').value
+        };
+
+        // Disable submit button and show loading state
+        const submitBtn = modal.container.querySelector('#create-guest-btn');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
+        fetch('/student/create-guest-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.close();
+                Modal.alert({ 
+                    title: 'Success', 
+                    message: 'Guest account created successfully! A temporary password has been sent to their email.' 
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                Modal.alert({ 
+                    title: 'Error', 
+                    message: data.message || 'Failed to create guest account.' 
+                });
+            }
+        })
+        .catch(error => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            Modal.alert({ 
+                title: 'Error', 
+                message: 'An error occurred while creating the guest account.' 
+            });
+            console.error(error);
+        });
+    }
+
+    function viewGuestDetails(guestId) {
+        window.location.href = `/student/guest/${guestId}`;
+    }
+</script>
 
 {% endblock content %}
