@@ -19,6 +19,15 @@ class Enrollment(db.Model, CRUDMixin):
     status = db.Column(db.String(50), nullable=False, default='enrolled', index=True)
     completion_date = db.Column(db.DateTime, nullable=True)
     
+    # Unenrollment Request Fields
+    unenrollment_requested = db.Column(db.Boolean, default=False, nullable=False)
+    unenrollment_reason = db.Column(db.Text, nullable=True)
+    unenrollment_requested_at = db.Column(db.DateTime, nullable=True)
+    refund_percentage = db.Column(db.Integer, default=80, nullable=False)  # Default 80% refund (20% retention)
+    unenrollment_processed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    unenrollment_processed_at = db.Column(db.DateTime, nullable=True)
+    unenrollment_admin_notes = db.Column(db.Text, nullable=True)
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -26,6 +35,7 @@ class Enrollment(db.Model, CRUDMixin):
     # Relationships
     student = db.relationship('Student', backref=db.backref('enrollments', lazy='dynamic'))
     course_instance = db.relationship('CourseInstance', backref=db.backref('enrollments', lazy='dynamic'))
+    processor = db.relationship('User', foreign_keys=[unenrollment_processed_by], backref='processed_unenrollments', lazy=True)
     
     # Unique constraint - student can only enroll once per course instance
     __table_args__ = (
@@ -116,3 +126,44 @@ class Enrollment(db.Model, CRUDMixin):
     def has_payment(self):
         """Check if this enrollment has an associated payment."""
         return self.get_payment() is not None
+    
+    def request_unenrollment(self, reason='', refund_percentage=80):
+        """Request unenrollment from this course."""
+        if self.status != 'enrolled':
+            raise ValueError(f'Cannot request unenrollment for {self.status} enrollment')
+        if self.unenrollment_requested:
+            raise ValueError('Unenrollment already requested')
+        
+        self.unenrollment_requested = True
+        self.unenrollment_reason = reason
+        self.unenrollment_requested_at = datetime.utcnow()
+        self.refund_percentage = refund_percentage
+        self.save()
+    
+    def approve_unenrollment(self, admin_user_id, admin_notes=''):
+        """Approve the unenrollment request."""
+        if not self.unenrollment_requested:
+            raise ValueError('No unenrollment request to approve')
+        
+        self.status = 'dropped'
+        self.completion_date = datetime.utcnow()
+        self.unenrollment_processed_by = admin_user_id
+        self.unenrollment_processed_at = datetime.utcnow()
+        self.unenrollment_admin_notes = admin_notes
+        self.save()
+    
+    def deny_unenrollment(self, admin_user_id, admin_notes=''):
+        """Deny the unenrollment request."""
+        if not self.unenrollment_requested:
+            raise ValueError('No unenrollment request to deny')
+        
+        self.unenrollment_requested = False
+        self.unenrollment_processed_by = admin_user_id
+        self.unenrollment_processed_at = datetime.utcnow()
+        self.unenrollment_admin_notes = admin_notes
+        self.save()
+    
+    @classmethod
+    def get_pending_unenrollments(cls):
+        """Get all enrollments with pending unenrollment requests."""
+        return cls.query.filter_by(unenrollment_requested=True, status='enrolled').order_by(cls.unenrollment_requested_at.desc()).all()

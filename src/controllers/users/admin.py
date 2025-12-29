@@ -408,3 +408,198 @@ def refund_payment(payment_id):
         return jsonify({'error': f'Stripe error: {str(e)}'}), 400
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+
+# Unenrollment Requests
+@admin_bp.route('/unenrollment-requests')
+@login_required
+@role_required('admin')
+def unenrollment_requests():
+    """View all unenrollment requests."""
+    from src.models.course_folder.enrollments import Enrollment
+    
+    status_filter = request.args.get('status', 'pending')
+    
+    if status_filter == 'pending':
+        enrollments = Enrollment.get_pending_unenrollments()
+    elif status_filter == 'processed':
+        enrollments = Enrollment.query.filter(
+            Enrollment.unenrollment_requested == True,
+            Enrollment.unenrollment_processed_at.isnot(None)
+        ).order_by(Enrollment.unenrollment_processed_at.desc()).all()
+    else:  # all
+        enrollments = Enrollment.query.filter_by(unenrollment_requested=True).order_by(Enrollment.unenrollment_requested_at.desc()).all()
+    
+    # Count by status
+    pending_count = Enrollment.query.filter_by(unenrollment_requested=True, status='enrolled').count()
+    processed_count = Enrollment.query.filter(
+        Enrollment.unenrollment_requested == True,
+        Enrollment.unenrollment_processed_at.isnot(None)
+    ).count()
+    
+    context = {
+        'current_user': Doorman.get_by_token(session['doorman_token']).user,
+        'enrollments': enrollments,
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+        'processed_count': processed_count
+    }
+    return render_template('private/admins/unenrollment_requests/index.html', **context)
+
+
+@admin_bp.route('/api/enrollments/<int:enrollment_id>/approve-unenrollment', methods=['POST'])
+@login_required
+@role_required('admin')
+def approve_unenrollment(enrollment_id):
+    """Approve an unenrollment request and process refund."""
+    import stripe
+    import os
+    from flask import jsonify
+    from src.models.course_folder.enrollments import Enrollment
+    from src.models.stripe.payments import Payment
+    from src.models.stripe.payment_line_items import PaymentLineItem
+    from src.models.course_folder.payable_templates import PayableTemplate
+    
+    stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+    
+    try:
+        data = request.get_json()
+        enrollment = Enrollment.query.get(enrollment_id)
+        
+        if not enrollment:
+            return jsonify({'error': 'Enrollment not found'}), 404
+        
+        if not enrollment.unenrollment_requested:
+            return jsonify({'error': 'No unenrollment request found'}), 400
+        
+        if enrollment.status != 'enrolled':
+            return jsonify({'error': 'Enrollment is not active'}), 400
+        
+        # Get refund percentage from request data or use default
+        refund_percentage = data.get('refund_percentage', enrollment.refund_percentage)
+        admin_notes = data.get('admin_notes', '')
+        
+        # Get current user
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        
+        # Get payment for this enrollment
+        payment = enrollment.get_payment()
+        
+        refund_amount = 0
+        if payment and payment.status == 'succeeded' and payment.stripe_charge_id:
+            # Calculate refund amount (e.g., 80% of total)
+            refund_amount = int((payment.total_cost * refund_percentage) / 100)
+            
+            if refund_amount > 0:
+                # Check actual Stripe refund status
+                try:
+                    stripe_charge = stripe.Charge.retrieve(payment.stripe_charge_id)
+                    actual_stripe_refunded = stripe_charge.amount_refunded
+                except stripe.error.StripeError:
+                    actual_stripe_refunded = 0
+                
+                # Calculate total already refunded in our database
+                total_refunded = sum(
+                    item.amount_refunded if item.amount_refunded else 0 
+                    for item in payment.line_items.all()
+                )
+                
+                # Check if there's enough remaining to refund
+                remaining_refundable = payment.total_cost - max(total_refunded, actual_stripe_refunded)
+                
+                if refund_amount > remaining_refundable:
+                    refund_amount = remaining_refundable
+                
+                if refund_amount > 0:
+                    # Create Stripe refund
+                    refund = stripe.Refund.create(
+                        charge=payment.stripe_charge_id,
+                        amount=refund_amount,
+                        reason='requested_by_customer',
+                        metadata={
+                            'payment_id': payment.id,
+                            'enrollment_id': enrollment_id,
+                            'refund_percentage': refund_percentage
+                        }
+                    )
+                    
+                    # Create "Unenrollment Refund" line item
+                    unenroll_template = PayableTemplate.query.filter_by(name='Unenrollment Refund').first()
+                    if not unenroll_template:
+                        unenroll_template = PayableTemplate(
+                            name='Unenrollment Refund',
+                            description=f'Refund for unenrollment ({refund_percentage}% of payment)',
+                            amount=0,
+                            is_required=False
+                        )
+                        unenroll_template.save()
+                    
+                    # Create line item for this refund
+                    refund_line_item = PaymentLineItem(
+                        payment_id=payment.id,
+                        payable_template_id=unenroll_template.id,
+                        cost_of_item=refund_amount,
+                        quantity=1
+                    )
+                    refund_line_item.amount_refunded = refund_amount
+                    refund_line_item.save()
+                    
+                    # Update payment status if fully refunded
+                    new_total_refunded = total_refunded + refund_amount
+                    if new_total_refunded >= payment.total_cost:
+                        payment.status = 'refunded'
+                        payment.save()
+        
+        # Update enrollment - approve unenrollment
+        enrollment.refund_percentage = refund_percentage
+        enrollment.approve_unenrollment(current_user.id, admin_notes)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Unenrollment approved and {refund_percentage}% refund issued',
+            'refund_amount': refund_amount
+        }), 200
+        
+    except stripe.error.StripeError as e:
+        return jsonify({'error': f'Stripe error: {str(e)}'}), 400
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+
+@admin_bp.route('/api/enrollments/<int:enrollment_id>/deny-unenrollment', methods=['POST'])
+@login_required
+@role_required('admin')
+def deny_unenrollment(enrollment_id):
+    """Deny an unenrollment request."""
+    from flask import jsonify
+    from src.models.course_folder.enrollments import Enrollment
+    
+    try:
+        data = request.get_json()
+        enrollment = Enrollment.query.get(enrollment_id)
+        
+        if not enrollment:
+            return jsonify({'error': 'Enrollment not found'}), 404
+        
+        if not enrollment.unenrollment_requested:
+            return jsonify({'error': 'No unenrollment request found'}), 400
+        
+        admin_notes = data.get('admin_notes', '')
+        
+        # Get current user
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        
+        # Deny unenrollment
+        enrollment.deny_unenrollment(current_user.id, admin_notes)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Unenrollment request denied'
+        }), 200
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500

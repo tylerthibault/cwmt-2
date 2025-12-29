@@ -110,11 +110,28 @@
                             {% if payment %}
                             <div class="mb-3">
                                 <h6 class="border-bottom pb-2 mb-2">Payment Information</h6>
-                                <p class="mb-1 small"><strong>Payment ID:</strong> <span class="text-muted"><code>{{ payment.id }}</code></span></p>
+                                
+                                <!-- Calculate total refunded -->
+                                {% set total_refunded = namespace(value=0) %}
+                                {% set payment_line_items = payment.line_items.all() %}
+                                {% for item in payment_line_items %}
+                                    {% if item.amount_refunded %}
+                                        {% set total_refunded.value = total_refunded.value + item.amount_refunded %}
+                                    {% endif %}
+                                {% endfor %}
+                                
                                 <p class="mb-1"><strong>Total Amount:</strong> <span class="text-success fw-bold fs-5">${{ "%.2f"|format(payment.total_cost / 100) }}</span></p>
+                                
+                                {% if total_refunded.value > 0 %}
+                                <p class="mb-1"><strong>Total Refunded:</strong> <span class="text-danger fw-bold fs-5">-${{ "%.2f"|format(total_refunded.value / 100) }}</span></p>
+                                <p class="mb-1"><strong>Total Amount:</strong> <span class="text-info fw-bold fs-5">${{ "%.2f"|format((payment.total_cost - total_refunded.value) / 100) }}</span></p>
+                                {% endif %}
+                                
                                 <p class="mb-1 small"><strong>Payment Status:</strong> 
                                 {% if payment.status == 'succeeded' %}
                                 <span class="badge bg-success text-capitalize">{{ payment.status }}</span>
+                                {% elif payment.status == 'refunded' %}
+                                <span class="badge bg-danger text-capitalize">{{ payment.status }}</span>
                                 {% elif payment.status == 'pending' %}
                                 <span class="badge bg-warning text-capitalize">{{ payment.status }}</span>
                                 {% elif payment.status == 'failed' %}
@@ -122,9 +139,6 @@
                                 {% endif %}
                                 </p>
                                 <p class="mb-1 small"><strong>Transaction Date:</strong> <span class="text-muted">{{ payment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span></p>
-                                {% if payment.stripe_payment_intent_id %}
-                                <p class="mb-0 small"><strong>Stripe Payment Intent:</strong> <span class="text-muted"><code class="small">{{ payment.stripe_payment_intent_id }}</code></span></p>
-                                {% endif %}
                             </div>
 
                             <!-- Payment Line Items -->
@@ -139,6 +153,7 @@
                                                 <th class="small">Item</th>
                                                 <th class="small">Description</th>
                                                 <th class="text-end small">Amount</th>
+                                                <th class="text-end small">Refunded</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -147,6 +162,13 @@
                                                 <td class="small">{{ line_item.payable_template.name if line_item.payable_template else 'Item' }}</td>
                                                 <td class="small text-muted">{{ line_item.payable_template.description if line_item.payable_template else '' }}</td>
                                                 <td class="text-end small">${{ "%.2f"|format(line_item.cost_of_item / 100) }}</td>
+                                                <td class="text-end small">
+                                                    {% if line_item.amount_refunded %}
+                                                    <span class="text-danger">-${{ "%.2f"|format(line_item.amount_refunded / 100) }}</span>
+                                                    {% else %}
+                                                    <span class="text-muted">$0.00</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -154,6 +176,13 @@
                                             <tr class="table-active">
                                                 <td colspan="2" class="fw-bold small">Total</td>
                                                 <td class="text-end fw-bold small">${{ "%.2f"|format(payment.total_cost / 100) }}</td>
+                                                <td class="text-end fw-bold small">
+                                                    {% if total_refunded.value > 0 %}
+                                                    <span class="text-danger">-${{ "%.2f"|format(total_refunded.value / 100) }}</span>
+                                                    {% else %}
+                                                    <span class="text-muted">$0.00</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -194,6 +223,17 @@
                 <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-calendar"></i> Back to Dashboard
                 </a>
+                {% if enrollment.status == 'enrolled' %}
+                    {% if enrollment.unenrollment_requested %}
+                    <button class="btn btn-warning" disabled>
+                        <i class="bi bi-hourglass-split"></i> Unenrollment Pending
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-danger" onclick="requestUnenrollment()">
+                        <i class="bi bi-box-arrow-right"></i> Request Unenrollment
+                    </button>
+                    {% endif %}
+                {% endif %}
             </div>
 
             <!-- Contact Support -->
@@ -205,5 +245,43 @@
         </div>
     </div>
 </div>
+
+<script>
+async function requestUnenrollment() {
+    const reason = prompt('Please provide a reason for unenrollment (optional):');
+    
+    if (reason === null) {
+        // User cancelled
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to request unenrollment? An admin will review your request and process a refund minus a 20% retention fee.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/student/api/enrollments/{{ enrollment.id }}/request-unenrollment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                reason: reason
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Unenrollment request submitted successfully. An admin will review it shortly.');
+            location.reload();
+        } else {
+            alert(`Error: ${data.error || 'Failed to submit request'}`);
+        }
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
+}
+</script>
 
 {% endblock content %}

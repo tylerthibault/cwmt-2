@@ -15,7 +15,7 @@
                 </div>
                 <div class="card-body">
                     {% if is_guest_enrollment %}
-                    <div class="alert alert-info">
+                    <div class="infobox infobox-info">
                         <i class="bi bi-info-circle"></i> <strong>Enrolling Guest Student</strong>
                         <p class="mb-0">You are enrolling <strong>{{ enrolling_student.first_name }} {{ enrolling_student.last_name }}</strong> ({{ enrolling_student.relationship }}) in this course.</p>
                     </div>
@@ -176,7 +176,7 @@
     // Check if Stripe key is available
     if (!STRIPE_PUBLISHABLE_KEY) {
         document.getElementById('payment-messages').innerHTML = `
-            <div class="alert alert-danger" role="alert">
+            <div class="infobox infobox-danger" role="alert">
                 <strong>Configuration Error:</strong> Stripe publishable key is not configured.
             </div>
         `;
@@ -306,7 +306,7 @@
             
             if (data.enrollment_id) {
                 // Enrollment created, redirect to success page
-                window.location.href = `/student/payment-success/${data.enrollment_id}`;
+                window.location.href = `/student/enrollment-details/${data.enrollment_id}`;
             } else if (data.status === 'succeeded' || data.status === 'pending') {
                 // Wait and poll again
                 setTimeout(() => pollPaymentStatus(paymentId, attempts + 1, maxAttempts), 1000);
@@ -323,7 +323,7 @@
     // Helper functions for displaying messages
     function showError(message) {
         messagesDiv.innerHTML = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="infobox infobox-danger alert-dismissible fade show" role="alert">
                 <strong>Error:</strong> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -332,7 +332,7 @@
     
     function showSuccess(message) {
         messagesDiv.innerHTML = `
-            <div class="alert alert-success" role="alert">
+            <div class="infobox infobox-success" role="alert">
                 <strong>Success:</strong> ${message}
             </div>
         `;
@@ -340,7 +340,7 @@
     
     function showWarning(message) {
         messagesDiv.innerHTML = `
-            <div class="alert alert-warning" role="alert">
+            <div class="infobox infobox-warning" role="alert">
                 <strong>Note:</strong> ${message}
             </div>
         `;

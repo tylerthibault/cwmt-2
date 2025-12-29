@@ -7,7 +7,7 @@
 {% block inner_content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Course Instance Details</h2>
+        <h2>Course Details</h2>
         <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
@@ -28,7 +28,8 @@
                 <div class="col-md-6">
                     <p class="mb-2"><strong>Location:</strong> {{ course_instance.location }}</p>
                     <p class="mb-2"><strong>Max Students:</strong> {{ course_instance.max_students }}</p>
-                    <p class="mb-2"><strong>Enrolled:</strong> {{ course_instance.enrollments.count() }} / {{ course_instance.max_students }}</p>
+                    {% set active_enrollments = course_instance.enrollments.filter_by(status='enrolled').count() %}
+                    <p class="mb-2"><strong>Enrolled:</strong> {{ active_enrollments }} / {{ course_instance.max_students }}</p>
                 </div>
             </div>
             {% if course_instance.course_template.description %}
@@ -43,10 +44,16 @@
         <div class="col-lg-8 mb-4">
             <div class="card">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Student Roster ({{ course_instance.enrollments.count() }})</h5>
-                    <button class="btn btn-sm btn-outline-primary" onclick="exportRoster()">
-                        <i class="bi bi-download"></i> Export
-                    </button>
+                    {% set active_enrollments_count = course_instance.enrollments.filter_by(status='enrolled').count() %}
+                    <h5 class="mb-0">Student Roster ({{ active_enrollments_count }})</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="toggleDroppedBtn" onclick="toggleDroppedStudents()">
+                            <i class="bi bi-eye-slash"></i> Show Dropped
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportRoster()">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     {% if course_instance.enrollments.count() > 0 %}
@@ -59,13 +66,16 @@
                                     <th class="small">Phone</th>
                                     <th class="small">Payment Status</th>
                                     <th class="small">Enrolled Date</th>
+                                    <th class="small">Unenrollment</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for enrollment in course_instance.enrollments %}
-                                <tr>
+                                <tr class="enrollment-row" data-status="{{ enrollment.status }}" {% if enrollment.status == 'dropped' %}style="display: none;"{% endif %}>
                                     <td class="small">
-                                        <strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong>
+                                        <a href="{{ url_for('admin.view_student', student_id=enrollment.student.id) }}" class="text-decoration-none">
+                                            <strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong>
+                                        </a>
                                         {% if enrollment.student.created_by_student_id %}
                                         <br><span class="badge bg-info text-white">Guest</span>
                                         {% endif %}
@@ -93,6 +103,25 @@
                                         {% endif %}
                                     </td>
                                     <td class="small">{{ enrollment.enrollment_date.strftime('%b %d, %Y') }}</td>
+                                    <td class="small">
+                                        {% if enrollment.unenrollment_requested and enrollment.status == 'enrolled' %}
+                                        <button class="btn btn-warning btn-sm" onclick="showUnenrollmentModal(
+                                            {{ enrollment.id }},
+                                            '{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}',
+                                            '{{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'N/A' }}',
+                                            '{{ enrollment.unenrollment_reason|replace("'", "\\'") if enrollment.unenrollment_reason else '' }}',
+                                            '{{ enrollment.unenrollment_requested_at.strftime('%b %d, %Y %I:%M %p') if enrollment.unenrollment_requested_at else '' }}',
+                                            {{ enrollment.refund_percentage }},
+                                            {% set payment = enrollment.get_payment() %}{{ payment.total_cost if payment else 0 }}
+                                        )">
+                                            <i class="bi bi-exclamation-triangle"></i> Requested
+                                        </button>
+                                        {% elif enrollment.status == 'dropped' %}
+                                        <span class="badge bg-secondary">Dropped</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -146,15 +175,16 @@
                     <h6 class="mb-0">Quick Stats</h6>
                 </div>
                 <div class="card-body">
+                    {% set active_enrolled = course_instance.enrollments.filter_by(status='enrolled').count() %}
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small text-muted">Total Enrolled:</span>
-                        <strong>{{ course_instance.enrollments.count() }}</strong>
+                        <strong>{{ active_enrolled }}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small text-muted">Paid:</span>
                         <strong class="text-success">
                             {% set paid_count = namespace(value=0) %}
-                            {% for enrollment in course_instance.enrollments %}
+                            {% for enrollment in course_instance.enrollments.filter_by(status='enrolled') %}
                                 {% set payment = enrollment.get_payment() %}
                                 {% if payment and payment.status == 'succeeded' %}
                                     {% set paid_count.value = paid_count.value + 1 %}
@@ -165,7 +195,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small text-muted">Spots Left:</span>
-                        <strong>{{ course_instance.max_students - course_instance.enrollments.count() }}</strong>
+                        <strong>{{ course_instance.max_students - active_enrolled }}</strong>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="small text-muted">Instructors:</span>
@@ -177,7 +207,269 @@
     </div>
 </div>
 
+<!-- Unenrollment Modal -->
+<div class="modal fade" id="unenrollmentModal" tabindex="-1" aria-labelledby="unenrollmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="unenrollmentModalLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Unenrollment Request
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Student Information</h6>
+                    <p class="mb-1"><strong>Student:</strong> <span id="modalStudentName"></span></p>
+                    <p class="mb-1"><strong>Course:</strong> <span id="modalCourseName"></span></p>
+                    <p class="mb-3"><strong>Requested:</strong> <span id="modalRequestedDate"></span></p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Reason for Unenrollment</h6>
+                    <div class="infobox infobox-light" id="modalReason">
+                        <em class="text-muted">No reason provided</em>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Refund Details</h6>
+                    <p class="mb-2"><strong>Original Payment:</strong> $<span id="modalPaymentAmount">0.00</span></p>
+                    
+                    <label for="refundPercentage" class="form-label">
+                        <strong>Refund Percentage:</strong>
+                    </label>
+                    <div class="input-group mb-2">
+                        <input type="number" class="form-control" id="refundPercentage" min="0" max="100" value="80">
+                        <span class="input-group-text">%</span>
+                    </div>
+                    
+                    <div class="infobox infobox-info small mb-0">
+                        <strong>Refund Amount:</strong> $<span id="calculatedRefund">0.00</span><br>
+                        <strong>Retention Fee:</strong> $<span id="calculatedRetention">0.00</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="adminNotes" class="form-label"><strong>Admin Notes (optional):</strong></label>
+                    <textarea class="form-control" id="adminNotes" rows="3" placeholder="Internal notes about this decision..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="denyUnenrollmentFromModal()">
+                    <i class="bi bi-x-circle"></i> Deny Request
+                </button>
+                <button type="button" class="btn btn-success" onclick="approveUnenrollmentFromModal()">
+                    <i class="bi bi-check-circle"></i> Approve & Refund
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
 <script>
+    let currentEnrollmentId = null;
+    let currentPaymentAmount = 0;
+    let showingDropped = false;
+
+    function toggleDroppedStudents() {
+        showingDropped = !showingDropped;
+        const droppedRows = document.querySelectorAll('.enrollment-row[data-status="dropped"]');
+        const toggleBtn = document.getElementById('toggleDroppedBtn');
+        
+        droppedRows.forEach(row => {
+            row.style.display = showingDropped ? '' : 'none';
+        });
+        
+        if (showingDropped) {
+            toggleBtn.innerHTML = '<i class="bi bi-eye"></i> Hide Dropped';
+            toggleBtn.classList.remove('btn-outline-secondary');
+            toggleBtn.classList.add('btn-outline-primary');
+        } else {
+            toggleBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Show Dropped';
+            toggleBtn.classList.remove('btn-outline-primary');
+            toggleBtn.classList.add('btn-outline-secondary');
+        }
+    }
+
+    function showUnenrollmentModal(enrollmentId, studentName, courseName, reason, requestedDate, refundPercentage, paymentAmount) {
+        currentEnrollmentId = enrollmentId;
+        currentPaymentAmount = paymentAmount;
+        
+        document.getElementById('modalStudentName').textContent = studentName;
+        document.getElementById('modalCourseName').textContent = courseName;
+        document.getElementById('modalRequestedDate').textContent = requestedDate;
+        
+        const reasonDiv = document.getElementById('modalReason');
+        if (reason && reason.trim() !== '') {
+            reasonDiv.innerHTML = reason;
+            reasonDiv.className = 'infobox infobox-light';
+        } else {
+            reasonDiv.innerHTML = '<em class="text-muted">No reason provided</em>';
+            reasonDiv.className = 'infobox infobox-light';
+        }
+        
+        document.getElementById('refundPercentage').value = refundPercentage;
+        document.getElementById('modalPaymentAmount').textContent = (paymentAmount / 100).toFixed(2);
+        document.getElementById('adminNotes').value = '';
+        
+        updateRefundCalculation();
+        
+        const modal = new bootstrap.Modal(document.getElementById('unenrollmentModal'));
+        modal.show();
+    }
+
+    function updateRefundCalculation() {
+        const percentage = parseInt(document.getElementById('refundPercentage').value) || 0;
+        const refundAmount = (currentPaymentAmount * percentage) / 100;
+        const retentionAmount = currentPaymentAmount - refundAmount;
+        
+        document.getElementById('calculatedRefund').textContent = (refundAmount / 100).toFixed(2);
+        document.getElementById('calculatedRetention').textContent = (retentionAmount / 100).toFixed(2);
+    }
+
+    // Update calculation when percentage changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const percentageInput = document.getElementById('refundPercentage');
+        if (percentageInput) {
+            percentageInput.addEventListener('input', updateRefundCalculation);
+        }
+    });
+
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `infobox infobox-${type} alert-dismissible fade show`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.getElementById('alertContainer').appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
+    async function approveUnenrollmentFromModal() {
+        const refundPercentage = parseInt(document.getElementById('refundPercentage').value) || 0;
+        const adminNotes = document.getElementById('adminNotes').value;
+        
+        if (refundPercentage < 0 || refundPercentage > 100) {
+            showAlert('Please enter a valid percentage between 0 and 100', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Approve unenrollment with ${refundPercentage}% refund ($${(currentPaymentAmount * refundPercentage / 10000).toFixed(2)})?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/enrollments/${currentEnrollmentId}/approve-unenrollment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    refund_percentage: refundPercentage,
+                    admin_notes: adminNotes || ''
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('unenrollmentModal')).hide();
+                showAlert(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to approve'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
+    async function denyUnenrollmentFromModal() {
+        const adminNotes = document.getElementById('adminNotes').value;
+        
+        if (!confirm('Deny this unenrollment request?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/enrollments/${currentEnrollmentId}/deny-unenrollment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    admin_notes: adminNotes || ''
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('unenrollmentModal')).hide();
+                showAlert(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to deny'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
+    async function approveUnenrollment(enrollmentId, defaultPercentage) {
+        const percentage = prompt(`Enter refund percentage (default ${defaultPercentage}%):`, defaultPercentage);
+        
+        if (percentage === null) {
+            return;
+        }
+        
+        const refundPercentage = parseInt(percentage);
+        if (isNaN(refundPercentage) || refundPercentage < 0 || refundPercentage > 100) {
+            alert('Please enter a valid percentage between 0 and 100');
+            return;
+        }
+        
+        const notes = prompt('Admin notes (optional):');
+        
+        if (!confirm(`Approve unenrollment with ${refundPercentage}% refund?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/api/enrollments/${enrollmentId}/approve-unenrollment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    refund_percentage: refundPercentage,
+                    admin_notes: notes || ''
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showAlert(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`Error: ${data.error || 'Failed to approve'}`, 'danger');
+            }
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    }
+
     function exportRoster() {
         // Basic CSV export for roster
         let csv = 'Student Name,Email,Phone,Payment Status,Enrolled Date\n';

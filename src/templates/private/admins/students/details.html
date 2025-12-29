@@ -85,18 +85,33 @@
                                         {% endif %}
                                     </p>
                                 </div>
-                                <div>
+                                <div class="d-flex flex-column gap-1 align-items-end">
                                     {% set payment = enrollment.get_payment() %}
-                                    {% if payment %}
-                                        {% if payment.status == 'succeeded' %}
-                                        <span class="badge bg-success">Paid</span>
-                                        {% elif payment.status == 'pending' %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">{{ payment.status|title }}</span>
+                                    {% if enrollment.status == 'dropped' %}
+                                        <span class="badge bg-secondary">Dropped</span>
+                                        {% if payment %}
+                                            {% set total_refunded = namespace(value=0) %}
+                                            {% for line_item in payment.line_items.all() %}
+                                                {% if line_item.amount_refunded %}
+                                                    {% set total_refunded.value = total_refunded.value + line_item.amount_refunded %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if total_refunded.value > 0 %}
+                                                <span class="badge bg-warning text-dark">Refunded: ${{ "%.2f"|format(total_refunded.value / 100) }}</span>
+                                            {% endif %}
                                         {% endif %}
                                     {% else %}
-                                    <span class="badge bg-secondary">No Payment</span>
+                                        {% if payment %}
+                                            {% if payment.status == 'succeeded' %}
+                                            <span class="badge bg-success">Paid</span>
+                                            {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ payment.status|title }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                        <span class="badge bg-secondary">No Payment</span>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -135,6 +150,7 @@
                                     <th class="small">Date</th>
                                     <th class="small">Course</th>
                                     <th class="small">Amount</th>
+                                    <th class="small">Refunded</th>
                                     <th class="small">Status</th>
                                 </tr>
                             </thead>
@@ -151,7 +167,24 @@
                                     </td>
                                     <td class="small">${{ "%.2f"|format(payment.total_cost / 100) }}</td>
                                     <td class="small">
-                                        {% if payment.status == 'succeeded' %}
+                                        {% set total_refunded = namespace(value=0) %}
+                                        {% for line_item in payment.line_items.all() %}
+                                            {% if line_item.amount_refunded %}
+                                                {% set total_refunded.value = total_refunded.value + line_item.amount_refunded %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if total_refunded.value > 0 %}
+                                        <span class="text-danger">-${{ "%.2f"|format(total_refunded.value / 100) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">$0.00</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">
+                                        {% if payment.status == 'refunded' %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Refunded
+                                        </span>
+                                        {% elif payment.status == 'succeeded' %}
                                         <span class="badge bg-success">
                                             <i class="bi bi-check-circle"></i> Paid
                                         </span>
@@ -173,7 +206,7 @@
                             <tfoot class="table-light">
                                 <tr>
                                     <td colspan="2" class="small fw-bold">Total Paid</td>
-                                    <td colspan="2" class="small fw-bold text-success">
+                                    <td class="small fw-bold text-success">
                                         {% set total_paid = namespace(value=0) %}
                                         {% for payment in payments %}
                                             {% if payment.status == 'succeeded' %}
@@ -181,6 +214,20 @@
                                             {% endif %}
                                         {% endfor %}
                                         ${{ "%.2f"|format(total_paid.value / 100) }}
+                                    </td>
+                                    <td class="small fw-bold text-danger">
+                                        {% set total_refunded_all = namespace(value=0) %}
+                                        {% for payment in payments %}
+                                            {% for line_item in payment.line_items.all() %}
+                                                {% if line_item.amount_refunded %}
+                                                    {% set total_refunded_all.value = total_refunded_all.value + line_item.amount_refunded %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+                                        -${{ "%.2f"|format(total_refunded_all.value / 100) }}
+                                    </td>
+                                    <td class="small fw-bold">
+                                        Total: ${{ "%.2f"|format((total_paid.value - total_refunded_all.value) / 100) }}
                                     </td>
                                 </tr>
                             </tfoot>

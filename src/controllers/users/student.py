@@ -428,7 +428,51 @@ def enrollment_details(enrollment_id):
         'course': enrollment.course_instance,
         'payment': payment,
         'enrolling_student': enrolling_student,
-        'is_guest_enrollment': is_guest_enrollment
+        'is_guest_enrollment': is_guest_enrollment,
+        'current_student_id': student.id
     }
     
     return render_template('private/students/enrollments/details.html', **context)
+
+
+@student_bp.route('/api/enrollments/<int:enrollment_id>/request-unenrollment', methods=['POST'])
+@login_required
+@role_required('student')
+def request_unenrollment(enrollment_id):
+    """Submit an unenrollment request."""
+    try:
+        user = Doorman.get_by_token(session['doorman_token']).user
+        student = students.Student.query.filter_by(user_id=user.id).first()
+        
+        if not student:
+            return jsonify({'error': 'Student profile not found'}), 404
+        
+        # Get enrollment
+        enrollment = Enrollment.query.get(enrollment_id)
+        if not enrollment:
+            return jsonify({'error': 'Enrollment not found'}), 404
+        
+        # Verify ownership
+        enrolling_student = students.Student.query.get(enrollment.student_id)
+        is_own_enrollment = enrollment.student_id == student.id
+        is_guest_enrollment = enrolling_student.created_by_student_id == student.id
+        
+        if not (is_own_enrollment or is_guest_enrollment):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get reason from request
+        data = request.get_json()
+        reason = data.get('reason', '')
+        
+        # Request unenrollment
+        try:
+            enrollment.request_unenrollment(reason=reason)
+            return jsonify({
+                'success': True,
+                'message': 'Unenrollment request submitted successfully'
+            }), 200
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
+        
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
