@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, session
 from src.models.user_folder import superusers, users
 from src.models.doorman import Doorman
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 
 # Create blueprint
@@ -38,6 +39,23 @@ def superuser_status(user_id, status='add'):
         # Create a new Superuser entry
         new_superuser = superusers.Superuser.create(user_id=user.id)
 
+        # Log the action
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='grant_superuser',
+            description=f'Superuser privileges granted to {user.email}',
+            user_id=current_user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={
+                'target_email': user.email,
+                'target_user_id': user.id,
+                'superuser_id': new_superuser.id
+            }
+        )
+
         return redirect(url_for('superuser.dashboard'))
 
     if status == 'remove':
@@ -48,6 +66,22 @@ def superuser_status(user_id, status='add'):
 
         # Delete the superuser entry
         existing_superuser.delete()
+
+        # Log the action
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='revoke_superuser',
+            description=f'Superuser privileges revoked from {user.email}',
+            user_id=current_user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={
+                'target_email': user.email,
+                'target_user_id': user.id
+            }
+        )
 
         return redirect(url_for('auth.dashboard'))
 

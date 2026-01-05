@@ -1,0 +1,362 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block title %}Announcements - Admin Dashboard{% endblock %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Announcements Management</h2>
+            <p class="text-muted">Create and manage system announcements</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                <i class="bi bi-plus-circle"></i> New Announcement
+            </button>
+        </div>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='active') }}">
+                Active <span class="badge bg-success">{{ active_count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='inactive') }}">
+                Inactive <span class="badge bg-secondary">{{ inactive_count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='deleted') }}">
+                Deleted <span class="badge bg-danger">{{ deleted_count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='all') }}">
+                All
+            </a>
+        </li>
+    </ul>
+
+    <!-- Announcements List -->
+    <div class="card">
+        <div class="card-body">
+            {% if announcements %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%">Message</th>
+                            <th>Created By</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for announcement in announcements %}
+                        <tr>
+                            <td>
+                                <div class="text-truncate" style="max-width: 400px;">
+                                    {{ announcement.message }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if announcement.created_by %}
+                                {{ announcement.created_by.first_name }} {{ announcement.created_by.last_name }}
+                                {% else %}
+                                Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ announcement.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+                            </td>
+                            <td>
+                                {% if announcement.deleted_at %}
+                                <span class="badge bg-danger">Deleted</span>
+                                {% elif announcement.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    {% if not announcement.deleted_at %}
+                                    <!-- Edit Button -->
+                                    <button class="btn btn-outline-primary" 
+                                            onclick="editAnnouncement({{ announcement.id }}, '{{ announcement.message|replace("'", "\\'") }}')"
+                                            title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    
+                                    <!-- Toggle Status Button -->
+                                    {% if announcement.is_active %}
+                                    <button class="btn btn-outline-warning" 
+                                            onclick="toggleStatus({{ announcement.id }})"
+                                            title="Deactivate">
+                                        <i class="bi bi-pause-circle"></i>
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-outline-success" 
+                                            onclick="toggleStatus({{ announcement.id }})"
+                                            title="Activate">
+                                        <i class="bi bi-play-circle"></i>
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <!-- Delete Button -->
+                                    <button class="btn btn-outline-danger" 
+                                            onclick="deleteAnnouncement({{ announcement.id }})"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% else %}
+                                    <!-- Restore Button -->
+                                    <button class="btn btn-outline-info" 
+                                            onclick="restoreAnnouncement({{ announcement.id }})"
+                                            title="Restore">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-megaphone" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No announcements found</p>
+                {% if status_filter == 'active' %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                    Create First Announcement
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Create Announcement Modal -->
+<div class="modal fade" id="createAnnouncementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Announcement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <div class="mb-3">
+                        <label for="createMessage" class="form-label">Message *</label>
+                        <textarea class="form-control" id="createMessage" rows="4" required 
+                                  placeholder="Enter announcement message..."></textarea>
+                        <small class="text-muted">This will be visible to all users</small>
+                    </div>
+                    <div id="createAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createBtn" onclick="createAnnouncement()">
+                    <i class="bi bi-plus-circle"></i> Create Announcement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Announcement Modal -->
+<div class="modal fade" id="editAnnouncementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Announcement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editAnnouncementId">
+                    <div class="mb-3">
+                        <label for="editMessage" class="form-label">Message *</label>
+                        <textarea class="form-control" id="editMessage" rows="4" required></textarea>
+                    </div>
+                    <div id="editAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="editBtn" onclick="updateAnnouncement()">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Create Announcement
+async function createAnnouncement() {
+    const message = document.getElementById('createMessage').value.trim();
+    const alertDiv = document.getElementById('createAlert');
+    const createBtn = document.getElementById('createBtn');
+    
+    if (!message) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">Message is required</div>';
+        return;
+    }
+    
+    createBtn.disabled = true;
+    createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+    alertDiv.innerHTML = '';
+    
+    try {
+        const response = await fetch('{{ url_for("announcement.admin_create") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alertDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Create Announcement';
+        }
+    } catch (error) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Create Announcement';
+    }
+}
+
+// Edit Announcement
+function editAnnouncement(id, message) {
+    document.getElementById('editAnnouncementId').value = id;
+    document.getElementById('editMessage').value = message;
+    document.getElementById('editAlert').innerHTML = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('editAnnouncementModal'));
+    modal.show();
+}
+
+async function updateAnnouncement() {
+    const id = document.getElementById('editAnnouncementId').value;
+    const message = document.getElementById('editMessage').value.trim();
+    const alertDiv = document.getElementById('editAlert');
+    const editBtn = document.getElementById('editBtn');
+    
+    if (!message) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">Message is required</div>';
+        return;
+    }
+    
+    editBtn.disabled = true;
+    editBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    alertDiv.innerHTML = '';
+    
+    try {
+        const response = await fetch(`/announcements/admin/update/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alertDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+            editBtn.disabled = false;
+            editBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Changes';
+        }
+    } catch (error) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+        editBtn.disabled = false;
+        editBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Changes';
+    }
+}
+
+// Delete Announcement
+async function deleteAnnouncement(id) {
+    if (!confirm('Are you sure you want to delete this announcement?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/announcements/admin/delete/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Restore Announcement
+async function restoreAnnouncement(id) {
+    if (!confirm('Are you sure you want to restore this announcement?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/announcements/admin/restore/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Toggle Status
+async function toggleStatus(id) {
+    try {
+        const response = await fetch(`/announcements/admin/toggle-status/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+</script>
+{% endblock inner_content %}

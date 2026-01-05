@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from datetime import datetime, time, date, timedelta
 from src.models.user_folder import users, instructors
 from src.models.course_folder import course_templates, payable_templates
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
 from src.services.calendar import format_course_instances_for_calendar
@@ -88,6 +89,30 @@ def admin_create_course_instance():
         
         instance.save()
         
+        # Log the course instance creation
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        course_template = course_templates.CourseTemplate.query.get(instance.course_template_id)
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='create_course_instance',
+            description=f'Course instance created: {course_template.name if course_template else "Unknown Course"} on {start_date_obj.strftime("%Y-%m-%d")}',
+            user_id=current_user.id,
+            target_type='course_instance',
+            target_id=instance.id,
+            status='success',
+            extra_data={
+                'course_template_id': instance.course_template_id,
+                'course_name': course_template.name if course_template else None,
+                'start_date': start_date_obj.isoformat(),
+                'start_time': start_time_obj.isoformat(),
+                'duration_days': instance.duration_days,
+                'location': instance.location,
+                'max_students': instance.max_students,
+                'c1_instructor_id': instance.c1_instructor_id,
+                'c2_instructor_id': instance.c2_instructor_id
+            }
+        )
+        
         return jsonify({'success': True, 'message': 'Course instance created successfully'}), 201
         
     except Exception as e:
@@ -99,13 +124,20 @@ def admin_create_course_instance():
 def admin_view_course_instance(instance_id):
     """View details of a specific course instance."""
     from src.models.course_folder import course_instances
+    from src.models.user_folder.students import Student
+    from src.models.user_folder.users import User
+    
     instance = course_instances.CourseInstance.query.get(instance_id)
     if not instance:
         flash('Course instance not found.', 'error')
         return redirect(url_for('courses.admin_course_instances'))
     
+    # Get all students for enrollment modal
+    students = Student.query.join(User).order_by(User.email).all()
+    
     context = {
         'course_instance': instance,
+        'students': students,
         'current_user': Doorman.get_by_token(session['doorman_token']).user
     }
     return render_template('private/admins/courses/view_instance.html', **context)
@@ -182,6 +214,22 @@ def instructor_signup_for_course():
         
         instance.save()
         
+        # Log the instructor course signup
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='course_signup',
+            description=f'{instructor.user.first_name} {instructor.user.last_name} signed up as {role.upper()} instructor for {instance.course_template.name}',
+            user_id=current_user.id,
+            target_type='course_instance',
+            target_id=instance.id,
+            status='success',
+            extra_data={
+                'role': role.upper(),
+                'course_name': instance.course_template.name,
+                'start_date': instance.start_date.isoformat() if instance.start_date else None
+            }
+        )
+        
         return jsonify({'success - b82d6859': True, 'message': f'Successfully signed up as {role.upper()} instructor'}), 200
         
     except Exception as e:
@@ -214,14 +262,33 @@ def instructor_withdraw_from_course():
             return jsonify({'success': False, 'message': 'Instructor record not found'}), 404
         
         # Remove instructor from course
+        role_dropped = None
         if instance.c1_instructor_id == instructor.id:
             instance.c1_instructor_id = None
+            role_dropped = 'C1'
         elif instance.c2_instructor_id == instructor.id:
             instance.c2_instructor_id = None
+            role_dropped = 'C2'
         else:
             return jsonify({'success': False, 'message': 'You are not signed up for this course'}), 400
         
         instance.save()
+        
+        # Log the instructor course withdrawal
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='course_withdrawal',
+            description=f'{instructor.user.first_name} {instructor.user.last_name} withdrew from {role_dropped} instructor position for {instance.course_template.name}',
+            user_id=current_user.id,
+            target_type='course_instance',
+            target_id=instance.id,
+            status='success',
+            extra_data={
+                'role': role_dropped,
+                'course_name': instance.course_template.name,
+                'start_date': instance.start_date.isoformat() if instance.start_date else None
+            }
+        )
         
         return jsonify({'success': True, 'message': 'Successfully withdrawn from course'}), 200
         

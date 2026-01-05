@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from datetime import datetime
 from src.models.user_folder import users
 from src.models.course_folder import course_templates, payable_templates
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
 
@@ -84,6 +85,27 @@ def create_course_temp():
                 template.payable_templates.append(tuition_payable)
                 template.save()
             
+            # Log the course template update
+            current_user = Doorman.get_by_token(session['doorman_token']).user
+            Log.create_log(
+                log_type=Log.TYPE_USER_ACTION,
+                action='update_course_template',
+                description=f'Course template updated: {template.name}',
+                user_id=current_user.id,
+                target_type='course_template',
+                target_id=template.id,
+                status='success',
+                extra_data={
+                    'template_name': template.name,
+                    'old_name': old_name,
+                    'experience_level': template.experience_level,
+                    'duration_days': template.duration_days,
+                    'max_students': template.max_students,
+                    'tuition': float(tuition),
+                    'color': template.color
+                }
+            )
+            
             flash('Course template updated successfully!', 'success')
         else:
             # CREATE new template
@@ -108,6 +130,27 @@ def create_course_temp():
             # Attach the tuition payable to the course template
             new_template.payable_templates.append(tuition_payable)
             new_template.save()
+            
+            # Log the course template creation
+            current_user = Doorman.get_by_token(session['doorman_token']).user
+            Log.create_log(
+                log_type=Log.TYPE_USER_ACTION,
+                action='create_course_template',
+                description=f'Course template created: {new_template.name}',
+                user_id=current_user.id,
+                target_type='course_template',
+                target_id=new_template.id,
+                status='success',
+                extra_data={
+                    'template_name': new_template.name,
+                    'experience_level': new_template.experience_level,
+                    'duration_days': new_template.duration_days,
+                    'max_students': new_template.max_students,
+                    'tuition': float(tuition),
+                    'color': new_template.color,
+                    'tuition_payable_id': tuition_payable.id
+                }
+            )
             
             flash('Course template created successfully with tuition!', 'success')
         
@@ -135,6 +178,26 @@ def add_payable_to_course():
         if not course_template.payable_templates.filter_by(id=payable_template.id).first():
             course_template.payable_templates.append(payable_template)
             course_template.save()
+            
+            # Log the payable addition
+            current_user = Doorman.get_by_token(session['doorman_token']).user
+            Log.create_log(
+                log_type=Log.TYPE_USER_ACTION,
+                action='add_payable_to_course',
+                description=f'Payable "{payable_template.name}" added to course template "{course_template.name}"',
+                user_id=current_user.id,
+                target_type='course_template',
+                target_id=course_template.id,
+                status='success',
+                extra_data={
+                    'course_template_name': course_template.name,
+                    'payable_template_name': payable_template.name,
+                    'payable_template_id': payable_template.id,
+                    'payable_amount': payable_template.amount,
+                    'is_required': payable_template.is_required
+                }
+            )
+            
             flash('Payable template added to course template.', 'success')
         else:
             flash('Payable template already associated with this course template.', 'info')
@@ -142,6 +205,24 @@ def add_payable_to_course():
         if course_template.payable_templates.filter_by(id=payable_template.id).first():
             course_template.payable_templates.remove(payable_template)
             course_template.save()
+            
+            # Log the payable removal
+            current_user = Doorman.get_by_token(session['doorman_token']).user
+            Log.create_log(
+                log_type=Log.TYPE_USER_ACTION,
+                action='remove_payable_from_course',
+                description=f'Payable "{payable_template.name}" removed from course template "{course_template.name}"',
+                user_id=current_user.id,
+                target_type='course_template',
+                target_id=course_template.id,
+                status='success',
+                extra_data={
+                    'course_template_name': course_template.name,
+                    'payable_template_name': payable_template.name,
+                    'payable_template_id': payable_template.id
+                }
+            )
+            
             flash('Payable template removed from course template.', 'success')
         else:
             flash('Payable template not associated with this course template.', 'info')

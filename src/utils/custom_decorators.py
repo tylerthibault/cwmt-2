@@ -32,6 +32,13 @@ def login_required(f):
             flash('Your session has ended. Please log in again.', 'info')
             return redirect(url_for('auth.loginReg'))
         
+        # Check if user account is active
+        if not doorman.user.is_active:
+            doorman.sign_out()
+            session.pop('doorman_token', None)
+            flash('Your account has been deactivated. Please contact an administrator.', 'danger')
+            return redirect(url_for('auth.loginReg'))
+        
         # Check if last activity is within 10 minutes
         from datetime import datetime, timedelta
         ten_minutes_ago = datetime.utcnow() - timedelta(minutes=10)

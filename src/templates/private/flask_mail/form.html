@@ -1,0 +1,410 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons-badges.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-forms.css') }}">
+<style>
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .page-header h1 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+    }
+    
+    .page-subtitle {
+        color: #666;
+        margin: 0;
+    }
+    
+    .status-badges {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+    
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 1.5rem;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .tab-link {
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        color: #666;
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.3s;
+    }
+    
+    .tab-link:hover {
+        color: #2196f3;
+    }
+    
+    .tab-link.active {
+        color: #2196f3;
+        border-bottom-color: #2196f3;
+    }
+    
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.3s;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    /* Variables Help Box */
+    .variables-help {
+        background: #f0f7ff;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .variables-help-title {
+        font-weight: 600;
+        color: #1976d2;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .variables-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .variable-tag {
+        background: white;
+        border: 1px solid #90caf9;
+        padding: 0.4rem 0.6rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: #1565c0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .variable-tag:hover {
+        background: #e3f2fd;
+        border-color: #2196f3;
+        transform: scale(1.05);
+    }
+    
+    .form-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        position: sticky;
+        bottom: 20px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-actions-left {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .form-actions-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .info-note {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+    }
+</style>
+{% endblock styles %}
+
+{% block inner_content %}
+{% set is_edit_mode = template is defined %}
+
+<div class="form-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>{% if is_edit_mode %}Edit{% else %}Create{% endif %} Email Template</h1>
+        <p class="page-subtitle">{% if is_edit_mode %}Update your email template{% else %}Design a custom email template for automated emails{% endif %}</p>
+        
+        {% if is_edit_mode %}
+        <div class="status-badges">
+            {% if template.is_active %}
+            <span class="badge badge-success">✓ Active</span>
+            {% else %}
+            <span class="badge badge-secondary">Inactive</span>
+            {% endif %}
+            {% if template.is_default %}
+            <span class="badge badge-warning">Default Template</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if is_edit_mode and template.is_default %}
+    <div class="info-note">
+        <strong>⚠️ Default Template:</strong> This is a system default template and cannot be deleted.
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form action="{% if is_edit_mode %}{{ url_for('mail.update_template', template_id=template.id) }}{% else %}{{ url_for('mail.create_template') }}{% endif %}" method="POST" id="templateForm">
+        
+        <!-- Tabs -->
+        <ul class="tabs">
+            <li><a href="#" class="tab-link active" data-tab="basic">1. Basic Info</a></li>
+            <li><a href="#" class="tab-link" data-tab="content">2. Email Content</a></li>
+        </ul>
+
+        <!-- Tab 1: Basic Info -->
+        <div class="tab-content active" id="tab-basic">
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="purpose">
+                        Email Purpose *
+                    </label>
+                    <select name="purpose" id="purpose" class="form-select" {% if is_edit_mode %}disabled{% endif %} required onchange="updateVariables()">
+                        <option value="">-- Select when this email should be sent --</option>
+                        {% for code, purpose in purposes.items() %}
+                        <option value="{{ code }}" 
+                                {% if is_edit_mode and code == template.purpose %}selected{% endif %}
+                                data-variables='{{ purpose.variables|tojson }}'>
+                            {{ purpose.name }} - {{ purpose.description }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if is_edit_mode %}
+                    <input type="hidden" name="purpose" value="{{ template.purpose }}">
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="name">
+                        Template Name *
+                    </label>
+                    <input type="text" name="name" id="name" class="form-control" 
+                           value="{% if is_edit_mode %}{{ template.name }}{% endif %}"
+                           placeholder="e.g., Summer 2026 Welcome Email" required>
+                    <p class="help-text">Give your template a descriptive name to easily identify it</p>
+                </div>
+
+                <div class="form-group" style="margin-top: 2rem;">
+                    <button type="button" class="btn btn-primary" onclick="switchTab('content')">Next: Email Content →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Email Content -->
+        <div class="tab-content" id="tab-content">
+            
+            <!-- Variables Help -->
+            <div id="variablesHelp" class="variables-help" {% if not is_edit_mode %}style="display: none;"{% endif %}>
+                <div class="variables-help-title">
+                    <span>📝</span>
+                    <span>Available Variables (click to copy)</span>
+                </div>
+                <div id="variablesList" class="variables-list">
+                    {% if is_edit_mode and purpose_config %}
+                        {% for var_name, var_desc in purpose_config.variables.items() %}
+                        <div class="variable-tag" onclick="copyVariable('{{ '{{' }} {{ var_name }} {{ '}}' }}')" title="{{ var_desc }}">
+                            {{ '{{' }} {{ var_name }} {{ '}}' }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="subject_template">
+                        Subject Line *
+                    </label>
+                    <input type="text" name="subject_template" id="subject_template" class="form-control" 
+                           value="{% if is_edit_mode %}{{ template.subject_template }}{% endif %}"
+                           placeholder="e.g., Welcome to {{ '{{' }} course_name {{ '}}' }}, {{ '{{' }} user_name {{ '}}' }}!" required>
+                    <p class="help-text">Keep under 60 characters. Use {{ '{{' }} variable_name {{ '}}' }} for dynamic content.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="body_html_template">
+                        HTML Email Body *
+                    </label>
+                    <textarea name="body_html_template" id="body_html_template" class="form-control" 
+                              rows="15" required placeholder="<h1>Welcome {{ '{{' }} user_name {{ '}}' }}!</h1>
+<p>Thank you for joining us...</p>">{% if is_edit_mode %}{{ template.body_html_template }}{% endif %}</textarea>
+                    <p class="help-text">Use HTML tags for formatting. Click variables above to insert them.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="body_text_template">
+                        Plain Text Email Body *
+                    </label>
+                    <textarea name="body_text_template" id="body_text_template" class="form-control" 
+                              rows="10" required placeholder="Welcome {{ '{{' }} user_name {{ '}}' }}!
+
+Thank you for joining us...">{% if is_edit_mode %}{{ template.body_text_template }}{% endif %}</textarea>
+                    <p class="help-text">Plain text version for email clients that don't support HTML</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <div class="form-actions-left">
+                {% if is_edit_mode and not template.is_default and not template.is_active %}
+                <button type="button" class="btn btn-danger" onclick="deleteTemplate()">Delete</button>
+                {% endif %}
+            </div>
+            
+            <div class="form-actions-right">
+                <a href="{{ url_for('mail.management') }}" class="btn btn-secondary">Cancel</a>
+                
+                {% if is_edit_mode %}
+                <a href="{{ url_for('mail.preview_template', template_id=template.id) }}" class="btn btn-outline">👁️ Preview</a>
+                
+                    {% if not template.is_active %}
+                    <button type="button" class="btn btn-success" onclick="activateTemplate()">Activate</button>
+                    {% else %}
+                    <button type="button" class="btn btn-outline" onclick="deactivateTemplate()">Deactivate</button>
+                    {% endif %}
+                {% endif %}
+                
+                <button type="submit" class="btn btn-primary">{% if is_edit_mode %}💾 Save Changes{% else %}Create Template{% endif %}</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Tab switching
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+    
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.querySelector('.tab-link[data-tab="' + tabName + '"]').classList.add('active');
+}
+
+document.querySelectorAll('.tab-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        switchTab(this.dataset.tab);
+    });
+});
+
+// Update variables when purpose changes
+function updateVariables() {
+    const purposeSelect = document.getElementById('purpose');
+    const selectedOption = purposeSelect.options[purposeSelect.selectedIndex];
+    const variablesHelp = document.getElementById('variablesHelp');
+    const variablesList = document.getElementById('variablesList');
+    
+    if (selectedOption.value && selectedOption.dataset.variables) {
+        const variables = JSON.parse(selectedOption.dataset.variables);
+        
+        let html = '';
+        for (const [varName, varDesc] of Object.entries(variables)) {
+            html += '<div class="variable-tag" onclick="copyVariable(\'{{ ' + varName + ' }}\')" title="' + varDesc + '">{{ ' + varName + ' }}</div>';
+        }
+        
+        variablesList.innerHTML = html;
+        variablesHelp.style.display = 'block';
+    } else {
+        variablesHelp.style.display = 'none';
+    }
+}
+
+// Copy variable to clipboard
+function copyVariable(varText) {
+    navigator.clipboard.writeText(varText).then(() => {
+        const feedback = document.createElement('div');
+        feedback.textContent = '✓ Copied: ' + varText;
+        feedback.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4caf50; color: white; padding: 1rem 1.5rem; border-radius: 4px; z-index: 9999; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+        document.body.appendChild(feedback);
+        setTimeout(() => feedback.remove(), 2000);
+    });
+}
+
+{% if is_edit_mode %}
+// Edit mode actions
+function activateTemplate() {
+    if (confirm('This will make this template active and deactivate any other active templates for this purpose. Continue?')) {
+        window.location.href = "{{ url_for('mail.activate_template', template_id=template.id) }}";
+    }
+}
+
+function deactivateTemplate() {
+    if (confirm('This will deactivate this template. Continue?')) {
+        window.location.href = "{{ url_for('mail.deactivate_template', template_id=template.id) }}";
+    }
+}
+
+function deleteTemplate() {
+    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('mail.delete_template', template_id=template.id) }}";
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+{% else %}
+// Create mode: Auto-convert HTML to text
+document.getElementById('body_html_template').addEventListener('input', function(e) {
+    const htmlContent = e.target.value;
+    const textArea = document.getElementById('body_text_template');
+    
+    if (!textArea.value.trim()) {
+        const plainText = htmlContent
+            .replace(/<h[1-6]>(.*?)<\/h[1-6]>/gi, '$1\n\n')
+            .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+        
+        textArea.value = plainText;
+    }
+});
+{% endif %}
+</script>
+{% endblock inner_content %}

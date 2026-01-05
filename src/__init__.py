@@ -1,17 +1,40 @@
 from flask import Flask
+from flask_mail import Mail
 from .models.main import db
+
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
     app.secret_key = 'your_secret_key'  # Replace with a secure key in production
 
+    # Load configuration
+    init_config(app)
+    
     # Register blueprints
     init_blueprints(app)
     
     # Initialize database
     init_db(app)
+    
+    # Initialize Flask-Mail
+    mail.init_app(app)
 
     return app
+
+def init_config(app):
+    """Load configuration from environment variables."""
+    import os
+    
+    # Mail configuration
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'False').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 
+                                                        os.environ.get('MAIL_USERNAME', 'noreply@cwmt.com'))
 
 def init_db(app):
     """Initialize the sqlalchemy database connection and create all tables."""
@@ -31,11 +54,17 @@ def init_db(app):
     from src.models.course_folder.course_instances import CourseInstance
     from src.models.course_folder.payable_templates import PayableTemplate
     from src.models.course_folder.enrollments import Enrollment
+    from src.models.announcements import Announcement
 
     # stripe models
     from src.models.stripe.payments import Payment
     from src.models.stripe.payment_line_items import PaymentLineItem
     from src.models.stripe.stripe_webhook_events import StripeWebhookEvent 
+    
+    # flask-mail models
+    from src.models.flask_mail.email_templates import EmailTemplate
+    from src.models.flask_mail.email_logs import Log, EmailLog
+    from src.models.app_settings import AppSettings
 
     
     # Create all tables
@@ -73,6 +102,9 @@ def init_blueprints(app):
 
     from src.controllers.courses.payable_template import payable_temp_bp
     app.register_blueprint(payable_temp_bp)
+
+    from src.controllers.announcements import announcements_bp
+    app.register_blueprint(announcements_bp)
     
     # Stripe payments
     from src.controllers.payments.stripe_payments import stripe_payments_bp
@@ -80,6 +112,10 @@ def init_blueprints(app):
     
     from src.controllers.payments.stripe_webhooks import stripe_webhooks_bp
     app.register_blueprint(stripe_webhooks_bp)
+
+    # Flask Mail
+    from src.controllers.flask_mail.mail_routes import mail_bp
+    app.register_blueprint(mail_bp)
     
     # DEV
     from src.controllers.seeding import seed_bp

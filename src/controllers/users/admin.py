@@ -2,6 +2,8 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, session
 from src.models.user_folder import admins, users
 from src.models.doorman import Doorman
+from src.models.main import db
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 
 # Create blueprint
@@ -38,6 +40,23 @@ def admin_status(user_id, status='add'):
         # Create a new Admin entry
         new_admin = admins.Admin.create(user_id=user.id)
 
+        # Log the action
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='grant_admin',
+            description=f'Admin privileges granted to {user.email}',
+            user_id=current_user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={
+                'target_email': user.email,
+                'target_user_id': user.id,
+                'admin_id': new_admin.id
+            }
+        )
+
         return redirect(url_for('admin.dashboard'))
 
     if status == 'remove':
@@ -48,6 +67,22 @@ def admin_status(user_id, status='add'):
 
         # Delete the admin entry
         existing_admin.delete()
+
+        # Log the action
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='revoke_admin',
+            description=f'Admin privileges revoked from {user.email}',
+            user_id=current_user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={
+                'target_email': user.email,
+                'target_user_id': user.id
+            }
+        )
 
         return redirect(url_for('auth.login'))
     
@@ -173,6 +208,57 @@ def view_student(student_id):
         'payments': payments
     }
     return render_template('private/admins/students/details.html', **context)
+
+@admin_bp.route('/students/<int:student_id>/toggle-status', methods=['POST'])
+@login_required
+@role_required('admin')
+def toggle_student_status(student_id):
+    """Route to activate or deactivate a student account."""
+    from flask import flash
+    from src.models.user_folder.students import Student
+    
+    student = Student.query.get(student_id)
+    if not student:
+        flash('Student not found.', 'danger')
+        return redirect(url_for('admin.students'))
+    
+    if not student.user:
+        flash('Student has no associated user account.', 'danger')
+        return redirect(url_for('admin.view_student', student_id=student_id))
+    
+    try:
+        # Toggle the is_active status
+        student.user.is_active = not student.user.is_active
+        student.user.save()
+        
+        # Also update the student record
+        student.is_active = student.user.is_active
+        student.save()
+        
+        status_text = 'activated' if student.user.is_active else 'deactivated'
+        flash(f'Student account has been {status_text} successfully.', 'success')
+        
+        # Log the action
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='toggle_account_status',
+            description=f'Student account {status_text}: {student.user.email}',
+            user_id=current_user.id,
+            target_type='student',
+            target_id=student.id,
+            status='success',
+            extra_data={
+                'student_email': student.user.email,
+                'new_status': 'active' if student.user.is_active else 'inactive',
+                'action_type': status_text
+            }
+        )
+        
+    except Exception as e:
+        flash(f'Error updating student status: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.view_student', student_id=student_id))
 
 @admin_bp.route('/payments/<int:payment_id>')
 @login_required
@@ -397,6 +483,26 @@ def refund_payment(payment_id):
             payment.status = 'refunded'
             payment.save()
         
+        # Log the refund
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_PAYMENT,
+            action='issue_refund',
+            description=f'Refund of ${amount/100:.2f} issued for payment #{payment_id}',
+            user_id=current_user.id,
+            target_type='payment',
+            target_id=payment_id,
+            status='success',
+            extra_data={
+                'refund_id': refund.id,
+                'amount': amount,
+                'reason': reason,
+                'student_email': payment.student.user.email if payment.student and payment.student.user else None,
+                'line_item_id': line_item_id,
+                'full_refund': full_refund
+            }
+        )
+        
         return jsonify({
             'success': True,
             'refund_id': refund.id,
@@ -554,6 +660,25 @@ def approve_unenrollment(enrollment_id):
         enrollment.refund_percentage = refund_percentage
         enrollment.approve_unenrollment(current_user.id, admin_notes)
         
+        # Log the approval
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='approve_unenrollment',
+            description=f'Unenrollment approved for {enrollment.student.user.email} from {enrollment.course_instance.course_template.name}',
+            user_id=current_user.id,
+            target_type='enrollment',
+            target_id=enrollment_id,
+            status='success',
+            extra_data={
+                'student_email': enrollment.student.user.email,
+                'course_name': enrollment.course_instance.course_template.name,
+                'refund_percentage': refund_percentage,
+                'refund_amount': refund_amount,
+                'admin_notes': admin_notes,
+                'payment_id': payment.id if payment else None
+            }
+        )
+        
         return jsonify({
             'success': True,
             'message': f'Unenrollment approved and {refund_percentage}% refund issued',
@@ -566,6 +691,83 @@ def approve_unenrollment(enrollment_id):
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+@admin_bp.route('/logs')
+@login_required
+@role_required('admin')
+def activity_logs():
+    """Route to view activity logs including email logs."""
+    from flask import flash
+    from src.models.flask_mail.email_logs import Log
+    from src.models.user_folder.users import User
+    
+    # Get filter parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    log_type_filter = request.args.get('log_type', '')
+    status_filter = request.args.get('status', '')
+    purpose_filter = request.args.get('purpose', '')
+    action_filter = request.args.get('action', '')
+    user_filter = request.args.get('user_id', '')
+    
+    # Build query
+    query = Log.query
+    
+    # Filter by log type (show all types by default)
+    if log_type_filter:
+        query = query.filter_by(log_type=log_type_filter)
+    
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    
+    if purpose_filter:
+        query = query.filter_by(purpose=purpose_filter)
+    
+    if action_filter:
+        query = query.filter_by(action=action_filter)
+    
+    if user_filter:
+        query = query.filter_by(user_id=user_filter)
+    
+    # Order by most recent first
+    query = query.order_by(Log.created_at.desc())
+    
+    # Paginate
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    logs = pagination.items
+    
+    # Get unique values for filters
+    purposes = db.session.query(Log.purpose).filter(Log.log_type == Log.TYPE_EMAIL).distinct().all()
+    purposes = [p[0] for p in purposes if p[0]]
+    
+    log_types = db.session.query(Log.log_type).distinct().all()
+    log_types = [lt[0] for lt in log_types if lt[0]]
+    
+    actions = db.session.query(Log.action).distinct().all()
+    actions = [a[0] for a in actions if a[0]]
+    
+    # Get users who have logs
+    user_ids = db.session.query(Log.user_id).filter(Log.user_id.isnot(None)).distinct().all()
+    users_with_logs = User.query.filter(User.id.in_([uid[0] for uid in user_ids])).all()
+    
+    statuses = ['pending', 'sent', 'success', 'failed']
+    
+    context = {
+        'current_user': Doorman.get_by_token(session['doorman_token']).user,
+        'logs': logs,
+        'pagination': pagination,
+        'purposes': purposes,
+        'statuses': statuses,
+        'log_types': log_types,
+        'actions': actions,
+        'users_with_logs': users_with_logs,
+        'current_log_type': log_type_filter,
+        'current_status': status_filter,
+        'current_purpose': purpose_filter,
+        'current_action': action_filter,
+        'current_user_id': user_filter
+    }
+    return render_template('private/admins/logs/index.html', **context)
 
 
 @admin_bp.route('/api/enrollments/<int:enrollment_id>/deny-unenrollment', methods=['POST'])
@@ -594,6 +796,22 @@ def deny_unenrollment(enrollment_id):
         # Deny unenrollment
         enrollment.deny_unenrollment(current_user.id, admin_notes)
         
+        # Log the denial
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='deny_unenrollment',
+            description=f'Unenrollment denied for {enrollment.student.user.email} from {enrollment.course_instance.course_template.name}',
+            user_id=current_user.id,
+            target_type='enrollment',
+            target_id=enrollment_id,
+            status='success',
+            extra_data={
+                'student_email': enrollment.student.user.email,
+                'course_name': enrollment.course_instance.course_template.name,
+                'admin_notes': admin_notes
+            }
+        )
+        
         return jsonify({
             'success': True,
             'message': 'Unenrollment request denied'
@@ -601,5 +819,208 @@ def deny_unenrollment(enrollment_id):
         
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+
+@admin_bp.route('/enroll-student')
+@login_required
+@role_required('admin')
+def enroll_student_form():
+    """Show form to manually enroll a student in a course."""
+    from src.models.user_folder.students import Student
+    from src.models.course_folder.course_instances import CourseInstance
+    
+    # Get all students and course instances
+    students = Student.query.join(users.User).order_by(users.User.email).all()
+    courses = CourseInstance.query.order_by(CourseInstance.start_date.desc()).all()
+    
+    context = {
+        'current_user': Doorman.get_by_token(session['doorman_token']).user,
+        'students': students,
+        'courses': courses
+    }
+    return render_template('private/admins/enrollments/create.html', **context)
+
+
+@admin_bp.route('/api/enroll-student', methods=['POST'])
+@login_required
+@role_required('admin')
+def enroll_student():
+    """Manually enroll a student in a course (with or without creating account)."""
+    from flask import jsonify
+    from src.models.user_folder.students import Student
+    from src.models.course_folder.course_instances import CourseInstance
+    from src.models.course_folder.enrollments import Enrollment
+    from src.models.stripe.payments import Payment
+    from src.models.stripe.payment_line_items import PaymentLineItem
+    from src.utils.password_management import generate_random_password
+    
+    try:
+        data = request.get_json()
+        course_instance_id = data.get('course_instance_id')
+        student_id = data.get('student_id')  # If existing student
+        create_new = data.get('create_new', False)  # If creating new student
+        
+        # New student data (if creating)
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        
+        # Enrollment options
+        waive_payment = data.get('waive_payment', False)
+        admin_notes = data.get('admin_notes', '')
+        
+        if not course_instance_id:
+            return jsonify({'error': 'Course instance ID is required'}), 400
+        
+        # Get course instance
+        course_instance = CourseInstance.query.get(course_instance_id)
+        if not course_instance:
+            return jsonify({'error': 'Course not found'}), 404
+        
+        # Get or create student
+        if create_new:
+            # Validate new student data
+            if not first_name or not last_name or not email:
+                return jsonify({'error': 'First name, last name, and email are required'}), 400
+            
+            # Check if email already exists
+            existing_user = users.User.query.filter_by(email=email).first()
+            if existing_user:
+                return jsonify({'error': 'A user with this email already exists'}), 400
+            
+            # Create new user account
+            temp_password = generate_random_password()
+            new_user = users.User(
+                email=email,
+                password=temp_password,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone if phone else None,
+                is_active=True
+            )
+            new_user.save()
+            
+            # Create student record
+            student = Student(
+                user_id=new_user.id,
+                first_name=first_name,
+                last_name=last_name,
+                is_active=True
+            )
+            student.save()
+            
+            student_created = True
+            temp_password_for_log = temp_password
+        else:
+            # Use existing student
+            if not student_id:
+                return jsonify({'error': 'Student ID is required'}), 400
+            
+            student = Student.query.get(student_id)
+            if not student:
+                return jsonify({'error': 'Student not found'}), 404
+            
+            student_created = False
+            temp_password_for_log = None
+        
+        # Check if already enrolled
+        if Enrollment.enrollment_exists(student.id, course_instance_id):
+            return jsonify({'error': 'Student is already enrolled in this course'}), 400
+        
+        # Check if course is full
+        current_enrollments = Enrollment.count_active_enrollments_for_course(course_instance_id)
+        if current_enrollments >= course_instance.max_students:
+            return jsonify({'error': 'Course is full'}), 400
+        
+        # Create enrollment
+        enrollment = Enrollment(
+            student_id=student.id,
+            course_instance_id=course_instance_id,
+            status='enrolled'
+        )
+        enrollment.save()
+        
+        # Create payment record if not waived
+        payment = None
+        if not waive_payment and course_instance.course_template:
+            # Calculate total cost
+            total_cost = 0
+            line_items_data = []
+            
+            for payable_template in course_instance.course_template.payable_templates.all():
+                if payable_template.is_required:
+                    amount_in_cents = int(payable_template.amount * 100)
+                    total_cost += amount_in_cents
+                    line_items_data.append({
+                        'payable_template_id': payable_template.id,
+                        'amount': amount_in_cents
+                    })
+            
+            if total_cost > 0:
+                # Create payment record (marked as admin-enrolled)
+                payment = Payment(
+                    student_id=student.id,
+                    course_instance_id=course_instance_id,
+                    total_cost=total_cost,
+                    customer_email=student.user.email if student.user else email,
+                    status='succeeded',  # Mark as succeeded since admin enrolled
+                    stripe_payment_intent_id=f'admin_enrolled_{enrollment.id}'
+                )
+                payment.save()
+                
+                # Create line items
+                for item_data in line_items_data:
+                    line_item = PaymentLineItem(
+                        payment_id=payment.id,
+                        payable_template_id=item_data['payable_template_id'],
+                        cost_of_item=item_data['amount'],
+                        quantity=1
+                    )
+                    line_item.save()
+                
+                # Link payment to enrollment
+                enrollment.payment_id = payment.id
+                enrollment.save()
+        
+        # Log the manual enrollment
+        current_user = Doorman.get_by_token(session['doorman_token']).user
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='admin_enroll_student',
+            description=f'Admin manually enrolled {student.user.email if student.user else email} in {course_instance.course_template.name if course_instance.course_template else "course"}',
+            user_id=current_user.id,
+            target_type='enrollment',
+            target_id=enrollment.id,
+            status='success',
+            extra_data={
+                'student_id': student.id,
+                'student_email': student.user.email if student.user else email,
+                'course_instance_id': course_instance_id,
+                'course_name': course_instance.course_template.name if course_instance.course_template else None,
+                'student_created': student_created,
+                'waive_payment': waive_payment,
+                'admin_notes': admin_notes,
+                'temp_password': temp_password_for_log if student_created else None,
+                'payment_id': payment.id if payment else None
+            }
+        )
+        
+        response_data = {
+            'success': True,
+            'message': 'Student enrolled successfully',
+            'enrollment_id': enrollment.id,
+            'student_id': student.id
+        }
+        
+        if student_created:
+            response_data['new_account'] = True
+            response_data['temp_password'] = temp_password_for_log
+            response_data['email'] = email
+        
+        return jsonify(response_data), 200
+        
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500

@@ -1,0 +1,163 @@
+/* Email Template Form Styles */
+
+/* Form Container */
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.page-header-with-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Form Sections */
+.form-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.form-label-description {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: normal;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Form Controls */
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    background-color: white;
+    cursor: pointer;
+}
+
+textarea.form-control {
+    font-family: 'Courier New', monospace;
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* Variables Box */
+.variables-box {
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.variables-box-title {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.variable-item {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.variable-item:hover {
+    background-color: #e3f2fd;
+}
+
+.variable-code {
+    font-family: 'Courier New', monospace;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.variable-description {
+    font-size: 0.875rem;
+    color: #666;
+    margin-left: 0.5rem;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 2rem;
+}
+
+.form-actions-split {
+    justify-content: space-between;
+}
+
+.form-actions-left,
+.form-actions-right {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Help Text */
+.help-text {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.5rem;
+    font-style: italic;
+}

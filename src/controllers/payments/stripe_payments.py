@@ -4,6 +4,7 @@ import os
 from src.models.stripe.payments import Payment
 from src.models.course_folder.course_instances import CourseInstance
 from src.models.user_folder.students import Student
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
 import uuid
@@ -135,6 +136,30 @@ def create_payment_intent():
                 quantity=1
             )
             line_item.save()
+        
+        # Log the payment intent creation
+        Log.create_log(
+            log_type=Log.TYPE_PAYMENT,
+            action='create_payment_intent',
+            description=f'Payment intent created for ${total_amount/100:.2f} - {course_instance.course_template.name if course_instance.course_template else "Course"}',
+            user_id=doorman.user.id,
+            target_type='payment',
+            target_id=payment.id,
+            status='success',
+            extra_data={
+                'payment_intent_id': intent.id,
+                'amount': total_amount,
+                'enrolling_student_id': enrolling_student.id,
+                'enrolling_student_email': enrolling_student.user.email if enrolling_student.user else None,
+                'paying_student_id': paying_student.id,
+                'paying_student_email': doorman.user.email,
+                'course_instance_id': course_instance_id,
+                'course_name': course_instance.course_template.name if course_instance.course_template else None,
+                'is_guest_enrollment': bool(guest_student_id),
+                'line_items_count': len(line_items),
+                'idempotency_key': idempotency_key
+            }
+        )
         
         return jsonify({
             'clientSecret': intent.client_secret,

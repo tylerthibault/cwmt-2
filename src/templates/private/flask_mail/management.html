@@ -1,0 +1,163 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons-badges.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-management.css') }}">
+{% endblock styles %}
+
+{% block inner_content %}
+<div>
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Email Management</h1>
+        <p>Manage email templates, view logs, and configure mail settings</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card success">
+            <div class="stat-label">Emails Sent (30 days)</div>
+            <div class="stat-value">{{ stats.sent or 0 }}</div>
+        </div>
+        
+        <div class="stat-card danger">
+            <div class="stat-label">Failed Emails (30 days)</div>
+            <div class="stat-value">{{ stats.failed or 0 }}</div>
+        </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-label">Pending Emails</div>
+            <div class="stat-value">{{ stats.pending or 0 }}</div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="stat-label">Active Templates</div>
+            <div class="stat-value">{{ stats.active_templates or 0 }}</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="action-buttons">
+            <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">+ Create Email Template</a>
+            <a href="#" class="btn btn-secondary">View All Email Logs</a>
+            <a href="#" class="btn btn-secondary">Configure Mail Settings</a>
+            <a href="#" class="btn btn-secondary">Send Test Email</a>
+            
+            {% if current_user.is_admin or current_user.is_superuser %}
+            <form action="{{ url_for('mail.seed_defaults') }}" method="POST" style="display: inline;" onsubmit="return confirm('This will create default email templates for all purposes. Continue?');">
+                <button type="submit" class="btn btn-outline">📦 Load Default Templates</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Email Templates -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Email Templates</h2>
+            <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary btn-sm">+ New Template</a>
+        </div>
+        
+        {% if templates %}
+        <div class="templates-grid">
+            {% for template in templates %}
+            <div class="template-item">
+                <div class="template-info">
+                    <div class="template-name">
+                        {{ template.name }}
+                        {% if template.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% endif %}
+                        {% if template.is_default %}
+                        <span class="badge badge-secondary">Default</span>
+                        {% endif %}
+                    </div>
+                    <div class="template-meta">
+                        Purpose: {{ template.purpose }} | 
+                        Last updated: {{ template.updated_at.strftime('%b %d, %Y') if template.updated_at else 'N/A' }}
+                    </div>
+                </div>
+                <div class="template-actions">
+                    <a href="{{ url_for('mail.edit_template_form', template_id=template.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="#" class="btn btn-secondary btn-sm">Preview</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📧</div>
+            <p>No email templates yet</p>
+            <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">Create Your First Template</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Email Logs -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Recent Email Activity</h2>
+            <a href="#" class="text-link">View All →</a>
+        </div>
+        
+        {% if recent_logs %}
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Recipient</th>
+                    <th>Purpose</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td>{{ log.recipient_email if log.recipient_email else 'N/A' }}</td>
+                    <td>{{ log.purpose if log.purpose else 'N/A' }}</td>
+                    <td>
+                        {% if log.subject %}
+                            {{ log.subject[:50] }}{% if log.subject|length > 50 %}...{% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ log.status }}">
+                            {{ log.status|capitalize }}
+                        </span>
+                    </td>
+                    <td>{{ log.sent_at.strftime('%b %d, %Y %I:%M %p') if log.sent_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📬</div>
+            <p>No emails sent yet</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Mail Settings Status -->
+    <div class="section">
+        <h2 class="section-title">Mail Configuration Status</h2>
+        <div class="flex-center">
+            {% if mail_configured %}
+            <span class="badge badge-success badge-lg">✓ Mail Settings Configured</span>
+            <span class="text-muted">
+                Server: {{ mail_server }} | Port: {{ mail_port }}
+            </span>
+            {% else %}
+            <span class="badge badge-danger badge-lg">⚠ Mail Not Configured</span>
+            <a href="#" class="btn btn-primary btn-sm">Configure Now</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock inner_content %}

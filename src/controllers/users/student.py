@@ -7,6 +7,7 @@ from src.models.course_folder import course_instances
 from src.models.course_folder.enrollments import Enrollment
 from src.models.stripe.payments import Payment
 from src.models.doorman import Doorman
+from src.models.flask_mail.email_logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.utils.password_management import generate_simple_password, hash_string
 from src.services.calendar import format_course_instances_for_calendar
@@ -338,6 +339,21 @@ def create_guest_account():
             relationship=data['relationship']
         )
         
+        # Log guest account creation
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='create_guest_account',
+            description=f'{user.first_name} {user.last_name} created guest account for {new_student.first_name} {new_student.last_name}',
+            user_id=user.id,
+            target_type='student',
+            target_id=new_student.id,
+            status='success',
+            extra_data={
+                'guest_email': data['email'],
+                'relationship': data['relationship']
+            }
+        )
+        
         # TODO: Send email with temporary password
         # send_guest_account_email(new_user.email, temp_password)
         
@@ -467,6 +483,23 @@ def request_unenrollment(enrollment_id):
         # Request unenrollment
         try:
             enrollment.request_unenrollment(reason=reason)
+            
+            # Log unenrollment request
+            Log.create_log(
+                log_type=Log.TYPE_USER_ACTION,
+                action='request_unenrollment',
+                description=f'{user.first_name} {user.last_name} requested unenrollment from {enrollment.course_instance.course_template.name}',
+                user_id=user.id,
+                target_type='enrollment',
+                target_id=enrollment.id,
+                status='success',
+                extra_data={
+                    'course_name': enrollment.course_instance.course_template.name,
+                    'reason': reason,
+                    'student_id': enrolling_student.id
+                }
+            )
+            
             return jsonify({
                 'success': True,
                 'message': 'Unenrollment request submitted successfully'
@@ -476,3 +509,183 @@ def request_unenrollment(enrollment_id):
         
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+
+@student_bp.route('/settings')
+@login_required
+@role_required('student')
+def settings():
+    """Student settings page."""
+    user = Doorman.get_by_token(session['doorman_token']).user
+    student = students.Student.query.filter_by(user_id=user.id).first()
+    
+    context = {
+        'current_user': user,
+        'student': student
+    }
+    return render_template('private/students/settings/index.html', **context)
+
+
+@student_bp.route('/settings/update-profile', methods=['POST'])
+@login_required
+@role_required('student')
+def update_profile():
+    """Update student profile information."""
+    from flask import flash
+    
+    user = Doorman.get_by_token(session['doorman_token']).user
+    student = students.Student.query.filter_by(user_id=user.id).first()
+    
+    try:
+        # Get form data
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        
+        # Validate required fields
+        if not all([first_name, last_name, email]):
+            flash('First name, last name, and email are required.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Check if email is already taken by another user
+        existing_user = users.User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != user.id:
+            flash('This email address is already in use.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Update user information
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.save()
+        
+        # Update student information
+        if student:
+            student.first_name = first_name
+            student.last_name = last_name
+            student.phone_number = phone_number
+            student.save()
+        
+        # Log profile update
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='update_profile',
+            description=f'{user.first_name} {user.last_name} updated their profile',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'email': email}
+        )
+        
+        flash('Profile updated successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error updating profile: {str(e)}', 'danger')
+    
+    return redirect(url_for('student.settings'))
+
+
+@student_bp.route('/settings/update-password', methods=['POST'])
+@login_required
+@role_required('student')
+def update_password():
+    """Update student password."""
+    from flask import flash
+    from src.utils.password_management import verify_hash
+    
+    user = Doorman.get_by_token(session['doorman_token']).user
+    
+    try:
+        # Get form data
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate required fields
+        if not all([current_password, new_password, confirm_password]):
+            flash('All password fields are required.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Verify current password
+        if not verify_hash(user.password_hash, current_password):
+            flash('Current password is incorrect.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Validate new password
+        if len(new_password) < 8:
+            flash('New password must be at least 8 characters long.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Check if passwords match
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('student.settings'))
+        
+        # Update password
+        user.set_password(new_password)
+        user.save()
+        
+        # Log password change
+        Log.create_log(
+            log_type=Log.TYPE_AUTH,
+            action='password_change',
+            description=f'{user.first_name} {user.last_name} changed their password',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'ip_address': request.remote_addr}
+        )
+        
+        flash('Password updated successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error updating password: {str(e)}', 'danger')
+    
+    return redirect(url_for('student.settings'))
+
+@student_bp.route('/settings/delete-account', methods=['POST'])
+@login_required
+@role_required('student')
+def delete_account():
+    """Soft delete student account by setting is_active to False."""
+    from flask import flash
+    
+    user = Doorman.get_by_token(session['doorman_token']).user
+    
+    try:
+        # Get student record
+        student = students.Student.query.filter_by(user_id=user.id).first()
+        
+        # Set is_active to False for soft delete
+        user.is_active = False
+        user.save()
+        
+        # Also deactivate student record if it exists
+        if student:
+            student.is_active = False
+            student.save()
+        
+        # Log account deletion
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='delete_account',
+            description=f'{user.first_name} {user.last_name} deleted their account',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'email': user.email, 'deletion_type': 'self_service'}
+        )
+        
+        # Clear session and log out
+        session.clear()
+        
+        flash('Your account has been deactivated successfully.', 'success')
+        return redirect(url_for('auth.login'))
+        
+    except Exception as e:
+        flash(f'Error deactivating account: {str(e)}', 'danger')
+        return redirect(url_for('student.settings'))

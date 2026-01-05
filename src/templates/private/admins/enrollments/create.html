@@ -1,0 +1,254 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block title %}Enroll Student - Admin Dashboard{% endblock %}
+
+{% block inner_content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Manual Student Enrollment</h2>
+            <p class="text-muted">Enroll an existing student or create a new account</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="enrollmentForm">
+                <!-- Student Selection Method -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Student Selection</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="studentMethod" id="existingStudent" value="existing" checked>
+                        <label class="form-check-label" for="existingStudent">
+                            Enroll Existing Student
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="studentMethod" id="newStudent" value="new">
+                        <label class="form-check-label" for="newStudent">
+                            Create New Student Account
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Existing Student Selection -->
+                <div id="existingStudentSection" class="mb-4">
+                    <label for="studentSelect" class="form-label">Select Student *</label>
+                    <select class="form-select" id="studentSelect" name="student_id">
+                        <option value="">Choose a student...</option>
+                        {% for student in students %}
+                        <option value="{{ student.id }}">
+                            {{ student.first_name }} {{ student.last_name }} - {{ student.user.email if student.user else 'No email' }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- New Student Section -->
+                <div id="newStudentSection" class="mb-4" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" name="first_name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" name="last_name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> A temporary password will be generated and displayed after account creation.
+                    </div>
+                </div>
+
+                <!-- Course Selection -->
+                <div class="mb-4">
+                    <label for="courseSelect" class="form-label">Select Course *</label>
+                    <select class="form-select" id="courseSelect" name="course_instance_id" required>
+                        <option value="">Choose a course...</option>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}">
+                            {{ course.course_template.name if course.course_template else 'Unknown Course' }} - 
+                            {{ course.start_date.strftime('%b %d, %Y') }} - 
+                            {{ course.location }}
+                            ({{ course.enrollments.filter_by(status='enrolled').count() }}/{{ course.max_students }} enrolled)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="waivePayment" name="waive_payment">
+                        <label class="form-check-label" for="waivePayment">
+                            Waive payment for this enrollment (scholarship/special case)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Admin Notes -->
+                <div class="mb-4">
+                    <label for="adminNotes" class="form-label">Admin Notes (Optional)</label>
+                    <textarea class="form-control" id="adminNotes" name="admin_notes" rows="3" placeholder="Reason for manual enrollment, special circumstances, etc."></textarea>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-person-plus"></i> Enroll Student
+                    </button>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalTitle">Enrollment Result</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="resultModalBody">
+                    <!-- Result content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="{{ url_for('admin.students') }}" class="btn btn-primary">View Students</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('enrollmentForm');
+    const studentMethodRadios = document.querySelectorAll('input[name="studentMethod"]');
+    const existingStudentSection = document.getElementById('existingStudentSection');
+    const newStudentSection = document.getElementById('newStudentSection');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Toggle sections based on selected method
+    studentMethodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'existing') {
+                existingStudentSection.style.display = 'block';
+                newStudentSection.style.display = 'none';
+            } else {
+                existingStudentSection.style.display = 'none';
+                newStudentSection.style.display = 'block';
+            }
+        });
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const selectedMethod = document.querySelector('input[name="studentMethod"]:checked').value;
+        const courseInstanceId = document.getElementById('courseSelect').value;
+        const waivePayment = document.getElementById('waivePayment').checked;
+        const adminNotes = document.getElementById('adminNotes').value;
+        
+        if (!courseInstanceId) {
+            alert('Please select a course');
+            return;
+        }
+        
+        const requestData = {
+            course_instance_id: parseInt(courseInstanceId),
+            waive_payment: waivePayment,
+            admin_notes: adminNotes
+        };
+        
+        if (selectedMethod === 'existing') {
+            const studentId = document.getElementById('studentSelect').value;
+            if (!studentId) {
+                alert('Please select a student');
+                return;
+            }
+            requestData.student_id = parseInt(studentId);
+            requestData.create_new = false;
+        } else {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            if (!firstName || !lastName || !email) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            requestData.create_new = true;
+            requestData.first_name = firstName;
+            requestData.last_name = lastName;
+            requestData.email = email;
+            requestData.phone = phone;
+        }
+        
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        
+        try {
+            const response = await fetch('{{ url_for("admin.enroll_student") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                let modalContent = '<div class="alert alert-success"><i class="bi bi-check-circle"></i> ' + data.message + '</div>';
+                
+                if (data.new_account) {
+                    modalContent += `
+                        <div class="alert alert-warning">
+                            <strong>New Account Created</strong><br>
+                            Email: ${data.email}<br>
+                            Temporary Password: <code>${data.temp_password}</code><br>
+                            <small>Please share these credentials with the student securely.</small>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('resultModalBody').innerHTML = modalContent;
+                document.getElementById('resultModalTitle').textContent = 'Success!';
+                
+                const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+                modal.show();
+                
+                // Reset form
+                form.reset();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-person-plus"></i> Enroll Student';
+        }
+    });
+});
+</script>
+{% endblock %}

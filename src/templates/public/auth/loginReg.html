@@ -81,7 +81,9 @@
                             <th>First Name</th>
                             <th>Last Name</th>
                             <th>Email</th>
+                            <th>Roles</th>
                             <th>Login</th>
+                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,10 +93,23 @@
                             <td>{{ user.last_name }}</td>
                             <td>{{ user.email }}</td>
                             <td>
+                                {% set roles = user.get_roles() %}
+                                {% if roles %}
+                                    {{ roles|join(', ') }}
+                                {% else %}
+                                    <span class="text-muted">No roles</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 <form action="{{ url_for('auth.login') }}" method="post">
                                     <input type="hidden" name="email" value="{{ user.email }}">
                                     <input type="hidden" name="password" value="Pass123!!">
                                     <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Login</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete {{ user.first_name }} {{ user.last_name }}?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                 </form>
                             </td>
                         </tr>

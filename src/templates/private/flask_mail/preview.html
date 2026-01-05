@@ -1,0 +1,405 @@
+{% extends "bases/nonstudents.html" %}
+
+{% block title %}Preview Email Template - Email Management{% endblock %}
+
+{% block inner_content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-management.css') }}">
+<style>
+    .preview-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .preview-header {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .preview-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+        color: #333;
+    }
+    
+    .preview-meta {
+        display: flex;
+        gap: 2rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .preview-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .preview-meta-item strong {
+        color: #333;
+    }
+    
+    .preview-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 1.5rem;
+    }
+    
+    .preview-main {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .preview-tabs {
+        display: flex;
+        border-bottom: 2px solid #e0e0e0;
+        background: #f5f5f5;
+    }
+    
+    .preview-tab {
+        flex: 1;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 500;
+        color: #666;
+        border: none;
+        background: none;
+        transition: all 0.3s;
+    }
+    
+    .preview-tab.active {
+        background: white;
+        color: #2196f3;
+        border-bottom: 2px solid #2196f3;
+        margin-bottom: -2px;
+    }
+    
+    .preview-tab:hover:not(.active) {
+        background: #ebebeb;
+        color: #333;
+    }
+    
+    .preview-pane {
+        display: none;
+        padding: 1.5rem;
+    }
+    
+    .preview-pane.active {
+        display: block;
+    }
+    
+    .email-subject {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-left: 4px solid #2196f3;
+        margin-bottom: 1.5rem;
+        border-radius: 4px;
+    }
+    
+    .email-subject strong {
+        display: block;
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .email-subject-text {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .email-html-preview {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 1.5rem;
+        background: #fafafa;
+        min-height: 400px;
+    }
+    
+    .email-text-preview {
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        background: #f5f5f5;
+        padding: 1.5rem;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+        color: #333;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        min-height: 400px;
+    }
+    
+    .preview-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .preview-info-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .preview-info-box h3 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .example-data-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .example-data-item {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 0.85rem;
+    }
+    
+    .example-data-item:last-child {
+        border-bottom: none;
+    }
+    
+    .example-data-key {
+        color: #666;
+        font-weight: 500;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .example-data-value {
+        color: #333;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+    
+    .preview-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .preview-actions .btn {
+        flex: 1;
+        padding: 0.75rem;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .btn-primary {
+        background: #2196f3;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1976d2;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #2196f3;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+    
+    @media (max-width: 1200px) {
+        .preview-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .preview-sidebar {
+            order: -1;
+        }
+    }
+</style>
+
+
+
+<div class="preview-container">
+    <!-- Header -->
+    <div class="preview-header">
+        <h1>📧 Email Template Preview</h1>
+        <div class="preview-meta">
+            <div class="preview-meta-item">
+                <strong>Template:</strong>
+                <span>{{ template.name }}</span>
+            </div>
+            <div class="preview-meta-item">
+                <strong>Purpose:</strong>
+                <span>{{ template.purpose }}</span>
+            </div>
+            <div class="preview-meta-item">
+                <strong>Status:</strong>
+                {% if template.is_active %}
+                <span class="badge-success">Active</span>
+                {% else %}
+                <span class="badge-warning">Inactive</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="preview-content">
+        <!-- Preview Area -->
+        <div class="preview-main">
+            <!-- Tabs -->
+            <div class="preview-tabs">
+                <button class="preview-tab active" data-tab="html">
+                    HTML Preview
+                </button>
+                <button class="preview-tab" data-tab="text">
+                    Text Preview
+                </button>
+                <button class="preview-tab" data-tab="test">
+                    Send Test Email
+                </button>
+            </div>
+            
+            <!-- HTML Preview -->
+            <div class="preview-pane active" data-pane="html">
+                <div class="email-subject">
+                    <strong>Subject Line</strong>
+                    <div class="email-subject-text">{{ email_content.subject }}</div>
+                </div>
+                
+                <div class="email-html-preview">
+                    {{ email_content.html_body|safe }}
+                </div>
+            </div>
+            
+            <!-- Text Preview -->
+            <div class="preview-pane" data-pane="text">
+                <div class="email-subject">
+                    <strong>Subject Line</strong>
+                    <div class="email-subject-text">{{ email_content.subject }}</div>
+                </div>
+                
+                <div class="email-text-preview">{{ email_content.text_body }}</div>
+            </div>
+            
+            <!-- Test Email -->
+            <div class="preview-pane" data-pane="test">
+                <form action="{{ url_for('mail.send_test_email', template_id=template.id) }}" method="POST" id="testEmailForm">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">
+                            Recipient Email Address *
+                        </label>
+                        <input type="email" name="to_address" class="form-control" 
+                               value="{{ current_user.email }}" 
+                               placeholder="email@example.com" required
+                               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <p style="color: #666; font-size: 0.85rem; margin-top: 0.5rem;">
+                            Enter the email address where you want to receive the test email
+                        </p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
+                        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; color: #333;">
+                            📝 Variable Values (you can edit these)
+                        </h4>
+                        
+                        {% for key, value in example_data.items() %}
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 500; margin-bottom: 0.25rem; color: #666; font-size: 0.85rem;">
+                                {{ key }}
+                            </label>
+                            <input type="text" name="var_{{ key }}" class="form-control" 
+                                   value="{{ value }}"
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem;">
+                        📧 Send Test Email
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="preview-sidebar">
+            <!-- Example Data -->
+            <div class="preview-info-box">
+                <h3>📝 Example Data Used</h3>
+                <ul class="example-data-list">
+                    {% for key, value in example_data.items() %}
+                    <li class="example-data-item">
+                        <span class="example-data-key">{{ key }}</span>
+                        <span class="example-data-value">{{ value }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Actions -->
+            <div class="preview-info-box">
+                <h3>🎯 Actions</h3>
+                <div class="preview-actions">
+                    <a href="{{ url_for('mail.edit_template_form', template_id=template.id) }}" class="btn btn-secondary">
+                        ← Back to Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab switching functionality
+    document.querySelectorAll('.preview-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            
+            // Update tab active states
+            document.querySelectorAll('.preview-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Update pane active states
+            document.querySelectorAll('.preview-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.querySelector('[data-pane="' + targetTab + '"]').classList.add('active');
+        });
+    });
+</script>
+{% endblock %}
