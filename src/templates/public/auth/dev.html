@@ -1,0 +1,139 @@
+<!-- Dev Tools Section (Hidden by default) -->
+<div id="devTools" class="mt-5" style="display: none;">
+    <div class="card border-warning">
+        <div class="card-header bg-warning bg-opacity-10">
+            <h4 class="mb-0">
+                <i class="bi bi-tools"></i> Developer Tools
+            </h4>
+        </div>
+        <div class="card-body">
+            <!-- Seed Users Section -->
+            <div class="mb-4">
+                <h5 class="text-muted mb-3">Seed Users</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('seed.seed_superusers') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-fill-gear"></i> Seed Superusers
+                    </a>
+                    <a href="{{ url_for('seed.seed_admins') }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-person-fill-lock"></i> Seed Admins
+                    </a>
+                    <a href="{{ url_for('seed.seed_instructors') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-fill-check"></i> Seed Instructors
+                    </a>
+                    <a href="{{ url_for('seed.seed_students') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-person-fill"></i> Seed Students
+                    </a>
+                </div>
+            </div>
+
+            <!-- Database Reset Section -->
+            <div class="mb-4">
+                <h5 class="text-muted mb-3">Database Actions</h5>
+                <button onclick="confirmResetDB()" class="btn btn-danger btn-sm">
+                    <i class="bi bi-exclamation-triangle"></i> Reset Database
+                </button>
+                <small class="text-muted ms-2">This will delete all data and recreate tables</small>
+            </div>
+
+            <!-- Users Table -->
+            <div>
+                <h5 class="text-muted mb-3">All Users</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Email</th>
+                                <th>Roles</th>
+                                <th>Login</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in all_users %}
+                            <tr>
+                                <td>{{ user.first_name }}</td>
+                                <td>{{ user.last_name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    {% set roles = user.get_roles() %}
+                                    {% if roles %}
+                                        {{ roles|join(', ') }}
+                                    {% else %}
+                                        <span class="text-muted">No roles</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('auth.login') }}" method="post">
+                                        <input type="hidden" name="email" value="{{ user.email }}">
+                                        <input type="hidden" name="password" value="Pass123!!">
+                                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Login</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete {{ user.first_name }} {{ user.last_name }}?');">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize dev mode from localStorage on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const devModeEnabled = localStorage.getItem('devModeEnabled') === 'true';
+    if (devModeEnabled) {
+        showDevMode();
+    }
+});
+
+function toggleDevMode() {
+    const devTools = document.getElementById('devTools');
+    const isVisible = devTools.style.display !== 'none';
+    
+    if (isVisible) {
+        hideDevMode();
+        localStorage.setItem('devModeEnabled', 'false');
+    } else {
+        showDevMode();
+        localStorage.setItem('devModeEnabled', 'true');
+    }
+}
+
+function showDevMode() {
+    const devTools = document.getElementById('devTools');
+    const toggleBtn = document.getElementById('devModeToggle');
+    
+    devTools.style.display = 'block';
+    toggleBtn.classList.remove('btn-outline-secondary');
+    toggleBtn.classList.add('btn-warning');
+}
+
+function hideDevMode() {
+    const devTools = document.getElementById('devTools');
+    const toggleBtn = document.getElementById('devModeToggle');
+    
+    devTools.style.display = 'none';
+    toggleBtn.classList.remove('btn-warning');
+    toggleBtn.classList.add('btn-outline-secondary');
+}
+
+function confirmResetDB() {
+    const confirmed = confirm('⚠️ WARNING: This will DELETE ALL DATA and reset the database!\n\nAre you absolutely sure you want to continue?');
+    if (confirmed) {
+        const doubleCheck = confirm('This action cannot be undone. Continue with database reset?');
+        if (doubleCheck) {
+            // Trigger the reset script
+            window.location.href = '{{ url_for("main.reset_database") }}';
+        }
+    }
+}
+</script>

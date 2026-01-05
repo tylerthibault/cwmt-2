@@ -5,118 +5,211 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
-            <h2 class="text-center mb-4">Welcome</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Welcome</h2>
+                <button id="devModeToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleDevMode()">
+                    <i class="bi bi-code-slash"></i> Dev Mode
+                </button>
+            </div>
             
-            <div class="row">
-                <!-- Login Form -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Login</h4>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{ url_for('auth.login') }}" method="POST">
-                                <div class="mb-3">
-                                    <label for="login_email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="login_email" name="email" required>
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="auth-card-container">
+                        <div class="auth-card" id="authCard">
+                            <!-- Login Form (Front) -->
+                            <div class="auth-card-face auth-card-front">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-body p-4 p-md-5">
+                                        <div class="text-center mb-4">
+                                            <div class="auth-icon mb-3">
+                                                <i class="bi bi-person-circle text-primary"></i>
+                                            </div>
+                                            <h3 class="fw-bold mb-2">Welcome Back</h3>
+                                            <p class="text-muted">Sign in to your account</p>
+                                        </div>
+                                        
+                                        <form action="{{ url_for('auth.login') }}" method="POST">
+                                            <div class="mb-3">
+                                                <label for="login_email" class="form-label">Email Address</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </span>
+                                                    <input type="email" class="form-control border-start-0 ps-0" id="login_email" name="email" placeholder="your@email.com" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="login_password" class="form-label">Password</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-lock"></i>
+                                                    </span>
+                                                    <input type="password" class="form-control border-start-0 ps-0" id="login_password" name="password" placeholder="Enter your password" required>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                                                    <label class="form-check-label" for="remember_me">Remember me</label>
+                                                </div>
+                                                <a href="#" class="text-primary text-decoration-none small">Forgot password?</a>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary w-100 py-2 mb-3 hover-lift">
+                                                Sign In
+                                            </button>
+                                        </form>
+                                        
+                                        <div class="text-center">
+                                            <p class="text-muted mb-0">
+                                                Don't have an account? 
+                                                <a href="#" class="text-primary text-decoration-none fw-bold" onclick="flipCard(); return false;">
+                                                    Sign Up
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="login_password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="login_password" name="password" required>
+                            </div>
+
+                            <!-- Register Form (Back) -->
+                            <div class="auth-card-face auth-card-back">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-body p-4 p-md-5">
+                                        <div class="text-center mb-4">
+                                            <div class="auth-icon mb-3">
+                                                <i class="bi bi-person-plus-fill text-success"></i>
+                                            </div>
+                                            <h3 class="fw-bold mb-2">Create Account</h3>
+                                            <p class="text-muted">Join us today</p>
+                                        </div>
+                                        
+                                        <form action="{{ url_for('auth.register') }}" method="POST">
+                                            <div class="mb-3">
+                                                <label for="reg_first_name" class="form-label">First Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-person"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control border-start-0 ps-0" id="reg_first_name" name="first_name" placeholder="John" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="reg_last_name" class="form-label">Last Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-person"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control border-start-0 ps-0" id="reg_last_name" name="last_name" placeholder="Doe" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="reg_email" class="form-label">Email Address</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </span>
+                                                    <input type="email" class="form-control border-start-0 ps-0" id="reg_email" name="email" placeholder="your@email.com" required>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info py-2 mb-3" role="alert">
+                                                <small><i class="bi bi-info-circle me-1"></i>A temporary password will be sent to your email</small>
+                                            </div>
+                                            <button type="submit" class="btn btn-success w-100 py-2 mb-3 hover-lift">
+                                                Create Account
+                                            </button>
+                                        </form>
+                                        
+                                        <div class="text-center">
+                                            <p class="text-muted mb-0">
+                                                Already have an account? 
+                                                <a href="#" class="text-primary text-decoration-none fw-bold" onclick="flipCard(); return false;">
+                                                    Sign In
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                                    <label class="form-check-label" for="remember_me">Remember Me</label>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Login</button>
-                            </form>
-                            <div class="mt-3 text-center">
-                                <a href="#" class="text-muted">Forgot Password?</a>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Register Form -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Register</h4>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{ url_for('auth.register') }}" method="POST">
-                                <div class="mb-3">
-                                    <label for="reg_first_name" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="reg_first_name" name="first_name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="reg_last_name" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="reg_last_name" name="last_name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="reg_email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="reg_email" name="email" required>
-                                </div>
-                                <button type="submit" class="btn btn-success w-100">Register</button>
-                                <div class="bg-warning px-3 mt-1 rounded" role="alert">
-                                    <small class="text-center d-block">A temporary password will be sent to your email address.</small>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <div class="row">
-                <div class="d-flex gap-3 justify-content-center mt-4 align-items-center">
-                    <a href="{{ url_for('seed.seed_superusers') }}">Seed Superusers</a>
-                    <a href="{{ url_for('seed.seed_admins') }}">Seed Admins</a>
-                    <a href="{{ url_for('seed.seed_instructors') }}">Seed Instructors</a>
-                    <a href="{{ url_for('seed.seed_students') }}">Seed Students</a>
-                </div>
-            </div>
-            <div class="row">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Roles</th>
-                            <th>Login</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in all_users %}
-                        <tr>
-                            <td>{{ user.first_name }}</td>
-                            <td>{{ user.last_name }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                {% set roles = user.get_roles() %}
-                                {% if roles %}
-                                    {{ roles|join(', ') }}
-                                {% else %}
-                                    <span class="text-muted">No roles</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <form action="{{ url_for('auth.login') }}" method="post">
-                                    <input type="hidden" name="email" value="{{ user.email }}">
-                                    <input type="hidden" name="password" value="Pass123!!">
-                                    <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Login</button>
-                                </form>
-                            </td>
-                            <td>
-                                <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete {{ user.first_name }} {{ user.last_name }}?');">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                </table>
-            </div>
+            
+            {% include 'public/auth/dev.html' %}
         </div>
     </div>
 </div>
+
+<style>
+/* Auth Card Flip Animation */
+.auth-card-container {
+    perspective: 1000px;
+    margin-bottom: 2rem;
+}
+
+.auth-card {
+    position: relative;
+    width: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.auth-card.flipped {
+    transform: rotateY(180deg);
+}
+
+.auth-card-face {
+    width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.auth-card-front {
+    position: relative;
+}
+
+.auth-card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    transform: rotateY(180deg);
+}
+
+.auth-icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.input-group-text {
+    background-color: transparent;
+}
+
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.input-group:focus-within .input-group-text {
+    color: var(--bs-primary);
+}
+
+@media (max-width: 767px) {
+    .auth-icon {
+        font-size: 3rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+}
+</style>
+
+<script>
+function flipCard() {
+    const authCard = document.getElementById('authCard');
+    authCard.classList.toggle('flipped');
+}
+</script>
+
 {% endblock content %}

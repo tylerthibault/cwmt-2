@@ -1,0 +1,127 @@
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm animate-fade-up animate-delay-500">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-lightning-charge-fill text-primary me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                
+                <div class="row g-3">
+                    <!-- Send Announcement -->
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="quick-action-card" data-bs-toggle="modal" data-bs-target="#announcementModal">
+                            <h6 class="fw-semibold mb-1">
+                                <i class="bi bi-megaphone-fill text-primary me-2"></i>
+                                Send Announcement
+                            </h6>
+                            <p class="text-muted small mb-0">Notify all users</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Announcement Modal -->
+<div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="announcementModalLabel">
+                    <i class="bi bi-megaphone-fill text-primary me-2"></i>
+                    Send Announcement
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="announcementForm">
+                    <div class="mb-3">
+                        <label for="announcementMessage" class="form-label fw-semibold">Message</label>
+                        <textarea 
+                            class="form-control" 
+                            id="announcementMessage" 
+                            rows="4" 
+                            placeholder="Type your announcement message here..."
+                            required
+                        ></textarea>
+                        <div class="form-text">This message will be visible to all users on their dashboards.</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-send-fill me-1"></i> Send Announcement
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-action-card {
+    padding: 1.25rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.quick-action-card:hover {
+    border-color: var(--bs-primary);
+    background-color: #f8f9fa;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<script>
+document.getElementById('announcementForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const message = document.getElementById('announcementMessage').value.trim();
+    
+    if (!message) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    try {
+        const response = await fetch('{{ url_for("announcement.admin_create") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        if (response.ok) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('announcementModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('announcementForm').reset();
+            
+            // Show success message
+            alert('Announcement sent successfully!');
+            
+            // Optionally reload page to show updated data
+            // window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to send announcement'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while sending the announcement');
+    }
+});
+</script>

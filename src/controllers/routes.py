@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, flash, redirect, url_for
 import json
+import os
+from pathlib import Path
 from src.models.course_folder import course_instances
 from src.services.calendar import format_course_instances_for_calendar
 
@@ -10,7 +12,18 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """Home page route."""
-    return render_template('public/landing/index.html')
+    from src.models.announcements import Announcement
+    
+    # Get the latest active announcement
+    latest_announcement = Announcement.query.filter_by(
+        is_active=True, 
+        deleted_at=None
+    ).order_by(Announcement.created_at.desc()).first()
+    
+    context = {
+        'latest_announcement': latest_announcement
+    }
+    return render_template('public/landing/index.html', **context)
 
 
 @main_bp.route('/courses')
@@ -41,6 +54,36 @@ def signup_page():
         'course': course
     }
     return render_template('public/auth/signup.html', **context)
+
+
+@main_bp.route('/reset-database')
+def reset_database():
+    """Reset the database by dropping and recreating all tables."""
+    try:
+        from src.models.main import db
+        
+        instance_path = Path('instance')
+        seed_flag_path = instance_path / '.seeded'
+        
+        # Drop all tables
+        db.drop_all()
+        flash('All database tables dropped.', 'success')
+        
+        # Recreate all tables
+        db.create_all()
+        flash('Database tables recreated.', 'success')
+        
+        # Delete seed flag to trigger reseeding
+        if seed_flag_path.exists():
+            os.remove(seed_flag_path)
+            flash('Seed flag deleted - data will be reseeded on next page load.', 'success')
+        
+        flash('✅ Database reset complete! Refresh the page to see the empty database.', 'success')
+        
+    except Exception as e:
+        flash(f'Error resetting database: {str(e)}', 'danger')
+    
+    return redirect(url_for('auth.loginReg'))
 
 
 @main_bp.app_errorhandler(404)

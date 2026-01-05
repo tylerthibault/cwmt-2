@@ -5,9 +5,19 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
-<div>
-    <h1>Admin Dashboard</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Admin Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back, {{ current_user.first_name }}!</p>
+        </div>
+        <div class="text-muted">
+            <i class="bi bi-calendar3"></i> {{ current_date.strftime('%B %d, %Y') }}
+        </div>
+    </div>
+
+    {% include 'private/admins/dashboard/components/stats_cards.html' %}
+    
+    {% include 'private/admins/dashboard/components/quick_actions.html' %}
 </div>
-
-
 {% endblock inner_content %}

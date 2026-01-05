@@ -14,8 +14,71 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @role_required('admin')
 def dashboard():
     """admin dashboard route."""
+    from src.models.user_folder.students import Student
+    from src.models.course_folder.course_instances import CourseInstance
+    from src.models.course_folder.enrollments import Enrollment
+    from src.models.stripe.payments import Payment
+    from datetime import datetime, timedelta
+    from sqlalchemy import func, extract
+    
+    # Get current date and month start
+    now = datetime.utcnow()
+    month_start = datetime(now.year, now.month, 1)
+    last_month_start = datetime(now.year if now.month > 1 else now.year - 1, 
+                                now.month - 1 if now.month > 1 else 12, 1)
+    next_week = now + timedelta(days=7)
+    
+    # Total students
+    total_students = Student.query.count()
+    
+    # Active courses this month (scheduled or active status)
+    active_courses = CourseInstance.query.filter(
+        CourseInstance.status.in_(['scheduled', 'active']),
+        CourseInstance.start_date >= month_start.date()
+    ).count()
+    
+    # Pending enrollments (enrolled status)
+    pending_enrollments = Enrollment.query.filter_by(status='enrolled').count()
+    
+    # Revenue this month (successful payments)
+    revenue_this_month = db.session.query(
+        func.sum(Payment.total_cost)
+    ).filter(
+        Payment.status == 'succeeded',
+        extract('year', Payment.created_at) == now.year,
+        extract('month', Payment.created_at) == now.month
+    ).scalar() or 0
+    
+    # Revenue last month
+    revenue_last_month = db.session.query(
+        func.sum(Payment.total_cost)
+    ).filter(
+        Payment.status == 'succeeded',
+        extract('year', Payment.created_at) == last_month_start.year,
+        extract('month', Payment.created_at) == last_month_start.month
+    ).scalar() or 0
+    
+    # Calculate revenue change percentage
+    revenue_change = 0
+    if revenue_last_month > 0:
+        revenue_change = ((revenue_this_month - revenue_last_month) / revenue_last_month) * 100
+    
+    # Upcoming courses in next 7 days
+    upcoming_courses = CourseInstance.query.filter(
+        CourseInstance.status == 'scheduled',
+        CourseInstance.start_date >= now.date(),
+        CourseInstance.start_date <= next_week.date()
+    ).count()
+    
     context = {
-        'current_user': Doorman.get_by_token(session['doorman_token']).user
+        'current_user': Doorman.get_by_token(session['doorman_token']).user,
+        'current_date': now,
+        'total_students': total_students,
+        'active_courses': active_courses,
+        'pending_enrollments': pending_enrollments,
+        'revenue_this_month': revenue_this_month / 100,  # Convert cents to dollars
+        'revenue_change': revenue_change,
+        'upcoming_courses': upcoming_courses
     }
     return render_template('private/admins/dashboard/index.html', **context)
 
