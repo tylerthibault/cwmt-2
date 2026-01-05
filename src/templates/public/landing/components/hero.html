@@ -1,50 +1,50 @@
 <!-- Hero Version 2: Split Screen Design -->
 <section class="hero-v2">
     <div class="container-fluid p-0">
-        <div class="row g-0 align-items-center min-vh-100">
+        <div class="row g-0 align-items-center">
             <div class="col-lg-6 hero-text-section">
-                <div class="hero-text-content p-5">
-                    <span class="badge bg-primary mb-3" data-aos="fade-right">Certified Training</span>
-                    <h1 class="display-2 fw-bold mb-4" data-aos="fade-right" data-aos-delay="100">
+                <div class="hero-text-content">
+                    <span class="badge bg-primary mb-3 animate-fade-right">Certified Training</span>
+                    <h1 class="display-2 fw-bold mb-3 mb-md-4 animate-fade-up animate-delay-100">
                         Ride with <br>
                         <span class="text-primary">Confidence</span>
                     </h1>
-                    <p class="lead text-muted mb-4" data-aos="fade-right" data-aos-delay="200">
+                    <p class="lead text-muted mb-3 mb-md-4 animate-fade-up animate-delay-200">
                         Professional motorcycle training courses designed for riders of all experience levels. 
                         From beginners to advanced, we'll help you become a safer, more skilled rider.
                     </p>
-                    <div class="d-flex gap-3 mb-5" data-aos="fade-right" data-aos-delay="300">
-                        <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary btn-lg">
-                            Enroll Now
+                    <div class="d-flex flex-column flex-sm-row gap-3 mb-4 mb-md-5 animate-fade-up animate-delay-300">
+                        <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary btn-lg hover-lift hover-shadow">
+                            Signup Now
                         </a>
-                        <a href="#courses" class="btn btn-outline-dark btn-lg">
+                        <a href="{{ url_for('main.public_courses') }}" class="btn btn-outline-dark btn-lg hover-lift">
                             View Courses
                         </a>
                     </div>
-                    <div class="row g-4" data-aos="fade-right" data-aos-delay="400">
-                        <div class="col-6">
-                            <div class="feature-box">
+                    <div class="row g-3 g-md-4 animate-fade-up animate-delay-400">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-box hover-lift">
                                 <i class="bi bi-shield-check text-primary fs-2 mb-2"></i>
                                 <h5>State Certified</h5>
                                 <p class="text-muted small">Approved training program</p>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="feature-box">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-box hover-lift">
                                 <i class="bi bi-people text-primary fs-2 mb-2"></i>
                                 <h5>Expert Instructors</h5>
                                 <p class="text-muted small">Experienced professionals</p>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="feature-box">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-box hover-lift">
                                 <i class="bi bi-calendar-check text-primary fs-2 mb-2"></i>
                                 <h5>Flexible Schedule</h5>
                                 <p class="text-muted small">Weekend & weekday classes</p>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="feature-box">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-box hover-lift">
                                 <i class="bi bi-award text-primary fs-2 mb-2"></i>
                                 <h5>License Ready</h5>
                                 <p class="text-muted small">Complete certification</p>
@@ -54,16 +54,19 @@
                 </div>
             </div>
             <div class="col-lg-6 hero-image-section">
-                <div class="hero-image" style="background-image: url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1920&q=80');">
-                    <div class="floating-card" data-aos="fade-up" data-aos-delay="500">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="icon-wrapper">
-                                <i class="bi bi-star-fill text-warning fs-1"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold fs-5">4.9/5 Rating</div>
-                                <div class="text-muted small">From 500+ Reviews</div>
-                            </div>
+                <div class="hero-image animate-fade-left animate-delay-200">
+                    <video class="hero-video" autoplay muted loop playsinline>
+                        <source src="{{ url_for('static', filename='vid/cwmt.mp4') }}" type="video/mp4">
+                    </video>
+                </div>
+                <div class="floating-card d-none d-lg-block animate-scale-up animate-delay-500">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-wrapper">
+                            <i class="bi bi-star-fill text-warning fs-1"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold fs-5">4.9/5 Rating</div>
+                            <div class="text-muted small">From 500+ Reviews</div>
                         </div>
                     </div>
                 </div>
