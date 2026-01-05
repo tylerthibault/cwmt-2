@@ -2,6 +2,98 @@
 @import url(components/info_box.css);
 
 
+/* =================================
+   Hero Section Styles
+   ================================= */
+.hero-v2 {
+    overflow: hidden;
+}
+
+.hero-text-section {
+    background: #fff;
+}
+
+.hero-text-content {
+    max-width: 600px;
+    margin-left: auto;
+}
+
+.hero-image-section {
+    position: relative;
+    height: 100vh;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.hero-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(13, 110, 253, 0.3), rgba(0, 0, 0, 0.2));
+}
+
+.feature-box {
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.feature-box:hover {
+    background: #f8f9fa;
+    transform: translateY(-5px);
+}
+
+.floating-card {
+    position: absolute;
+    bottom: 50px;
+    right: 50px;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: #fff3cd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 991px) {
+    .hero-text-content {
+        margin: 0 auto;
+    }
+    
+    .hero-image-section {
+        height: 60vh;
+    }
+    
+    .floating-card {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+    }
+}
+
 
 :root {
     /* background */
