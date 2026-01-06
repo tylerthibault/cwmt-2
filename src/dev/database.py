@@ -7,7 +7,7 @@ import os
 database_bp = Blueprint('database', __name__, url_prefix='/dev/database')
 
 
-@database_bp.route('/rebuild', methods=['POST', 'GET'])
+@database_bp.route('/rebuild', methods=['POST'])
 @login_required
 @role_required('superuser')
 def rebuild_database():
