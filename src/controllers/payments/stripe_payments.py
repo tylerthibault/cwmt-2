@@ -4,7 +4,7 @@ import os
 from src.models.stripe.payments import Payment
 from src.models.course_folder.course_instances import CourseInstance
 from src.models.user_folder.students import Student
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
 import uuid

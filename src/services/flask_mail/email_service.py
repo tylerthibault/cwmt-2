@@ -60,7 +60,7 @@ def send_email(purpose, to_address, **kwargs):
     """
     from flask_mail import Message, Mail
     from flask import current_app
-    from src.models.flask_mail.email_logs import EmailLog
+    from src.models.logs import EmailLog
     from src.models.flask_mail.email_templates import EmailTemplate
     
     email_log = None

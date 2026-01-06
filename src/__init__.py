@@ -60,6 +60,8 @@ def init_db(app):
     from src.models.course_folder.payable_templates import PayableTemplate
     from src.models.course_folder.enrollments import Enrollment
     from src.models.announcements import Announcement
+    from src.models.doorman import Doorman
+    from src.models.logs import Log
 
     # stripe models
     from src.models.stripe.payments import Payment
@@ -68,7 +70,7 @@ def init_db(app):
     
     # flask-mail models
     from src.models.flask_mail.email_templates import EmailTemplate
-    from src.models.flask_mail.email_logs import Log, EmailLog
+    from src.models.logs import Log, EmailLog
     from src.models.app_settings import AppSettings
 
     

@@ -3,7 +3,7 @@ from datetime import datetime
 from src.models.user_folder.users import User
 from src.models.user_folder.students import Student
 from src.models.doorman import Doorman
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required
 
 # Create blueprint

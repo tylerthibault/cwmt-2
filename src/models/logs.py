@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from sqlalchemy import func
-from ..main import db, CRUDMixin
+from .main import db, CRUDMixin
 
 
 class Log(db.Model, CRUDMixin):

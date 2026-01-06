@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, request, redirect, url_for, flash
 from src.models.doorman import Doorman
 from src.models.flask_mail.email_templates import EmailTemplate
-from src.models.flask_mail.email_logs import EmailLog
+from src.models.logs import EmailLog
 from src.models.app_settings import AppSettings
 from src.services.flask_mail.email_config import EMAIL_PURPOSES, get_purpose
 from src.controllers.flask_mail.seed_templates import seed_default_templates

@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, session
 from src.models.user_folder import superusers, users
 from src.models.doorman import Doorman
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 
 # Create blueprint

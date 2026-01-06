@@ -7,7 +7,7 @@ from src.models.course_folder import course_instances
 from src.models.course_folder.enrollments import Enrollment
 from src.models.stripe.payments import Payment
 from src.models.doorman import Doorman
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.utils.password_management import generate_simple_password, hash_string
 from src.services.calendar import format_course_instances_for_calendar

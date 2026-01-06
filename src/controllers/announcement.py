@@ -6,12 +6,12 @@ from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 
 # Create blueprint
-announcements_bp = Blueprint('announcement', __name__, url_prefix='/announcements')
+announcement_bp = Blueprint('announcement', __name__, url_prefix='/announcements')
 
 
 # =============== ADMIN ROUTES ===============
 
-@announcements_bp.route('/')
+@announcement_bp.route('/admin')
 @login_required
 @role_required('admin')
 def admin_list():
@@ -43,7 +43,7 @@ def admin_list():
     return render_template('private/admins/announcements/index.html', **context)
 
 
-@announcements_bp.route('/admin/create', methods=['POST'])
+@announcement_bp.route('/admin/create', methods=['POST'])
 @login_required
 @role_required('admin')
 def admin_create():
@@ -91,7 +91,7 @@ def admin_create():
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@announcements_bp.route('/admin/update/<int:announcement_id>', methods=['POST'])
+@announcement_bp.route('/admin/update/<int:announcement_id>', methods=['POST'])
 @login_required
 @role_required('admin')
 def admin_update(announcement_id):
@@ -138,7 +138,7 @@ def admin_update(announcement_id):
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@announcements_bp.route('/admin/delete/<int:announcement_id>', methods=['POST'])
+@announcement_bp.route('/admin/delete/<int:announcement_id>', methods=['POST'])
 @login_required
 @role_required('admin')
 def admin_delete(announcement_id):
@@ -176,7 +176,7 @@ def admin_delete(announcement_id):
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@announcements_bp.route('/admin/restore/<int:announcement_id>', methods=['POST'])
+@announcement_bp.route('/admin/restore/<int:announcement_id>', methods=['POST'])
 @login_required
 @role_required('admin')
 def admin_restore(announcement_id):
@@ -214,7 +214,7 @@ def admin_restore(announcement_id):
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@announcements_bp.route('/admin/toggle-status/<int:announcement_id>', methods=['POST'])
+@announcement_bp.route('/admin/toggle-status/<int:announcement_id>', methods=['POST'])
 @login_required
 @role_required('admin')
 def admin_toggle_status(announcement_id):
@@ -264,7 +264,7 @@ def admin_toggle_status(announcement_id):
 
 # =============== PUBLIC ROUTES (for all authenticated users) ===============
 
-@announcements_bp.route('/')
+@announcement_bp.route('/')
 @login_required
 def list_announcements():
     """List active announcements for all users."""
@@ -277,7 +277,7 @@ def list_announcements():
     return render_template('private/components/announcements/list.html', **context)
 
 
-@announcements_bp.route('/recent')
+@announcement_bp.route('/recent')
 @login_required
 def recent_announcements():
     """Get recent announcements (for dashboard widgets, etc.)."""

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from datetime import datetime
 from src.models.user_folder import users
 from src.models.course_folder import course_templates, payable_templates
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
 

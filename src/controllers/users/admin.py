@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from src.models.user_folder import admins, users
 from src.models.doorman import Doorman
 from src.models.main import db
-from src.models.flask_mail.email_logs import Log
+from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 
 # Create blueprint
@@ -761,7 +761,7 @@ def approve_unenrollment(enrollment_id):
 def activity_logs():
     """Route to view activity logs including email logs."""
     from flask import flash
-    from src.models.flask_mail.email_logs import Log
+    from src.models.logs import Log
     from src.models.user_folder.users import User
     
     # Get filter parameters
