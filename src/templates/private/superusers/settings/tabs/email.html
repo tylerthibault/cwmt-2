@@ -1,0 +1,80 @@
+<h4 class="mb-3">Email Configuration</h4>
+<p class="text-muted">Configure SMTP settings for sending emails</p>
+
+<form method="POST" action="{{ url_for('superuser.settings') }}">
+    <input type="hidden" name="tab" value="email">
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="mail_server" class="form-label">SMTP Server</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="mail_server" 
+                   name="mail_server" 
+                   value="{{ settings.mail_server }}"
+                   placeholder="smtp.gmail.com"
+                   required>
+            <small class="form-text text-muted">e.g., smtp.gmail.com, smtp.office365.com</small>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="mail_port" class="form-label">SMTP Port</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="mail_port" 
+                   name="mail_port" 
+                   value="{{ settings.mail_port }}"
+                   placeholder="587"
+                   required>
+            <small class="form-text text-muted">Common: 587 (TLS), 465 (SSL), 25 (No encryption)</small>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="mail_username" class="form-label">Email Username</label>
+            <input type="email" 
+                   class="form-control" 
+                   id="mail_username" 
+                   name="mail_username" 
+                   value="{{ settings.mail_username or '' }}"
+                   placeholder="your-email@gmail.com">
+            <small class="form-text text-muted">Email address for SMTP authentication</small>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="mail_password" class="form-label">Email Password</label>
+            <input type="password" 
+                   class="form-control" 
+                   id="mail_password" 
+                   name="mail_password" 
+                   placeholder="Leave blank to keep current">
+            <small class="form-text text-muted">Use app-specific password for Gmail</small>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="mail_default_sender" class="form-label">Default Sender</label>
+            <input type="email" 
+                   class="form-control" 
+                   id="mail_default_sender" 
+                   name="mail_default_sender" 
+                   value="{{ settings.mail_default_sender or '' }}"
+                   placeholder="noreply@cwmt.com">
+            <small class="form-text text-muted">Email address shown as sender</small>
+        </div>
+    </div>
+        
+    <div class="infobox infobox-info">
+        <strong><i class="bi bi-info-circle"></i> Gmail Users:</strong>
+        <p class="mb-0">You need to create an App Password instead of using your regular Gmail password. 
+        Visit <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a> to generate one.</p>
+    </div>
+    
+    <div class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save Email Settings
+        </button>
+    </div>
+</form>

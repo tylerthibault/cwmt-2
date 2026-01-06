@@ -44,14 +44,26 @@ def init_config(app):
 def init_db(app):
     """Initialize the sqlalchemy database connection and create all tables."""
     import os
-
+    
     # Use DATABASE_URL from environment if available, otherwise fall back to SQLite
     database_url = os.environ.get('DATABASE_URL')
-    # database_url = 'sqlite:///cwmt.db'
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    if database_url:
+        # Use the DATABASE_URL from environment (for production/CapRover)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Fall back to SQLite for local development
+        # Use Flask's instance folder which is created automatically
+        db_path = os.path.join(app.instance_path, 'cwmt.db')
+        # Convert to forward slashes for SQLite
+        db_path = db_path.replace('\\', '/')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+        print(f"Database path: {db_path}")
+        print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['BCRYPT_LOG_ROUNDS'] = 12
+    
     # Initialize db with app
     db.init_app(app)
 
@@ -65,6 +77,8 @@ def init_db(app):
     from src.models.course_folder.payable_templates import PayableTemplate
     from src.models.course_folder.enrollments import Enrollment
     from src.models.announcements import Announcement
+    from src.models.doorman import Doorman
+    from src.models.logs import Log
 
     # stripe models
     from src.models.stripe.payments import Payment
@@ -73,7 +87,6 @@ def init_db(app):
     
     # flask-mail models
     from src.models.flask_mail.email_templates import EmailTemplate
-    from src.models.logs import Log
     from src.models.app_settings import AppSettings
 
     

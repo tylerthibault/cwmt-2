@@ -92,7 +92,7 @@ class AppSettings(db.Model, CRUDMixin):
         new_settings_data = current_settings.to_dict(include_sensitive=True)
         
         # Remove fields that shouldn't be copied
-        for field in ['id', 'created_at', 'created_by', 'deleted_at', 'deleted_by']:
+        for field in ['id', 'created_at', 'created_by', 'deleted_at', 'deleted_by', 'is_current', 'mail_password_configured']:
             new_settings_data.pop(field, None)
         
         # Apply updates

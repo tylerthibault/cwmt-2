@@ -1,0 +1,81 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block title %}Settings - CWMT{% endblock %}
+
+{% block inner_content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-0">System Settings</h1>
+            <p class="text-muted">Configure application-wide settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if active_tab == 'email' %}active{% endif %}" 
+                                    id="email-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#email" 
+                                    type="button" 
+                                    role="tab">
+                                <i class="bi bi-envelope"></i> Email Configuration
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if active_tab == 'general' %}active{% endif %}" 
+                                    id="general-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#general" 
+                                    type="button" 
+                                    role="tab">
+                                <i class="bi bi-gear"></i> General Settings
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if active_tab == 'payment' %}active{% endif %}" 
+                                    id="payment-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#payment" 
+                                    type="button" 
+                                    role="tab">
+                                <i class="bi bi-credit-card"></i> Payment Settings
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="settingsTabContent">
+                        <!-- Email Configuration Tab -->
+                        <div class="tab-pane fade {% if active_tab == 'email' %}show active{% endif %}" 
+                             id="email" 
+                             role="tabpanel">
+                            {% include 'private/superusers/settings/tabs/email.html' %}
+                        </div>
+                        
+                        <!-- General Settings Tab -->
+                        <div class="tab-pane fade {% if active_tab == 'general' %}show active{% endif %}" 
+                             id="general" 
+                             role="tabpanel">
+                            <h4 class="mb-3">General Settings</h4>
+                            <p class="text-muted">Coming soon...</p>
+                        </div>
+                        
+                        <!-- Payment Settings Tab -->
+                        <div class="tab-pane fade {% if active_tab == 'payment' %}show active{% endif %}" 
+                             id="payment" 
+                             role="tabpanel">
+                            <h4 class="mb-3">Payment Settings</h4>
+                            <p class="text-muted">Coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

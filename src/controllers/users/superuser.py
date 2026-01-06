@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, request, session
+from flask import Blueprint, render_template, redirect, url_for, request, session, flash
 from src.models.user_folder import superusers, users
 from src.models.doorman import Doorman
 from src.models.logs import Log
@@ -98,6 +98,59 @@ def manage_users():
         'focus': focus
     }
     return render_template('private/superusers/users/index.html', **context)
+
+@superuser_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+@role_required('superuser')
+def settings():
+    """Superuser settings page with multiple tabs."""
+    from src.models.app_settings import AppSettings
+    
+    settings_obj = AppSettings.get_settings()
+    current_user = Doorman.get_by_token(session['doorman_token']).user
+    
+    if request.method == 'POST':
+        tab = request.form.get('tab', 'email')
+        
+        if tab == 'email':
+            # Update email settings
+            try:
+                AppSettings.update_settings(
+                    updated_by_user_id=current_user.id,
+                    mail_server=request.form.get('mail_server'),
+                    mail_port=int(request.form.get('mail_port', 587)),
+                    mail_use_tls=request.form.get('mail_use_tls') == 'on',
+                    mail_use_ssl=request.form.get('mail_use_ssl') == 'on',
+                    mail_username=request.form.get('mail_username'),
+                    mail_default_sender=request.form.get('mail_default_sender'),
+                    mail_password=request.form.get('mail_password') if request.form.get('mail_password') else None
+                )
+                
+                # Log the settings change
+                Log.create_log(
+                    log_type=Log.TYPE_USER_ACTION,
+                    action='update_email_settings',
+                    description='Email settings updated',
+                    user_id=current_user.id,
+                    status='success',
+                    extra_data={'updated_fields': ['email_configuration']}
+                )
+                
+                flash('Email settings updated successfully!', 'success')
+            except Exception as e:
+                flash(f'Error updating settings: {str(e)}', 'danger')
+            
+            return redirect(url_for('superuser.settings', tab='email'))
+    
+    # Determine active tab from query param
+    active_tab = request.args.get('tab', 'email')
+    
+    context = {
+        'current_user': current_user,
+        'settings': settings_obj,
+        'active_tab': active_tab
+    }
+    return render_template('private/superusers/settings/index.html', **context)
 
 # ------------------------------------------------------
 # --------------------- API ROUTES ---------------------
