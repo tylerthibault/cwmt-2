@@ -70,7 +70,6 @@ def init_db(app):
     
     # flask-mail models
     from src.models.flask_mail.email_templates import EmailTemplate
-    from src.models.logs import Log, EmailLog
     from src.models.app_settings import AppSettings
 
     
