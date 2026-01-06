@@ -31,8 +31,8 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p instance logs
 
-Run database migrations (comment out if using manual rebuild route)
-RUN flask db upgrade
+# Run database migrations (comment out if using manual rebuild route)
+# RUN flask db upgrade
 
 # Expose port (CapRover will map this)
 EXPOSE 80

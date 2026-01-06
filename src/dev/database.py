@@ -22,9 +22,22 @@ def rebuild_database():
         return redirect(request.referrer or url_for('main.index'))
     
     try:
+        # Check if we're using MySQL
+        is_mysql = 'mysql' in db.engine.url.drivername
+        
+        if is_mysql:
+            # Disable foreign key checks for MySQL
+            db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=0;'))
+            db.session.commit()
+        
         # Drop all tables
         db.drop_all()
         flash('All tables dropped successfully.', 'success')
+        
+        if is_mysql:
+            # Re-enable foreign key checks
+            db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=1;'))
+            db.session.commit()
         
         # Recreate all tables
         db.create_all()
@@ -35,6 +48,14 @@ def rebuild_database():
     except Exception as e:
         flash(f'Error rebuilding database: {str(e)}', 'danger')
         db.session.rollback()
+        
+        # Make sure to re-enable foreign key checks even on error
+        try:
+            if is_mysql:
+                db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=1;'))
+                db.session.commit()
+        except:
+            pass
     
     return redirect(url_for('auth.loginReg'))
 
