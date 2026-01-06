@@ -8,7 +8,7 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = 'your_secret_key'  # Replace with a secure key in production
+    app.secret_key = '5d67dfa6d956b2a6970680d9'  # Replace with a secure key in production
 
     # Load configuration
     init_config(app)
@@ -43,10 +43,21 @@ def init_config(app):
 
 def init_db(app):
     """Initialize the sqlalchemy database connection and create all tables."""
+    import os
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cwmt.db'
+    # Use DATABASE_URL from environment if available, otherwise fall back to SQLite
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Use the DATABASE_URL from environment (for production/CapRover)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Fall back to SQLite for local development
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cwmt.db'
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['BCRYPT_LOG_ROUNDS'] = 12
+    
     # Initialize db with app
     db.init_app(app)
 
