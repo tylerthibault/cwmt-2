@@ -1,8 +1,10 @@
 from flask import Flask
 from flask_mail import Mail
+from flask_migrate import Migrate
 from .models.main import db
 
 mail = Mail()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -15,10 +17,13 @@ def create_app():
     init_blueprints(app)
     
     # Initialize database
-    init_db(app)
+    init_db(app) 
     
     # Initialize Flask-Mail
     mail.init_app(app)
+    
+    # Initialize Flask-Migrate
+    migrate.init_app(app, db)
 
     return app
 
@@ -120,6 +125,9 @@ def init_blueprints(app):
     # DEV
     from src.controllers.seeding import seed_bp
     app.register_blueprint(seed_bp)
+    
+    from src.dev.database import database_bp
+    app.register_blueprint(database_bp)
     
     return app
 
