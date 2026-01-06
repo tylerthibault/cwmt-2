@@ -31,9 +31,6 @@ ENV/
 instance/*.db
 instance/*.db-journal
 
-# Logs
-logs/
-*.log
 
 # Documentation
 docs/
