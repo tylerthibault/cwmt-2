@@ -8,8 +8,6 @@ database_bp = Blueprint('database', __name__, url_prefix='/dev/database')
 
 
 @database_bp.route('/rebuild', methods=['POST'])
-@login_required
-@role_required('superuser')
 def rebuild_database():
     """
     Drop all tables and recreate them from models.
@@ -42,8 +40,6 @@ def rebuild_database():
 
 
 @database_bp.route('/rebuild-form')
-@login_required
-@role_required('superuser')
 def rebuild_form():
     """Show a form to confirm database rebuild."""
     return '''
