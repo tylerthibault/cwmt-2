@@ -158,80 +158,94 @@ def create_course_temp():
     
     return render_template('create_course_temp.html')
 
-@course_temp_bp.route('/course/add-remove-payable', methods=['POST'])
+@course_temp_bp.route('/add-remove-payable', methods=['POST'])
 @login_required
 @role_required('superuser')
 def add_payable_to_course():
     """Add or remove a payable template from a course template."""
-    course_template_id = request.form.get('course_template_id')
-    payable_template_id = request.form.get('payable_template_id')
-    action = request.form.get('action')  # 'add' or 'remove'
+    try:
+        course_template_id = request.form.get('course_template_id')
+        payable_template_id = request.form.get('payable_template_id')
+        action = request.form.get('action')  # 'add' or 'remove'
 
-    course_template = course_templates.CourseTemplate.query.get(course_template_id)
-    payable_template = payable_templates.PayableTemplate.query.get(payable_template_id)
+        course_template = course_templates.CourseTemplate.query.get(course_template_id)
+        payable_template = payable_templates.PayableTemplate.query.get(payable_template_id)
 
-    if not course_template or not payable_template:
-        flash('Invalid course or payable template.', 'error')
-        return redirect(url_for('course_temp.list_course_temps'))
+        if not course_template or not payable_template:
+            flash('Invalid course or payable template.', 'error')
+            return redirect(url_for('course_temp.list_course_temps'))
 
-    if action == 'add':
-        if not course_template.payable_templates.filter_by(id=payable_template.id).first():
-            course_template.payable_templates.append(payable_template)
-            course_template.save()
-            
-            # Log the payable addition
-            current_user = Doorman.get_by_token(session['doorman_token']).user
-            Log.create_log(
-                log_type=Log.TYPE_USER_ACTION,
-                action='add_payable_to_course',
-                description=f'Payable "{payable_template.name}" added to course template "{course_template.name}"',
-                user_id=current_user.id,
-                target_type='course_template',
-                target_id=course_template.id,
-                status='success',
-                extra_data={
-                    'course_template_name': course_template.name,
-                    'payable_template_name': payable_template.name,
-                    'payable_template_id': payable_template.id,
-                    'payable_amount': payable_template.amount,
-                    'is_required': payable_template.is_required
-                }
-            )
-            
-            flash('Payable template added to course template.', 'success')
+        if action == 'add':
+            if not course_template.payable_templates.filter_by(id=payable_template.id).first():
+                course_template.payable_templates.append(payable_template)
+                course_template.save()
+                
+                # Log the payable addition
+                try:
+                    current_user = Doorman.get_by_token(session['doorman_token']).user
+                    Log.create_log(
+                        log_type=Log.TYPE_USER_ACTION,
+                        action='add_payable_to_course',
+                        description=f'Payable "{payable_template.name}" added to course template "{course_template.name}"',
+                        user_id=current_user.id,
+                        target_type='course_template',
+                        target_id=course_template.id,
+                        status='success',
+                        extra_data={
+                            'course_template_name': course_template.name,
+                            'payable_template_name': payable_template.name,
+                            'payable_template_id': payable_template.id,
+                            'payable_amount': payable_template.amount,
+                            'is_required': payable_template.is_required
+                        }
+                    )
+                except Exception as log_error:
+                    # Log the error but don't fail the operation
+                    print(f"Failed to create log: {log_error}")
+                
+                flash('Payable template added to course template.', 'success')
+            else:
+                flash('Payable template already associated with this course template.', 'info')
+                
+        elif action == 'remove':
+            if course_template.payable_templates.filter_by(id=payable_template.id).first():
+                course_template.payable_templates.remove(payable_template)
+                course_template.save()
+                
+                # Log the payable removal
+                try:
+                    current_user = Doorman.get_by_token(session['doorman_token']).user
+                    Log.create_log(
+                        log_type=Log.TYPE_USER_ACTION,
+                        action='remove_payable_from_course',
+                        description=f'Payable "{payable_template.name}" removed from course template "{course_template.name}"',
+                        user_id=current_user.id,
+                        target_type='course_template',
+                        target_id=course_template.id,
+                        status='success',
+                        extra_data={
+                            'course_template_name': course_template.name,
+                            'payable_template_name': payable_template.name,
+                            'payable_template_id': payable_template.id
+                        }
+                    )
+                except Exception as log_error:
+                    # Log the error but don't fail the operation
+                    print(f"Failed to create log: {log_error}")
+                
+                flash('Payable template removed from course template.', 'success')
+            else:
+                flash('Payable template not associated with this course template.', 'info')
         else:
-            flash('Payable template already associated with this course template.', 'info')
-    elif action == 'remove':
-        if course_template.payable_templates.filter_by(id=payable_template.id).first():
-            course_template.payable_templates.remove(payable_template)
-            course_template.save()
-            
-            # Log the payable removal
-            current_user = Doorman.get_by_token(session['doorman_token']).user
-            Log.create_log(
-                log_type=Log.TYPE_USER_ACTION,
-                action='remove_payable_from_course',
-                description=f'Payable "{payable_template.name}" removed from course template "{course_template.name}"',
-                user_id=current_user.id,
-                target_type='course_template',
-                target_id=course_template.id,
-                status='success',
-                extra_data={
-                    'course_template_name': course_template.name,
-                    'payable_template_name': payable_template.name,
-                    'payable_template_id': payable_template.id
-                }
-            )
-            
-            flash('Payable template removed from course template.', 'success')
-        else:
-            flash('Payable template not associated with this course template.', 'info')
-    else:
-        flash('Invalid action.', 'error')
+            flash('Invalid action.', 'error')
+
+    except Exception as e:
+        flash(f'Error processing request: {str(e)}', 'error')
+        print(f"Error in add_payable_to_course: {e}")
+        import traceback
+        traceback.print_exc()
 
     return redirect(url_for('course_temp.list_course_temps'))
-
-
 # ------------------------------------------------------
 # --------------------- API ROUTES ---------------------
 # ------------------------------------------------------
