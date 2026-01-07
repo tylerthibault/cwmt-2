@@ -118,8 +118,8 @@ def settings():
                 update_data = {
                     'mail_server': request.form.get('mail_server'),
                     'mail_port': int(request.form.get('mail_port', 587)),
-                    'mail_use_tls': request.form.get('mail_use_tls') == 'on',
-                    'mail_use_ssl': request.form.get('mail_use_ssl') == 'on',
+                    'mail_use_tls': request.form.get('mail_use_tls') == '1',
+                    'mail_use_ssl': request.form.get('mail_use_ssl') == '1',
                     'mail_username': request.form.get('mail_username'),
                     'mail_default_sender': request.form.get('mail_default_sender'),
                 }
