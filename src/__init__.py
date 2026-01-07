@@ -52,14 +52,22 @@ def init_mail(app):
             from src.models.app_settings import AppSettings
             settings = AppSettings.get_settings()
             
-            # Update app config with database settings
-            mail_config = settings.get_mail_config()
-            for key, value in mail_config.items():
-                if value is not None:  # Only override if value exists
-                    app.config[key] = value
+            # Check if database settings are complete
+            is_valid, missing_fields = settings.test_mail_config()
             
-            # Reinitialize mail with updated config
-            mail.init_app(app)
+            if is_valid:
+                # Update app config with database settings
+                mail_config = settings.get_mail_config()
+                for key, value in mail_config.items():
+                    if value is not None:  # Only override if value exists
+                        app.config[key] = value
+                
+                # Reinitialize mail with updated config
+                mail.init_app(app)
+                print("✓ Email configuration loaded from database")
+            else:
+                print(f"⚠ Email settings incomplete in database (missing: {', '.join(missing_fields)})")
+                print("Using environment variable configuration for email.")
     except Exception as e:
         # If database settings aren't available, continue with environment variables
         print(f"Warning: Could not load email settings from database: {e}")
@@ -70,8 +78,8 @@ def init_db(app):
     import os
 
     # Use DATABASE_URL from environment if available, otherwise fall back to SQLite
-    # database_url = os.environ.get('DATABASE_URL')
-    database_url = 'sqlite:///cwmt.db'
+    database_url = os.environ.get('DATABASE_URL')
+    # database_url = 'sqlite:///cwmt.db'
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
