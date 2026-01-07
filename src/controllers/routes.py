@@ -65,9 +65,31 @@ def reset_database():
         instance_path = Path('instance')
         seed_flag_path = instance_path / '.seeded'
         
-        # Drop all tables
-        db.drop_all()
-        flash('All database tables dropped.', 'success')
+        # Check if we're using MySQL
+        is_mysql = 'mysql' in db.engine.url.drivername
+        
+        if is_mysql:
+            # Disable foreign key checks for MySQL
+            db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=0;'))
+            db.session.commit()
+            
+            # Get all table names from the database
+            result = db.session.execute(db.text("SHOW TABLES"))
+            tables = [row[0] for row in result]
+            
+            # Drop all tables manually
+            for table in tables:
+                db.session.execute(db.text(f"DROP TABLE IF EXISTS `{table}`"))
+            db.session.commit()
+            flash(f'Dropped {len(tables)} tables from database.', 'success')
+            
+            # Re-enable foreign key checks
+            db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=1;'))
+            db.session.commit()
+        else:
+            # For SQLite and other databases, use drop_all
+            db.drop_all()
+            flash('All database tables dropped.', 'success')
         
         # Recreate all tables
         db.create_all()
@@ -82,6 +104,13 @@ def reset_database():
         
     except Exception as e:
         flash(f'Error resetting database: {str(e)}', 'danger')
+        # Make sure to re-enable foreign key checks even on error
+        try:
+            if is_mysql:
+                db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=1;'))
+                db.session.commit()
+        except:
+            pass
     
     return redirect(url_for('auth.loginReg'))
 
