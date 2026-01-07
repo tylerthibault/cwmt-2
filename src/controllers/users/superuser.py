@@ -115,15 +115,23 @@ def settings():
         if tab == 'email':
             # Update email settings
             try:
+                update_data = {
+                    'mail_server': request.form.get('mail_server'),
+                    'mail_port': int(request.form.get('mail_port', 587)),
+                    'mail_use_tls': request.form.get('mail_use_tls') == 'on',
+                    'mail_use_ssl': request.form.get('mail_use_ssl') == 'on',
+                    'mail_username': request.form.get('mail_username'),
+                    'mail_default_sender': request.form.get('mail_default_sender'),
+                }
+                
+                # Only update password if a new one was provided
+                mail_password = request.form.get('mail_password')
+                if mail_password:  # If not empty
+                    update_data['mail_password'] = mail_password
+                
                 AppSettings.update_settings(
                     updated_by_user_id=current_user.id,
-                    mail_server=request.form.get('mail_server'),
-                    mail_port=int(request.form.get('mail_port', 587)),
-                    mail_use_tls=request.form.get('mail_use_tls') == 'on',
-                    mail_use_ssl=request.form.get('mail_use_ssl') == 'on',
-                    mail_username=request.form.get('mail_username'),
-                    mail_default_sender=request.form.get('mail_default_sender'),
-                    mail_password=request.form.get('mail_password') if request.form.get('mail_password') else None
+                    **update_data
                 )
                 
                 # Log the settings change
