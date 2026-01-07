@@ -19,8 +19,8 @@ def create_app():
     # Initialize database
     init_db(app) 
     
-    # Initialize Flask-Mail
-    mail.init_app(app)
+    # Initialize Flask-Mail with database settings
+    init_mail(app)
     
     # Initialize Flask-Migrate
     migrate.init_app(app, db)
@@ -31,7 +31,8 @@ def init_config(app):
     """Load configuration from environment variables."""
     import os
     
-    # Mail configuration
+    # Basic mail configuration - can be overridden by database settings
+    # These serve as fallbacks if database settings aren't configured yet
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
@@ -41,13 +42,36 @@ def init_config(app):
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 
                                                         os.environ.get('MAIL_USERNAME', 'noreply@cwmt.com'))
 
+def init_mail(app):
+    """Initialize Flask-Mail with database settings if available."""
+    mail.init_app(app)
+    
+    # Try to load email config from database
+    try:
+        with app.app_context():
+            from src.models.app_settings import AppSettings
+            settings = AppSettings.get_settings()
+            
+            # Update app config with database settings
+            mail_config = settings.get_mail_config()
+            for key, value in mail_config.items():
+                if value is not None:  # Only override if value exists
+                    app.config[key] = value
+            
+            # Reinitialize mail with updated config
+            mail.init_app(app)
+    except Exception as e:
+        # If database settings aren't available, continue with environment variables
+        print(f"Warning: Could not load email settings from database: {e}")
+        print("Using environment variable configuration for email.")
+
 def init_db(app):
     """Initialize the sqlalchemy database connection and create all tables."""
     import os
 
     # Use DATABASE_URL from environment if available, otherwise fall back to SQLite
-    database_url = os.environ.get('DATABASE_URL')
-    # database_url = 'sqlite:///cwmt.db'
+    # database_url = os.environ.get('DATABASE_URL')
+    database_url = 'sqlite:///cwmt.db'
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

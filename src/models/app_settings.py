@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_bcrypt import generate_password_hash, check_password_hash
+from ..utils.encryption import encrypt_string, decrypt_string
 from .main import db, CRUDMixin
 
 
@@ -25,7 +26,7 @@ class AppSettings(db.Model, CRUDMixin):
     mail_username = db.Column(db.String(255), nullable=True)
     mail_default_sender = db.Column(db.String(255), nullable=True)
     mail_max_emails = db.Column(db.Integer, nullable=True)
-    mail_password_hash = db.Column(db.String(255), nullable=True)  # Encrypted
+    mail_password_encrypted = db.Column(db.Text, nullable=True)  # Encrypted with Fernet
     
     # ===== General App Settings =====
     app_name = db.Column(db.String(100), default='CWMT')
@@ -116,28 +117,25 @@ class AppSettings(db.Model, CRUDMixin):
         return new_settings
     
     def set_mail_password(self, password):
-        """Hash and store mail password securely.
+        """Encrypt and store mail password securely.
         
         Args:
             password: Plain text password
         """
         if password:
-            self.mail_password_hash = generate_password_hash(password).decode('utf-8')
+            self.mail_password_encrypted = encrypt_string(password)
         else:
-            self.mail_password_hash = None
+            self.mail_password_encrypted = None
     
-    def verify_mail_password(self, password):
-        """Verify mail password against stored hash.
+    def get_mail_password(self):
+        """Get decrypted mail password.
         
-        Args:
-            password: Plain text password to verify
-            
         Returns:
-            Boolean indicating if password matches
+            str: Decrypted password or None
         """
-        if not self.mail_password_hash:
-            return False
-        return check_password_hash(self.mail_password_hash, password)
+        if not self.mail_password_encrypted:
+            return None
+        return decrypt_string(self.mail_password_encrypted)
     
     def get_mail_config(self):
         """Get Flask-Mail configuration dictionary.
@@ -151,7 +149,7 @@ class AppSettings(db.Model, CRUDMixin):
             'MAIL_USE_TLS': self.mail_use_tls,
             'MAIL_USE_SSL': self.mail_use_ssl,
             'MAIL_USERNAME': self.mail_username,
-            'MAIL_PASSWORD': self.mail_password_hash,  # Note: This is hashed
+            'MAIL_PASSWORD': self.get_mail_password(),  # Decrypted password
             'MAIL_DEFAULT_SENDER': self.mail_default_sender or f'{self.app_name} <{self.mail_username}>',
             'MAIL_MAX_EMAILS': self.mail_max_emails
         }
@@ -166,7 +164,7 @@ class AppSettings(db.Model, CRUDMixin):
             'mail_server': self.mail_server,
             'mail_port': self.mail_port,
             'mail_username': self.mail_username,
-            'mail_password_hash': self.mail_password_hash
+            'mail_password_encrypted': self.mail_password_encrypted
         }
         
         missing = [field for field, value in required_fields.items() if not value]
@@ -224,7 +222,7 @@ class AppSettings(db.Model, CRUDMixin):
         }
         
         if include_sensitive:
-            data['mail_password_configured'] = bool(self.mail_password_hash)
+            data['mail_password_configured'] = bool(self.mail_password_encrypted)
             data['mail_password'] = None  # Placeholder for updates
         
         return data

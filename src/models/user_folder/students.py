@@ -48,12 +48,6 @@ class Student(db.Model, CRUDMixin):
         self.relationship = relationship
 
     @property
-    def enrollments(self):
-        """Return all enrollments for this student."""
-        from src.models.course_folder.enrollments import Enrollment
-        return Enrollment.query.filter_by(student_id=self.id).all()
-    
-    @property
     def is_guest_account(self):
         """Check if this is a guest account created by another student."""
         return self.created_by_student_id is not None
