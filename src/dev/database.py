@@ -29,17 +29,26 @@ def rebuild_database():
             # Disable foreign key checks for MySQL
             db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=0;'))
             db.session.commit()
-        
-        # Drop all tables
-        db.drop_all()
-        flash('All tables dropped successfully.', 'success')
-        
-        if is_mysql:
+            
+            # Get all table names from the database
+            result = db.session.execute(db.text("SHOW TABLES"))
+            tables = [row[0] for row in result]
+            
+            # Drop all tables manually
+            for table in tables:
+                db.session.execute(db.text(f"DROP TABLE IF EXISTS `{table}`"))
+            db.session.commit()
+            flash(f'Dropped {len(tables)} tables from database.', 'success')
+            
             # Re-enable foreign key checks
             db.session.execute(db.text('SET FOREIGN_KEY_CHECKS=1;'))
             db.session.commit()
+        else:
+            # For SQLite and other databases, use drop_all
+            db.drop_all()
+            flash('All tables dropped successfully.', 'success')
         
-        # Recreate all tables
+        # Recreate all tables from models
         db.create_all()
         flash('All tables recreated successfully.', 'success')
         
