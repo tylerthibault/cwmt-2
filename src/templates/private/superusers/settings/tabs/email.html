@@ -31,8 +31,38 @@
     </div>
     
     <div class="row">
+        <div class="col-md-6 mb-3">            <div class="form-check">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="mail_use_tls" 
+                       name="mail_use_tls" 
+                       value="1"
+                       {% if settings.mail_use_tls %}checked{% endif %}>
+                <label class="form-check-label" for="mail_use_tls">
+                    Enable TLS (STARTTLS)
+                </label>
+            </div>
+            <small class="form-text text-muted">Required for port 587. Use for Gmail and most providers.</small>
+        </div>
+        
         <div class="col-md-6 mb-3">
-            <label for="mail_username" class="form-label">Email Username</label>
+            <div class="form-check">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="mail_use_ssl" 
+                       name="mail_use_ssl" 
+                       value="1"
+                       {% if settings.mail_use_ssl %}checked{% endif %}>
+                <label class="form-check-label" for="mail_use_ssl">
+                    Enable SSL
+                </label>
+            </div>
+            <small class="form-text text-muted">Use for port 465. Don't enable both TLS and SSL.</small>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">            <label for="mail_username" class="form-label">Email Username</label>
             <input type="email" 
                    class="form-control" 
                    id="mail_username" 
