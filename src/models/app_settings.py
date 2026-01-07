@@ -88,6 +88,7 @@ class AppSettings(db.Model, CRUDMixin):
         current_settings.deleted_at = datetime.utcnow()
         current_settings.deleted_by = updated_by_user_id
         db.session.add(current_settings)
+        db.session.commit()  # Commit the soft-delete before creating new record
         
         # Create new settings row with updated values
         new_settings_data = current_settings.to_dict(include_sensitive=True)
@@ -101,7 +102,6 @@ class AppSettings(db.Model, CRUDMixin):
             if key in new_settings_data or hasattr(cls, key):
                 new_settings_data[key] = value
         
-        # Handle password separately (needs hashing)
         mail_password = new_settings_data.pop('mail_password', None)
         
         # Create new settings instance
@@ -117,25 +117,23 @@ class AppSettings(db.Model, CRUDMixin):
         return new_settings
     
     def set_mail_password(self, password):
-        """Encrypt and store mail password securely.
+        """Store mail password.
         
         Args:
             password: Plain text password
         """
         if password:
-            self.mail_password_encrypted = encrypt_string(password)
+            self.mail_password_encrypted = password
         else:
             self.mail_password_encrypted = None
     
     def get_mail_password(self):
-        """Get decrypted mail password.
+        """Get mail password.
         
         Returns:
-            str: Decrypted password or None
+            str: Password or None
         """
-        if not self.mail_password_encrypted:
-            return None
-        return decrypt_string(self.mail_password_encrypted)
+        return self.mail_password_encrypted
     
     def get_mail_config(self):
         """Get Flask-Mail configuration dictionary.
@@ -149,7 +147,7 @@ class AppSettings(db.Model, CRUDMixin):
             'MAIL_USE_TLS': self.mail_use_tls,
             'MAIL_USE_SSL': self.mail_use_ssl,
             'MAIL_USERNAME': self.mail_username,
-            'MAIL_PASSWORD': self.get_mail_password(),  # Decrypted password
+            'MAIL_PASSWORD': self.mail_password_encrypted,
             'MAIL_DEFAULT_SENDER': self.mail_default_sender or f'{self.app_name} <{self.mail_username}>',
             'MAIL_MAX_EMAILS': self.mail_max_emails
         }
