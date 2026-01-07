@@ -134,17 +134,24 @@ def settings():
                     **update_data
                 )
                 
-                # Log the settings change
-                Log.create_log(
-                    log_type=Log.TYPE_USER_ACTION,
-                    action='update_email_settings',
-                    description='Email settings updated',
-                    user_id=current_user.id,
-                    status='success',
-                    extra_data={'updated_fields': ['email_configuration']}
-                )
+                # Reload mail configuration without server restart
+                from flask import current_app
+                from src import reload_mail_config
+                success, message = reload_mail_config(current_app._get_current_object())
                 
-                flash('Email settings updated successfully!', 'success')
+                if success:
+                    # Log the settings change
+                    Log.create_log(
+                        log_type=Log.TYPE_USER_ACTION,
+                        action='update_email_settings',
+                        description='Email settings updated and reloaded',
+                        user_id=current_user.id,
+                        status='success',
+                        extra_data={'updated_fields': ['email_configuration']}
+                    )
+                    flash('Email settings updated and reloaded successfully!', 'success')
+                else:
+                    flash(f'Settings saved but reload failed: {message}', 'warning')
             except Exception as e:
                 flash(f'Error updating settings: {str(e)}', 'danger')
             

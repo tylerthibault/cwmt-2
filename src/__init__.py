@@ -73,6 +73,30 @@ def init_mail(app):
         print(f"Warning: Could not load email settings from database: {e}")
         print("Using environment variable configuration for email.")
 
+def reload_mail_config(app):
+    """Reload mail configuration from database without server restart."""
+    try:
+        from src.models.app_settings import AppSettings
+        settings = AppSettings.get_settings()
+        
+        # Check if database settings are complete
+        is_valid, missing_fields = settings.test_mail_config()
+        
+        if is_valid:
+            # Update app config with database settings
+            mail_config = settings.get_mail_config()
+            for key, value in mail_config.items():
+                if value is not None:
+                    app.config[key] = value
+            
+            # Reinitialize mail with updated config
+            mail.init_app(app)
+            return True, "Email configuration reloaded successfully"
+        else:
+            return False, f"Email settings incomplete (missing: {', '.join(missing_fields)})"
+    except Exception as e:
+        return False, f"Failed to reload email config: {str(e)}"
+
 def init_db(app):
     """Initialize the sqlalchemy database connection and create all tables."""
     import os
