@@ -1,0 +1,147 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+    {% include 'private/superusers/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage User Roles</h1>
+        <a href="{{ url_for('superuser.manage_users') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+
+    <!-- User Information Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-person-circle"></i> User Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> {{ user.full_name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>User ID:</strong> {{ user.id }}</p>
+                    <p><strong>Active:</strong> 
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Roles Card -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-shield-check"></i> Current Roles</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_roles %}
+                        <div class="list-group">
+                            {% for role in current_roles %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-shield-fill-check text-success"></i>
+                                    <strong class="text-capitalize">{{ role }}</strong>
+                                </div>
+                                <form method="POST" action="{{ url_for('superuser.remove_user_role', user_id=user.id, role_name=role) }}" 
+                                      onsubmit="return confirm('Are you sure you want to remove the {{ role }} role from this user?');"
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            {% if current_roles|length == 1 %}
+                                            disabled
+                                            title="Cannot remove the last role"
+                                            {% endif %}>
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if current_roles|length == 1 %}
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Cannot remove the last role. Users must have at least one role.
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            This user has no roles assigned.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Roles Card -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Add Roles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for role in available_roles %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if role in current_roles %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span class="text-capitalize text-muted">{{ role }}</span>
+                                    <small class="text-muted">(already assigned)</small>
+                                {% else %}
+                                    <i class="bi bi-circle text-secondary"></i>
+                                    <strong class="text-capitalize">{{ role }}</strong>
+                                {% endif %}
+                            </div>
+                            {% if role not in current_roles %}
+                            <form method="POST" action="{{ url_for('superuser.add_user_role', user_id=user.id, role_name=role) }}" 
+                                  class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-plus-lg"></i> Add
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="infobox infobox-info mt-3">
+                        <strong><i class="bi bi-info-circle"></i> Role Descriptions:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Student:</strong> Can enroll in courses and access student features</li>
+                            <li><strong>Instructor:</strong> Can create and manage course instances</li>
+                            <li><strong>Admin:</strong> Can manage users, courses, and system settings</li>
+                            <li><strong>Superuser:</strong> Full system access including user role management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role History (Future Enhancement) -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle"></i> 
+                Role change history will be available in a future update.
+                Check the logs for detailed user action history.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock inner_content %}

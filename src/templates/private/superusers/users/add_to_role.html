@@ -1,0 +1,106 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+    {% include 'private/superusers/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Add {{ role_name.capitalize() }}</h1>
+        <a href="{{ url_for('superuser.manage_users', focus=role_name) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to {{ role_name.capitalize() }}s
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Select User to Add {{ role_name.capitalize() }} Role</h5>
+                </div>
+                <div class="card-body">
+                    {% if available_users %}
+                    <form method="POST" action="{{ url_for('superuser.add_user_to_role', role_name=role_name) }}">
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">Select User</label>
+                            <select class="form-select" id="user_id" name="user_id" required>
+                                <option value="">-- Choose a user --</option>
+                                {% for user in available_users %}
+                                <option value="{{ user.id }}">
+                                    {{ user.full_name }} ({{ user.email }})
+                                    {% if user.get_roles() %}
+                                        - Current roles: {{ user.get_roles()|join(', ') }}
+                                    {% else %}
+                                        - No roles
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                Select a user who doesn't already have the {{ role_name }} role.
+                            </small>
+                        </div>
+
+                        <div class="infobox infobox-info mb-3">
+                            <strong><i class="bi bi-info-circle"></i> About {{ role_name.capitalize() }} Role:</strong>
+                            <p class="mb-0 mt-2">
+                                {% if role_name == 'student' %}
+                                    Students can enroll in courses, view their schedules, and access student-specific features.
+                                {% elif role_name == 'instructor' %}
+                                    Instructors can create and manage course instances, view enrolled students, and manage course content.
+                                {% elif role_name == 'admin' %}
+                                    Admins can manage users, courses, system settings, and have elevated permissions for administrative tasks.
+                                {% elif role_name == 'superuser' %}
+                                    Superusers have full system access including user role management, system configuration, and all administrative capabilities.
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('superuser.manage_users', focus=role_name) }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Add {{ role_name.capitalize() }} Role
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>No users available.</strong>
+                        <p class="mb-0 mt-2">
+                            All existing users already have the {{ role_name }} role.
+                            {% if role_name == 'student' %}
+                                You can register new users through the registration page to add them as students.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="{{ url_for('superuser.manage_users', focus=role_name) }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to {{ role_name.capitalize() }}s
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Tips</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Users can have multiple roles simultaneously</li>
+                        <li>Adding a role gives the user access to that role's features and permissions</li>
+                        <li>You can always remove roles later from the "Manage Roles" page</li>
+                        <li>All role changes are logged for security and auditing purposes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock inner_content %}

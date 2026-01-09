@@ -6,15 +6,43 @@
 
 {% block inner_content %}
 <div>
-    <h1>Manage Users</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Manage Users</h1>
+        {% if focus != 'all' %}
+        <a href="{{ url_for('superuser.add_user_to_role', role_name=focus) }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add {{ focus.capitalize() }}
+        </a>
+        {% endif %}
+    </div>
 
-    <div>
+    <div class="mb-3">
         <!-- tabs for all the roles: superusers, admin, instructors, students -->
          <ul class="tabs">
-            <li><a href="{{ url_for('superuser.manage_users', focus='superuser') }}">Superusers</a></li>
-            <li><a href="{{ url_for('superuser.manage_users', focus='admin') }}">Admins</a></li>
-            <li><a href="{{ url_for('superuser.manage_users', focus='instructor') }}">Instructors</a></li>
-            <li><a href="{{ url_for('superuser.manage_users', focus='student') }}">Students</a></li>
+            <li>
+                <a href="{{ url_for('superuser.manage_users', focus='all') }}" {% if focus == 'all' %}class="active"{% endif %}>
+                    All Users <span class="badge bg-primary">{{ role_counts.all }}</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('superuser.manage_users', focus='superuser') }}" {% if focus == 'superuser' %}class="active"{% endif %}>
+                    Superusers <span class="badge bg-primary">{{ role_counts.superuser }}</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('superuser.manage_users', focus='admin') }}" {% if focus == 'admin' %}class="active"{% endif %}>
+                    Admins <span class="badge bg-primary">{{ role_counts.admin }}</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('superuser.manage_users', focus='instructor') }}" {% if focus == 'instructor' %}class="active"{% endif %}>
+                    Instructors <span class="badge bg-primary">{{ role_counts.instructor }}</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('superuser.manage_users', focus='student') }}" {% if focus == 'student' %}class="active"{% endif %}>
+                    Students <span class="badge bg-primary">{{ role_counts.student }}</span>
+                </a>
+            </li>
          </ul>
     </div>
 
@@ -26,13 +54,14 @@
                     <th>Last Name</th>
                     <th>Email</th>
                     <th>Roles</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in users %}
                 {% set roles = user.get_roles() %}
                 
-                {% if focus in roles %}
+                {% if focus == 'all' or focus in roles %}
                 <tr>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
@@ -41,6 +70,11 @@
                         {% for role in user.get_roles() %}
                         <span class="badge bg-secondary">{{ role }}</span>
                         {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('superuser.manage_user_roles', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-shield-lock"></i> Manage Roles
+                        </a>
                     </td>
                 </tr>
                 {% endif %}

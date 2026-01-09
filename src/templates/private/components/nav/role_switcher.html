@@ -1,0 +1,40 @@
+<div class="role-switcher">
+    {% set user_roles = current_user.get_roles() %}
+    {% if user_roles|length > 1 %}
+    <div class="role-switcher-card">
+        <div class="role-switcher-body">
+            <div class="role-switcher-header">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Role</span>
+            </div>
+            <form method="POST" id="roleSwitchForm">
+                <select class="form-select" id="roleSelect" name="role" onchange="this.form.submit()">
+                    {% set active_role = session.get('active_role', 'student') %}
+                    {% for role in user_roles %}
+                    <option value="{{ role }}" {% if role == active_role %}selected{% endif %}>
+                        {% if role == 'superuser' %}
+                            🛡️ Superuser
+                        {% elif role == 'admin' %}
+                            ⚙️ Admin
+                        {% elif role == 'instructor' %}
+                            👨‍🏫 Instructor
+                        {% elif role == 'student' %}
+                            📚 Student
+                        {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('roleSelect').addEventListener('change', function() {
+            const selectedRole = this.value;
+            const form = document.getElementById('roleSwitchForm');
+            form.action = "{{ url_for('auth.switch_role', role_name='') }}" + selectedRole;
+            form.submit();
+        });
+    </script>
+    {% endif %}
+</div>

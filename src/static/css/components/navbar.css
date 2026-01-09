@@ -1,0 +1,252 @@
+/* =================================
+   Navigation Sidebar Styles
+   Industrial Theme
+   ================================= */
+
+/* Role Switcher Styles */
+.role-switcher {
+    margin-bottom: 1.5rem;
+}
+
+.role-switcher-card {
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid #1a252f;
+    border-left: 4px solid #e74c3c;
+    border-radius: 2px;
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.role-switcher-card:hover {
+    border-left-color: #c0392b;
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.role-switcher-body {
+    padding: 1rem 0.5rem;
+}
+
+.role-switcher-header {
+    color: #95a5a6;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Courier New', monospace;
+}
+
+.role-switcher-header i {
+    font-size: 0.75rem;
+    color: #e74c3c;
+}
+
+.role-switcher select {
+    background-color: #1a252f;
+    border: 1px solid #445566;
+    border-radius: 2px;
+    color: #ecf0f1;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    transition: all 0.2s ease;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+}
+
+.role-switcher select:focus {
+    background-color: #0f1923;
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+    outline: none;
+}
+
+.role-switcher select option {
+    background-color: #1a252f;
+    color: #ecf0f1;
+    padding: 0.5rem;
+}
+
+/* Sidebar Navigation List Styles */
+.sidenav-list-3ddf343b {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidenav-title-3ddf343b {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #7f8c8d;
+    margin: 1.5rem 0.75rem 0.75rem 0.75rem;
+    padding: 0.5rem 0.5rem 0.5rem 0;
+    border-left: 4px solid #34495e;
+    padding-left: 0.75rem;
+    font-family: 'Courier New', monospace;
+}
+
+.sidenav-btn-3ddf343b {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0.5rem;
+    color: #34495e;
+    text-decoration: none;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    position: relative;
+    background-color: #f8f9fa;
+    font-size: 0.9rem;
+}
+
+.sidenav-btn-3ddf343b::after {
+    content: '›';
+    position: absolute;
+    right: 1rem;
+    opacity: 0;
+    transition: all 0.15s ease;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.sidenav-btn-3ddf343b:hover {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border-left-color: #e74c3c;
+    padding-left: 1.25rem;
+    text-decoration: none;
+}
+
+.sidenav-btn-3ddf343b:hover::after {
+    opacity: 1;
+    right: 0.75rem;
+}
+
+.sidenav-btn-3ddf343b:active {
+    background-color: #dfe4e8;
+}
+
+/* Active/Current Page State */
+.sidenav-btn-3ddf343b.active {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border-left-color: #e74c3c;
+    font-weight: 700;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.sidenav-btn-3ddf343b.active::after {
+    display: none;
+}
+
+/* Student Navbar (Horizontal) Styles */
+.sidenav-b4552cb1 {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+}
+
+.sidenav-b4552cb1 .sidenav-btn-b4552cb1 {
+    padding: 0.5rem 1rem;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.sidenav-b4552cb1 .sidenav-btn-b4552cb1:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.sidenav-b4552cb1 .sidenav-btn-b4552cb1.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .role-switcher {
+        padding: 0.5rem;
+    }
+    
+    .sidenav-btn-3ddf343b {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Student View Role Switcher - Compact Inline Style */
+.student-role-switcher .role-switcher {
+    margin-bottom: 0;
+}
+
+.student-role-switcher .role-switcher-card {
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid #1a252f;
+    border-left: 3px solid #e74c3c;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.student-role-switcher .role-switcher-card:hover {
+    border-left-color: #c0392b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.student-role-switcher .role-switcher-body {
+    padding: 0.5rem 0.75rem;
+}
+
+.student-role-switcher .role-switcher-header {
+    color: #95a5a6;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'Courier New', monospace;
+}
+
+.student-role-switcher .role-switcher-header i {
+    font-size: 0.65rem;
+    color: #e74c3c;
+}
+
+.student-role-switcher .role-switcher select {
+    background-color: #1a252f;
+    border: 1px solid #445566;
+    border-radius: 2px;
+    color: #ecf0f1;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    transition: all 0.2s ease;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    min-width: 150px;
+}
+
+.student-role-switcher .role-switcher select:focus {
+    background-color: #0f1923;
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+    outline: none;
+}

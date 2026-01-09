@@ -30,12 +30,77 @@ def dashboard():
         return redirect(url_for('auth.loginReg'))
 
     user = doorman.user
-
+    
+    # Check if user has selected an active role
+    active_role = session.get('active_role')
+    
+    # If active role is set and user has that role, redirect to that dashboard
+    if active_role:
+        if active_role == 'superuser' and user.is_superuser:
+            return redirect(url_for('superuser.dashboard'))
+        elif active_role == 'admin' and user.is_admin:
+            return redirect(url_for('admin.dashboard'))
+        elif active_role == 'instructor' and user.is_instructor:
+            return redirect(url_for('instructor.dashboard'))
+        elif active_role == 'student' and user.is_student:
+            return redirect(url_for('student.dashboard'))
+    
+    # Default role priority if no active role is set
     if user.is_superuser:
+        session['active_role'] = 'superuser'
         return redirect(url_for('superuser.dashboard'))
     elif user.is_admin:
+        session['active_role'] = 'admin'
         return redirect(url_for('admin.dashboard'))
     elif user.is_instructor:
+        session['active_role'] = 'instructor'
+        return redirect(url_for('instructor.dashboard'))
+    else:
+        session['active_role'] = 'student'
+        return redirect(url_for('student.dashboard'))
+
+@auth_bp.route('/switch-role/<role_name>', methods=['POST'])
+@login_required
+def switch_role(role_name):
+    """Switch active role for users with multiple roles."""
+    doorman = Doorman.get_by_token(session['doorman_token'])
+    if not doorman:
+        return redirect(url_for('auth.loginReg'))
+    
+    user = doorman.user
+    valid_roles = ['student', 'instructor', 'admin', 'superuser']
+    
+    # Validate role
+    if role_name not in valid_roles:
+        flash('Invalid role', 'danger')
+        return redirect(url_for('auth.dashboard'))
+    
+    # Check if user has this role
+    if not user.has_role_by_name(role_name):
+        flash('You do not have access to this role', 'danger')
+        return redirect(url_for('auth.dashboard'))
+    
+    # Set active role in session
+    session['active_role'] = role_name
+    
+    # Log the role switch
+    Log.create_log(
+        log_type=Log.TYPE_USER_ACTION,
+        action='switch_role',
+        description=f'Switched to {role_name} role',
+        user_id=user.id,
+        status='success',
+        extra_data={'new_role': role_name}
+    )
+    
+    flash(f'Switched to {role_name.capitalize()} role', 'success')
+    
+    # Redirect to appropriate dashboard
+    if role_name == 'superuser':
+        return redirect(url_for('superuser.dashboard'))
+    elif role_name == 'admin':
+        return redirect(url_for('admin.dashboard'))
+    elif role_name == 'instructor':
         return redirect(url_for('instructor.dashboard'))
     else:
         return redirect(url_for('student.dashboard'))
@@ -67,14 +132,18 @@ def login():
             extra_data={'ip_address': request.remote_addr, 'user_agent': request.headers.get('User-Agent')}
         )
 
-        # check to see if user is superuser, admin, instructor, or student and redirect accordingly
+        # Set initial active role based on highest priority
         if user.is_superuser:
+            session['active_role'] = 'superuser'
             return redirect(url_for('superuser.dashboard'))
         elif user.is_admin:
+            session['active_role'] = 'admin'
             return redirect(url_for('admin.dashboard'))
         elif user.is_instructor:
+            session['active_role'] = 'instructor'
             return redirect(url_for('instructor.dashboard'))
         else:
+            session['active_role'] = 'student'
             return redirect(url_for('student.dashboard'))
 
     flash('Invalid email or password.', 'danger')
