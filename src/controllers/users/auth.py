@@ -192,16 +192,29 @@ def register():
         extra_data={'email': new_user.email, 'ip_address': request.remote_addr}
     )
     
-    # Need to send an email with temporary password and verification link here
+    # Try to send welcome email with temporary password
     from src.services.flask_mail.email_service import send_email
-    send_email(
-        purpose='new_user',
-        to_address=new_user.email,
-        first_name=new_user.first_name,
-        last_name=new_user.last_name,
-        temp_password=password_generation,
-        login_link=url_for('auth.loginReg', _external=True),
-    )
+    try:
+        send_email(
+            purpose='new_user',
+            to_address=new_user.email,
+            first_name=new_user.first_name,
+            last_name=new_user.last_name,
+            temp_password=password_generation,
+            login_link=url_for('auth.loginReg', _external=True),
+        )
+    except RuntimeError as e:
+        # Log the email failure but don't block registration
+        Log.create_log(
+            log_type=Log.TYPE_SYSTEM_ERROR,
+            action='email_failed',
+            description=f'Failed to send welcome email to {new_user.email}',
+            user_id=new_user.id,
+            status='error',
+            extra_data={'error': str(e), 'email': new_user.email}
+        )
+        # Show user a warning but let them proceed
+        flash(f'Account created! However, we couldn\'t send the welcome email. Your temporary password is: {password_generation}', 'warning')
 
 
     doorman_session = Doorman.create(user_id=new_user.id, ip_address=request.remote_addr,

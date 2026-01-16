@@ -1,15 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Recursive:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
 @import url(components/tabs.css);
 @import url(components/info_box.css);
 @import url(components/animations.css);
 @import url(components/navbar.css);
 @import url(components/dashboard.css);
+@import url(components/sticky-stack.css);
 @import url(pages/landing.css);
 @import url(components/animations.css);
+@import url(bootstrap-overide.css);
 
 :root {
+    /* fonts */
+    --font-heading: 'Syne', sans-serif;
+    --font-body: 'Recursive', sans-serif;
+    --font-accent: 'JetBrains Mono', monospace;
+    
     /* background */
-    --primary-color: #0d6efd;
-    --primary-color-alt: #0b5ed7;
+    --primary-color: #780918;
+    --primary-color-alt: #333;
     --secondary-color: #6c757d;
     --secondary-color-alt: #5c636a;
     --tertiary-color: #adb5bd;
@@ -33,9 +42,35 @@
     --text-muted-color: #6c757d;
     --text-inverse-color: #ffffff;
     --text-inverse-muted-color: #ced4da;
-    --link-color: #0d6efd;
-    --link-hover-color: #0a58ca;
+    --link-color: #780918;
+    --link-hover-color: #5c0712;
 }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: var(--text-color);
+}
+
+/* size for headings */
+.h1, h1 {
+    font-size: 2.5rem;
+}
+.h2, h2 {
+    font-size: 2rem;
+}
+.h3, h3 {
+    font-size: 1.75rem;
+}
+.h4, h4 {
+    font-size: 1.5rem;
+}
+
+/* size for normal text */
+p, .lead, .text-muted {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
 
 /* =================================
    Global Utility Classes
@@ -66,4 +101,41 @@
 .bg-hexagon-pattern > * {
     position: relative;
     z-index: 1;
+}
+
+/* =================================
+   Typography
+   ================================= */
+
+body {
+    font-family: var(--font-body);
+    font-weight: 300;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: var(--font-heading);
+}
+
+.badge,
+.btn,
+code,
+pre,
+.monospace,
+.accent-text {
+    font-family: var(--font-accent);
+}
+
+p, .lead, .text-muted {
+    font-family: var(--font-body);
+    font-weight: 300;
+}
+
+strong, b, .fw-bold {
+    font-weight: 600;
 }

@@ -408,6 +408,46 @@ def settings():
     }
     return render_template('private/superusers/settings/index.html', **context)
 
+@superuser_bp.route('/check-email-config', methods=['GET'])
+@login_required
+@role_required('superuser')
+def check_email_config():
+    """Diagnostic endpoint to check email configuration status."""
+    from src.models.app_settings import AppSettings
+    from flask import current_app, jsonify
+    
+    settings_obj = AppSettings.get_settings()
+    is_valid, missing_fields = settings_obj.test_mail_config()
+    
+    # Get current Flask config
+    flask_config = {
+        'MAIL_SERVER': current_app.config.get('MAIL_SERVER'),
+        'MAIL_PORT': current_app.config.get('MAIL_PORT'),
+        'MAIL_USE_TLS': current_app.config.get('MAIL_USE_TLS'),
+        'MAIL_USE_SSL': current_app.config.get('MAIL_USE_SSL'),
+        'MAIL_USERNAME': current_app.config.get('MAIL_USERNAME'),
+        'MAIL_DEFAULT_SENDER': current_app.config.get('MAIL_DEFAULT_SENDER'),
+        'MAIL_PASSWORD_SET': bool(current_app.config.get('MAIL_PASSWORD'))
+    }
+    
+    # Get database settings
+    db_config = {
+        'mail_server': settings_obj.mail_server,
+        'mail_port': settings_obj.mail_port,
+        'mail_use_tls': settings_obj.mail_use_tls,
+        'mail_use_ssl': settings_obj.mail_use_ssl,
+        'mail_username': settings_obj.mail_username,
+        'mail_default_sender': settings_obj.mail_default_sender,
+        'mail_password_set': bool(settings_obj.mail_password_hash)
+    }
+    
+    return jsonify({
+        'is_valid': is_valid,
+        'missing_fields': missing_fields,
+        'flask_config': flask_config,
+        'database_config': db_config
+    })
+
 # ------------------------------------------------------
 # --------------------- API ROUTES ---------------------
 # ------------------------------------------------------
