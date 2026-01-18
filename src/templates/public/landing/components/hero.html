@@ -1,365 +1,288 @@
-<!-- Hero Version 2: Split Screen Design with Scroll Transform -->
-<section class="hero-v2" id="heroSection">
-    <div class="container-fluid p-0">
-        <div class="row g-0 align-items-center">
-            <!-- Full-screen video overlay (initial state) -->
-            <div class="hero-fullscreen-overlay" id="heroOverlay">
-                <video class="hero-video-bg" autoplay muted loop playsinline>
+<!-- Hero Section - Mobile First Design -->
+<section class="hero-section">
+    <div class="hero-container">
+        <!-- Mobile & Tablet Layout (Default) -->
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge bg-primary">Certified Training</span>
+            </div>
+            
+            <h1 class="hero-main-title">
+                Central Washington<br>
+                Motorcycle Training
+            </h1>
+            
+            <h2 class="hero-tagline">
+                Ride with <span class="text-primary">Confidence</span>
+            </h2>
+            
+            <p class="hero-description">
+                Professional motorcycle training courses designed for riders of all experience levels. 
+                From beginners to advanced, we'll help you become a safer, more skilled rider.
+            </p>
+            
+            <div class="hero-actions">
+                <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary btn-lg">
+                    Signup Now
+                </a>
+                <a href="{{ url_for('main.public_courses') }}" class="btn btn-outline-dark btn-lg">
+                    View Courses
+                </a>
+            </div>
+        </div>
+        
+        <!-- Video Section -->
+        <div class="hero-media">
+            <div class="hero-video-wrapper">
+                <video class="hero-video" autoplay muted loop playsinline>
                     <source src="{{ url_for('static', filename='vid/cwmt.mp4') }}" type="video/mp4">
                 </video>
-                <div class="hero-overlay-content">
-                    <h1 class="hero-overlay-title">
-                        Central Washington<br>
-                        Motorcycle Training
-                    </h1>
-                    <div class="hero-stats-bar">
-                        <div class="hero-stat">
-                            <div class="stat-value">1,000</div>
-                            <div class="stat-label">STUDENTS TRAINED</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="stat-value">98%</div>
-                            <div class="stat-label">SUCCESS RATE</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="stat-value">4.9/5</div>
-                            <div class="stat-label">AVERAGE RATING</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="stat-value">15+</div>
-                            <div class="stat-label">YEARS EXPERIENCE</div>
-                        </div>
-                    </div>
-                </div>
             </div>
-
-            <!-- Split layout (scrolled state) -->
-            <div class="col-lg-6 hero-text-section" id="heroTextSection">
-                <div class="hero-text-content">
-                    <span class="badge bg-primary mb-3">Certified Training</span>
-                    <h1 class="hero-title">
-                        Central Washington<br>
-                        Motorcycle Training
-                    </h1>
-                    <h2 class="hero-subtitle">
-                        Ride with<br>
-                        <span class="text-primary">Confidence</span>
-                    </h2>
-                    <p class="lead text-muted mb-3 mb-md-4">
-                        Professional motorcycle training courses designed for riders of all experience levels. 
-                        From beginners to advanced, we'll help you become a safer, more skilled rider.
-                    </p>
-                    <div class="d-flex flex-column flex-sm-row gap-3 mb-4 mb-md-5">
-                        <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary btn-lg">
-                            Signup Now
-                        </a>
-                        <a href="{{ url_for('main.public_courses') }}" class="btn btn-outline-dark btn-lg">
-                            View Courses
-                        </a>
-                    </div>
-                    <!-- Stats in split layout -->
-                    <div class="hero-stats-split">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="split-stat">
-                                    <div class="split-stat-value">1,000</div>
-                                    <div class="split-stat-label">STUDENTS TRAINED</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="split-stat">
-                                    <div class="split-stat-value">15+</div>
-                                    <div class="split-stat-label">YEARS EXPERIENCE</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="split-stat">
-                                    <div class="split-stat-value">98%</div>
-                                    <div class="split-stat-label">SUCCESS RATE</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="split-stat">
-                                    <div class="split-stat-value">4.9/5</div>
-                                    <div class="split-stat-label">AVERAGE RATING</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-value">1,000</div>
+                <div class="stat-label">Students Trained</div>
             </div>
-            <div class="col-lg-6 hero-image-section" id="heroImageSection">
-                <div class="hero-video-card">
-                    <video class="hero-video-split" autoplay muted loop playsinline>
-                        <source src="{{ url_for('static', filename='vid/cwmt.mp4') }}" type="video/mp4">
-                    </video>
-                </div>
+            <div class="stat-item">
+                <div class="stat-value">15+</div>
+                <div class="stat-label">Years Experience</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">4.9/5</div>
+                <div class="stat-label">Average Rating</div>
             </div>
         </div>
     </div>
 </section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const heroSection = document.getElementById('heroSection');
-    const heroOverlay = document.getElementById('heroOverlay');
-    const heroTextSection = document.getElementById('heroTextSection');
-    const heroImageSection = document.getElementById('heroImageSection');
-    
-    let ticking = false;
-    const heroHeight = heroSection.offsetHeight;
-    
-    function updateHeroTransform() {
-        const scrollY = window.scrollY;
-        const heroBottom = heroSection.offsetTop + heroHeight;
-        
-        // Only animate while within hero section
-        if (scrollY > heroBottom) {
-            return;
-        }
-        
-        // Calculate progress through the hero section (0 to 1)
-        const progress = Math.min(Math.max(scrollY / heroHeight, 0), 1);
-        
-        // Phase 1: Fade out overlay (0% - 40% of scroll)
-        const phase1Progress = Math.min(progress / 0.4, 1);
-        
-        // Phase 2: Slide in split layout (30% - 70% of scroll)
-        const phase2Start = 0.3;
-        const phase2End = 0.7;
-        const phase2Progress = Math.min(Math.max((progress - phase2Start) / (phase2End - phase2Start), 0), 1);
-        
-        // Phase 3: Final adjustments (70% - 100% of scroll)
-        const phase3Progress = Math.min(Math.max((progress - 0.7) / 0.3, 0), 1);
-        
-        // Update overlay
-        heroOverlay.style.opacity = String(1 - phase1Progress);
-        heroOverlay.style.pointerEvents = phase1Progress > 0.5 ? 'none' : 'all';
-        
-        // Update split sections
-        heroTextSection.style.opacity = String(phase2Progress);
-        heroImageSection.style.opacity = String(phase2Progress);
-        
-        // Slide animation - start from off-screen
-        const slideDistance = 100;
-        heroTextSection.style.transform = `translateX(${-slideDistance + (slideDistance * phase2Progress)}px)`;
-        heroImageSection.style.transform = `translateX(${slideDistance - (slideDistance * phase2Progress)}px)`;
-        
-        // Scale video card as it appears
-        const scale = 0.8 + (0.2 * phase2Progress);
-        const videoCard = heroImageSection.querySelector('.hero-video-card');
-        if (videoCard) {
-            videoCard.style.transform = `scale(${scale})`;
-        }
-        
-        ticking = false;
-    }
-    
-    function requestTick() {
-        if (!ticking) {
-            window.requestAnimationFrame(updateHeroTransform);
-            ticking = true;
-        }
-    }
-    
-    window.addEventListener('scroll', requestTick);
-    window.addEventListener('resize', requestTick);
-    updateHeroTransform(); // Initial call
-});
-</script>
-
 <style>
-.hero-v2 {
-    position: relative;
-    height: 350vh;
-}
+/* ===================================
+   Hero Section - Mobile First
+   =================================== */
 
-/* Fullscreen overlay styles */
-.hero-fullscreen-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+/* Base Mobile Styles (320px+) */
+.hero-section {
     width: 100%;
-    height: 100vh;
-    z-index: 10;
-}
-
-.hero-video-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: brightness(0.7);
-}
-
-.hero-overlay-content {
-    position: relative;
-    z-index: 11;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    padding: 2rem;
-}
-
-.hero-overlay-title {
-    font-size: clamp(2rem, 5vw, 4rem);
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 3rem;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.02em;
-    color: #a93226;
-}
-
-.hero-stats-bar {
-    display: flex;
-    gap: 3rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: absolute;
-    bottom: 3rem;
-    left: 0;
-    right: 0;
-}
-
-.hero-stat {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: 900;
-    font-family: 'Courier New', monospace;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    opacity: 0.9;
-    font-family: 'Courier New', monospace;
-}
-
-/* Split layout styles */
-.hero-text-section,
-.hero-image-section {
-    position: fixed;
-    top: 0;
-    height: 100vh;
+    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 2rem 1rem;
+    min-height: 100vh;
     display: flex;
     align-items: center;
 }
 
-.hero-text-section {
-    left: 0;
-    width: 50%;
-    background: linear-gradient(180deg, #ecf0f1 0%, #f8f9fa 100%);
-    padding: 3rem 1.5rem;
-}
-
-.hero-image-section {
-    right: 0;
-    width: 50%;
-    background: #2c3e50;
-    padding: 2rem;
-}
-
-.hero-text-content {
-    max-width: 600px;
+.hero-container {
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
-.hero-title {
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
-    font-weight: 900;
-    font-family: 'Courier New', monospace;
+/* Content */
+.hero-content {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-badge {
+    margin-bottom: 1.5rem;
+}
+
+.hero-main-title {
+    font-size: clamp(2rem, 8vw, 3rem);
+    font-weight: 800;
     color: #a93226;
     margin-bottom: 1rem;
     line-height: 1.2;
 }
 
-.hero-subtitle {
-    font-size: clamp(1.5rem, 2.5vw, 2rem);
+.hero-tagline {
+    font-size: clamp(1.5rem, 5vw, 2rem);
     font-weight: 700;
-    font-family: 'Courier New', monospace;
     margin-bottom: 1.5rem;
-}
-
-.hero-stats-split {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 2px solid #34495e;
-}
-
-.split-stat {
-    text-align: center;
-    padding: 1rem;
-}
-
-.split-stat-value {
-    font-size: 1.75rem;
-    font-weight: 900;
-    font-family: 'Courier New', monospace;
     color: #2c3e50;
 }
 
-.split-stat-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #7f8c8d;
-    font-family: 'Courier New', monospace;
-    margin-top: 0.25rem;
-}
-
-.hero-video-card {
-    width: 100%;
+.hero-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #6c757d;
+    margin-bottom: 2rem;
     max-width: 600px;
-    margin: 0 auto;
-    border-radius: var(--border-radius-xl);
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.hero-video-split {
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.hero-actions .btn {
     width: 100%;
-    height: auto;
-    display: block;
 }
 
-@media (max-width: 991px) {
-    .hero-v2 {
-        height: auto;
+/* Video */
+.hero-media {
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-video-wrapper {
+    width: 100%;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    aspect-ratio: 16 / 9;
+    position: relative;
+}
+
+.hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+}
+
+/* Stats */
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 2rem 0;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #7f8c8d;
+}
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+    .hero-section {
+        padding: 3rem 2rem;
     }
     
-    .hero-fullscreen-overlay {
-        position: relative;
+    .hero-actions {
+        flex-direction: row;
+        justify-content: center;
     }
     
-    .hero-stats-bar {
-        position: relative;
-        bottom: auto;
-        margin-top: 3rem;
+    .hero-actions .btn {
+        width: auto;
+        min-width: 180px;
     }
     
-    .hero-text-section,
-    .hero-image-section {
-        position: relative;
-        width: 100%;
-        min-height: auto;
-        opacity: 1 !important;
-        transform: none !important;
+    .hero-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
     }
     
-    .hero-image-section {
-        padding: 2rem 1rem;
+    .stat-value {
+        font-size: 2.5rem;
+    }
+}
+
+/* Desktop (992px+) - Split Layout */
+@media (min-width: 992px) {
+    .hero-section {
+        padding: 4rem 3rem;
+        min-height: 100vh;
+    }
+    
+    .hero-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 3rem;
+        align-items: center;
+    }
+    
+    .hero-content {
+        grid-column: 1;
+        grid-row: 1;
+        text-align: left;
+        margin-bottom: 0;
+    }
+    
+    .hero-description {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .hero-actions {
+        justify-content: flex-start;
+    }
+    
+    .hero-media {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        margin-bottom: 0;
+    }
+    
+    .hero-video-wrapper {
+        aspect-ratio: 4 / 5;
+        max-height: 600px;
+    }
+    
+    .hero-stats {
+        grid-column: 1;
+        grid-row: 2;
+        grid-template-columns: repeat(2, 1fr);
+        padding-top: 3rem;
+        border-top: 2px solid #e9ecef;
+    }
+}
+
+/* Large Desktop (1200px+) */
+@media (min-width: 1200px) {
+    .hero-section {
+        padding: 5rem 4rem;
+    }
+    
+    .hero-main-title {
+        font-size: 3.5rem;
+    }
+    
+    .hero-tagline {
+        font-size: 2.5rem;
+    }
+    
+    .hero-description {
+        font-size: 1.125rem;
     }
 }
 </style>

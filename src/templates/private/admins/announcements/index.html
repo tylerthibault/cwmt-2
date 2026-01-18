@@ -23,22 +23,22 @@
     <!-- Status Filter Tabs -->
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='active') }}">
+            <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='active') }}">
                 Active <span class="badge bg-success">{{ active_count }}</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='inactive') }}">
+            <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='inactive') }}">
                 Inactive <span class="badge bg-secondary">{{ inactive_count }}</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='deleted') }}">
+            <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='deleted') }}">
                 Deleted <span class="badge bg-danger">{{ deleted_count }}</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('announcement.admin_list', status='all') }}">
+            <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='all') }}">
                 All
             </a>
         </li>
@@ -221,7 +221,7 @@ async function createAnnouncement() {
     alertDiv.innerHTML = '';
     
     try {
-        const response = await fetch('{{ url_for("announcement.admin_create") }}', {
+        const response = await fetch('{{ url_for("announcements.admin_create") }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: message })

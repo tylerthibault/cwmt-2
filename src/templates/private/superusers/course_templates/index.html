@@ -7,11 +7,77 @@
 {% block inner_content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components/tabs.css') }}">
 
-<div>
-    <h1>Course Templates</h1>
+<style>
+    @media (max-width: 992px) {
+        .course-layout {
+            flex-direction: column;
+        }
+        
+        .course-list-col {
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        
+        .course-detail-col {
+            width: 100%;
+        }
+        
+        .list-group {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .card-header h3 {
+            font-size: 1.25rem;
+        }
+        
+        .tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab-link {
+            white-space: nowrap;
+            font-size: 0.875rem;
+        }
+        
+        .list-group-item {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+        }
+        
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+    
+    .course-layout {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .course-list-col {
+        flex: 0 0 33.333333%;
+    }
+    
+    .course-detail-col {
+        flex: 1;
+    }
+</style>
 
-    <div class="row">
-        <div class="col-4">
+<div>
+    <h1 class="mb-3">Course Templates</h1>
+
+    <div class="course-layout">
+        <div class="course-list-col">
             <!-- show all course templates -->
             <div class="list-group" id="courseTemplateList">
                 {% for template in course_templates %}
@@ -31,7 +97,7 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-8">
+        <div class="course-detail-col">
             <!-- Tabs -->
             <ul class="tabs">
                 <li><a href="#" class="tab-link active" data-tab="details">Details</a></li>

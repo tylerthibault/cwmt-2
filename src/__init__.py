@@ -172,6 +172,14 @@ def init_blueprints(app):
     from src.controllers.announcements import announcements_bp
     app.register_blueprint(announcements_bp)
     
+    # Payment management
+    from src.controllers.payments.payment_management import payments_bp
+    app.register_blueprint(payments_bp)
+    
+    # Enrollment management
+    from src.controllers.enrollment_management import enrollments_bp
+    app.register_blueprint(enrollments_bp)
+    
     # Stripe payments
     from src.controllers.payments.stripe_payments import stripe_payments_bp
     app.register_blueprint(stripe_payments_bp)

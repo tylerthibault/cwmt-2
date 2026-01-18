@@ -1,46 +1,46 @@
-from flask import Blueprint, render_template, redirect, url_for, request, session, flash, jsonify
-from datetime import datetime
+from flask import Blueprint, render_template, request, session, jsonify
 from src.models.announcements import Announcement
 from src.models.doorman import Doorman
-from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
+from src.services import announcement_service
 
-# Create blueprint
-announcements_bp = Blueprint('announcement', __name__, url_prefix='/announcements')
+announcements_bp = Blueprint('announcements', __name__, url_prefix='/announcements')
+
+
+def _get_current_user():
+    """Get current user from session."""
+    return Doorman.get_by_token(session['doorman_token']).user
+
+
+def _success_response(message, data=None, status=200):
+    """Create success JSON response."""
+    response = {'success': True, 'message': message}
+    if data:
+        response.update(data)
+    return jsonify(response), status
+
+
+def _error_response(message, status=500):
+    """Create error JSON response."""
+    return jsonify({'error': message}), status
 
 
 # =============== ADMIN ROUTES ===============
 
-@announcements_bp.route('/')
+@announcements_bp.route('/admin')
 @login_required
 @role_required('admin')
 def admin_list():
     """List all announcements for admin management."""
     status_filter = request.args.get('status', 'active')
+    announcements = announcement_service.get_announcements_by_status(status_filter)
+    counts = announcement_service.get_announcement_counts()
     
-    if status_filter == 'active':
-        announcements = Announcement.query.filter_by(is_active=True, deleted_at=None).order_by(Announcement.created_at.desc()).all()
-    elif status_filter == 'inactive':
-        announcements = Announcement.query.filter_by(is_active=False, deleted_at=None).order_by(Announcement.created_at.desc()).all()
-    elif status_filter == 'deleted':
-        announcements = Announcement.query.filter(Announcement.deleted_at.isnot(None)).order_by(Announcement.deleted_at.desc()).all()
-    else:  # all
-        announcements = Announcement.query.order_by(Announcement.created_at.desc()).all()
-    
-    # Count by status
-    active_count = Announcement.query.filter_by(is_active=True, deleted_at=None).count()
-    inactive_count = Announcement.query.filter_by(is_active=False, deleted_at=None).count()
-    deleted_count = Announcement.query.filter(Announcement.deleted_at.isnot(None)).count()
-    
-    context = {
-        'current_user': Doorman.get_by_token(session['doorman_token']).user,
-        'announcements': announcements,
-        'status_filter': status_filter,
-        'active_count': active_count,
-        'inactive_count': inactive_count,
-        'deleted_count': deleted_count
-    }
-    return render_template('private/admins/announcements/index.html', **context)
+    return render_template('private/admins/announcements/index.html',
+                         current_user=_get_current_user(),
+                         announcements=announcements,
+                         status_filter=status_filter,
+                         **counts)
 
 
 @announcements_bp.route('/admin/create', methods=['POST'])
@@ -49,46 +49,15 @@ def admin_list():
 def admin_create():
     """Create a new announcement."""
     try:
-        data = request.get_json()
-        message = data.get('message', '').strip()
-        
+        message = request.get_json().get('message', '').strip()
         if not message:
-            return jsonify({'error': 'Message is required'}), 400
+            return _error_response('Message is required', 400)
         
-        # Get current user
-        current_user = Doorman.get_by_token(session['doorman_token']).user
-        
-        # Create announcement
-        announcement = Announcement(
-            message=message,
-            created_by_user_id=current_user.id,
-            is_active=True
-        )
-        announcement.save()
-        
-        # Log the creation
-        Log.create_log(
-            log_type=Log.TYPE_USER_ACTION,
-            action='create_announcement',
-            description=f'Announcement created: {message[:50]}...' if len(message) > 50 else f'Announcement created: {message}',
-            user_id=current_user.id,
-            target_type='announcement',
-            target_id=announcement.id,
-            status='success',
-            extra_data={
-                'message': message,
-                'is_active': True
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Announcement created successfully',
-            'announcement_id': announcement.id
-        }), 201
-        
+        announcement = announcement_service.create_announcement(message, _get_current_user().id)
+        return _success_response('Announcement created successfully', 
+                               {'announcement_id': announcement.id}, 201)
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return _error_response(f'An error occurred: {str(e)}')
 
 
 @announcements_bp.route('/admin/update/<int:announcement_id>', methods=['POST'])
@@ -99,43 +68,16 @@ def admin_update(announcement_id):
     try:
         announcement = Announcement.query.get(announcement_id)
         if not announcement:
-            return jsonify({'error': 'Announcement not found'}), 404
+            return _error_response('Announcement not found', 404)
         
-        data = request.get_json()
-        message = data.get('message', '').strip()
-        
+        message = request.get_json().get('message', '').strip()
         if not message:
-            return jsonify({'error': 'Message is required'}), 400
+            return _error_response('Message is required', 400)
         
-        # Get current user
-        current_user = Doorman.get_by_token(session['doorman_token']).user
-        
-        old_message = announcement.message
-        announcement.message = message
-        announcement.save()
-        
-        # Log the update
-        Log.create_log(
-            log_type=Log.TYPE_USER_ACTION,
-            action='update_announcement',
-            description=f'Announcement #{announcement_id} updated',
-            user_id=current_user.id,
-            target_type='announcement',
-            target_id=announcement.id,
-            status='success',
-            extra_data={
-                'old_message': old_message,
-                'new_message': message
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Announcement updated successfully'
-        }), 200
-        
+        announcement_service.update_announcement(announcement, message, _get_current_user().id)
+        return _success_response('Announcement updated successfully')
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return _error_response(f'An error occurred: {str(e)}')
 
 
 @announcements_bp.route('/admin/delete/<int:announcement_id>', methods=['POST'])
@@ -146,34 +88,12 @@ def admin_delete(announcement_id):
     try:
         announcement = Announcement.query.get(announcement_id)
         if not announcement:
-            return jsonify({'error': 'Announcement not found'}), 404
+            return _error_response('Announcement not found', 404)
         
-        # Get current user
-        current_user = Doorman.get_by_token(session['doorman_token']).user
-        
-        announcement.soft_delete()
-        
-        # Log the deletion
-        Log.create_log(
-            log_type=Log.TYPE_USER_ACTION,
-            action='delete_announcement',
-            description=f'Announcement #{announcement_id} deleted',
-            user_id=current_user.id,
-            target_type='announcement',
-            target_id=announcement.id,
-            status='success',
-            extra_data={
-                'message': announcement.message
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Announcement deleted successfully'
-        }), 200
-        
+        announcement_service.delete_announcement(announcement, _get_current_user().id)
+        return _success_response('Announcement deleted successfully')
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return _error_response(f'An error occurred: {str(e)}')
 
 
 @announcements_bp.route('/admin/restore/<int:announcement_id>', methods=['POST'])
@@ -184,34 +104,12 @@ def admin_restore(announcement_id):
     try:
         announcement = Announcement.query.get(announcement_id)
         if not announcement:
-            return jsonify({'error': 'Announcement not found'}), 404
+            return _error_response('Announcement not found', 404)
         
-        # Get current user
-        current_user = Doorman.get_by_token(session['doorman_token']).user
-        
-        announcement.restore()
-        
-        # Log the restoration
-        Log.create_log(
-            log_type=Log.TYPE_USER_ACTION,
-            action='restore_announcement',
-            description=f'Announcement #{announcement_id} restored',
-            user_id=current_user.id,
-            target_type='announcement',
-            target_id=announcement.id,
-            status='success',
-            extra_data={
-                'message': announcement.message
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Announcement restored successfully'
-        }), 200
-        
+        announcement_service.restore_announcement(announcement, _get_current_user().id)
+        return _success_response('Announcement restored successfully')
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return _error_response(f'An error occurred: {str(e)}')
 
 
 @announcements_bp.route('/admin/toggle-status/<int:announcement_id>', methods=['POST'])
@@ -222,47 +120,19 @@ def admin_toggle_status(announcement_id):
     try:
         announcement = Announcement.query.get(announcement_id)
         if not announcement:
-            return jsonify({'error': 'Announcement not found'}), 404
+            return _error_response('Announcement not found', 404)
         
-        # Get current user
-        current_user = Doorman.get_by_token(session['doorman_token']).user
-        
-        # Toggle status
-        if announcement.is_active:
-            announcement.deactivate()
-            action = 'deactivate'
-            status_text = 'deactivated'
-        else:
-            announcement.activate()
-            action = 'activate'
-            status_text = 'activated'
-        
-        # Log the status change
-        Log.create_log(
-            log_type=Log.TYPE_USER_ACTION,
-            action=f'{action}_announcement',
-            description=f'Announcement #{announcement_id} {status_text}',
-            user_id=current_user.id,
-            target_type='announcement',
-            target_id=announcement.id,
-            status='success',
-            extra_data={
-                'message': announcement.message,
-                'new_status': announcement.is_active
-            }
+        status_text, is_active = announcement_service.toggle_announcement_status(
+            announcement, _get_current_user().id
         )
         
-        return jsonify({
-            'success': True,
-            'message': f'Announcement {status_text} successfully',
-            'is_active': announcement.is_active
-        }), 200
-        
+        return _success_response(f'Announcement {status_text} successfully', 
+                               {'is_active': is_active})
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return _error_response(f'An error occurred: {str(e)}')
 
 
-# =============== PUBLIC ROUTES (for all authenticated users) ===============
+# =============== PUBLIC ROUTES ===============
 
 @announcements_bp.route('/')
 @login_required
@@ -270,11 +140,9 @@ def list_announcements():
     """List active announcements for all users."""
     announcements = Announcement.get_active_announcements()
     
-    context = {
-        'current_user': Doorman.get_by_token(session['doorman_token']).user,
-        'announcements': announcements
-    }
-    return render_template('private/components/announcements/list.html', **context)
+    return render_template('private/components/announcements/list.html',
+                         current_user=_get_current_user(),
+                         announcements=announcements)
 
 
 @announcements_bp.route('/recent')
@@ -283,13 +151,6 @@ def recent_announcements():
     """Get recent announcements (for dashboard widgets, etc.)."""
     limit = request.args.get('limit', 5, type=int)
     announcements = Announcement.get_recent_announcements(limit=limit)
+    formatted = announcement_service.format_announcements_for_json(announcements)
     
-    return jsonify({
-        'success': True,
-        'announcements': [{
-            'id': a.id,
-            'message': a.message,
-            'created_at': a.created_at.isoformat(),
-            'created_by': f"{a.created_by.first_name} {a.created_by.last_name}" if a.created_by else 'Unknown'
-        } for a in announcements]
-    }), 200
+    return _success_response('Announcements retrieved', {'announcements': formatted})

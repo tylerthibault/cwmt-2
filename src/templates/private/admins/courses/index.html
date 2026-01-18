@@ -9,8 +9,14 @@
     <h1>Manage Courses</h1>
 
     <div>
-        {% set role = 'admin' %}
-        {% include 'private/components/calendar.html' %}
+        <!-- Desktop/Tablet: Use full calendar, Mobile: Use admin mobile calendar -->
+        <div class="d-none d-lg-block">
+            {% include 'private/components/calendar.html' %}
+        </div>
+        
+        <div class="d-lg-none">
+            {% include 'private/admins/components/mobile_calendar_admin.html' %}
+        </div>
     </div>
 </div>
 {% endblock inner_content %}

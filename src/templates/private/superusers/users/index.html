@@ -5,55 +5,109 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
+<style>
+    .user-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--gray-200);
+        padding-bottom: 0.5rem;
+    }
+    
+    .user-tabs a {
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        color: var(--gray-700);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-base);
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    
+    .user-tabs a.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: var(--shadow-primary);
+    }
+    
+    .user-tabs a:hover:not(.active) {
+        background-color: var(--gray-100);
+    }
+    
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1rem;
+        }
+        
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .user-tabs {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.75rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .table td, .table th {
+            padding: 0.5rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 page-header">
         <h1>Manage Users</h1>
         {% if focus != 'all' %}
         <a href="{{ url_for('superuser.add_user_to_role', role_name=focus) }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add {{ focus.capitalize() }}
+            <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Add {{ focus.capitalize() }}</span><span class="d-inline d-sm-none">Add</span>
         </a>
         {% endif %}
     </div>
 
     <div class="mb-3">
-        <!-- tabs for all the roles: superusers, admin, instructors, students -->
-         <ul class="tabs">
-            <li>
-                <a href="{{ url_for('superuser.manage_users', focus='all') }}" {% if focus == 'all' %}class="active"{% endif %}>
-                    All Users <span class="badge bg-primary">{{ role_counts.all }}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('superuser.manage_users', focus='superuser') }}" {% if focus == 'superuser' %}class="active"{% endif %}>
-                    Superusers <span class="badge bg-primary">{{ role_counts.superuser }}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('superuser.manage_users', focus='admin') }}" {% if focus == 'admin' %}class="active"{% endif %}>
-                    Admins <span class="badge bg-primary">{{ role_counts.admin }}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('superuser.manage_users', focus='instructor') }}" {% if focus == 'instructor' %}class="active"{% endif %}>
-                    Instructors <span class="badge bg-primary">{{ role_counts.instructor }}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('superuser.manage_users', focus='student') }}" {% if focus == 'student' %}class="active"{% endif %}>
-                    Students <span class="badge bg-primary">{{ role_counts.student }}</span>
-                </a>
-            </li>
-         </ul>
+        <div class="user-tabs">
+            <a href="{{ url_for('superuser.manage_users', focus='all') }}" {% if focus == 'all' %}class="active"{% endif %}>
+                All <span class="badge bg-light text-dark">{{ role_counts.all }}</span>
+            </a>
+            <a href="{{ url_for('superuser.manage_users', focus='superuser') }}" {% if focus == 'superuser' %}class="active"{% endif %}>
+                Superusers <span class="badge bg-light text-dark">{{ role_counts.superuser }}</span>
+            </a>
+            <a href="{{ url_for('superuser.manage_users', focus='admin') }}" {% if focus == 'admin' %}class="active"{% endif %}>
+                Admins <span class="badge bg-light text-dark">{{ role_counts.admin }}</span>
+            </a>
+            <a href="{{ url_for('superuser.manage_users', focus='instructor') }}" {% if focus == 'instructor' %}class="active"{% endif %}>
+                Instructors <span class="badge bg-light text-dark">{{ role_counts.instructor }}</span>
+            </a>
+            <a href="{{ url_for('superuser.manage_users', focus='student') }}" {% if focus == 'student' %}class="active"{% endif %}>
+                Students <span class="badge bg-light text-dark">{{ role_counts.student }}</span>
+            </a>
+        </div>
     </div>
 
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Roles</th>
+                    <th>Name</th>
+                    <th class="d-none d-md-table-cell">Email</th>
+                    <th class="d-none d-lg-table-cell">Roles</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -63,17 +117,24 @@
                 
                 {% if focus == 'all' or focus in roles %}
                 <tr>
-                    <td>{{ user.first_name }}</td>
-                    <td>{{ user.last_name }}</td>
-                    <td>{{ user.email }}</td>
                     <td>
+                        <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
+                        <small class="text-muted d-md-none">{{ user.email }}</small>
+                        <div class="d-lg-none mt-1">
+                            {% for role in user.get_roles() %}
+                            <span class="badge bg-secondary">{{ role }}</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="d-none d-md-table-cell">{{ user.email }}</td>
+                    <td class="d-none d-lg-table-cell">
                         {% for role in user.get_roles() %}
                         <span class="badge bg-secondary">{{ role }}</span>
                         {% endfor %}
                     </td>
                     <td>
                         <a href="{{ url_for('superuser.manage_user_roles', user_id=user.id) }}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-shield-lock"></i> Manage Roles
+                            <i class="bi bi-shield-lock"></i> <span class="d-none d-sm-inline">Manage</span>
                         </a>
                     </td>
                 </tr>

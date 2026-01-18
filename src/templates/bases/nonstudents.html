@@ -18,43 +18,139 @@
         height: 100vh;
         width: 13em;
         padding: 15px;
-        background-color: #f0f0f0;
-        flex-grow: 1;
-        
+        background-color: var(--gray-100);
+        flex-shrink: 0;
+        overflow-y: auto;
     }
 
     .content-3ddf343b {
         width: 100%;
         background-color: white;
         flex-grow: 1;
-
         padding: 1em;
+        overflow-y: auto;
     }
+    
     .sidenav-list-3ddf343b {
         list-style-type: none;
         padding: 0;
     }
+    
     .sidenav-title-3ddf343b {
         font-weight: bold;
         margin-bottom: 10px;
     }
+    
     .sidenav-btn-3ddf343b {
         text-decoration: none;
-        color: #333;
+        color: var(--text-color);
         display: block;
         padding: 8px 0.25em;
+        border-radius: var(--radius-sm);
+        transition: background-color var(--transition-base);
     }
+    
     .sidenav-btn-3ddf343b:hover {
-        background-color: #ddd;
+        background-color: var(--gray-200);
+    }
+
+    /* Mobile hamburger menu */
+    .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1001;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: var(--shadow-lg);
+        transition: transform var(--transition-base);
+    }
+
+    .mobile-menu-toggle:active {
+        transform: scale(0.95);
+    }
+
+    /* Mobile overlay */
+    .sidenav-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .container-3ddf343b {
+            flex-direction: column;
+        }
+
+        .mobile-menu-toggle {
+            display: flex;
+        }
+
+        .sidenav-3ddf343b {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            max-width: 80%;
+            height: 100vh;
+            z-index: 1000;
+            transition: left var(--transition-slow);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .sidenav-3ddf343b.active {
+            left: 0;
+        }
+
+        .sidenav-overlay.active {
+            display: block;
+        }
+
+        .content-3ddf343b {
+            padding: 1em 0.75em;
+            margin-top: 60px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .content-3ddf343b {
+            padding: 0.75em 0.5em;
+        }
+
+        .sidenav-3ddf343b {
+            width: 260px;
+            padding: 12px;
+        }
     }
 
 </style>
 {% endblock styles %}
 
 {% block content %}
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    ☰
+</button>
+
+<div class="sidenav-overlay" id="sidenavOverlay"></div>
+
 <div class="container-3ddf343b">
 
-    <div class="sidenav-3ddf343b">
+    <div class="sidenav-3ddf343b" id="sidenav">
         {% block sidenav %}
         {% if current_user.is_superuser %}
             {% include 'private/superusers/components/navbar.html' %}
@@ -77,4 +173,41 @@
     </div>
 
 </div>
+
+<script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const sidenav = document.getElementById('sidenav');
+    const overlay = document.getElementById('sidenavOverlay');
+
+    function toggleMenu() {
+        sidenav.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+
+    function closeMenu() {
+        sidenav.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', closeMenu);
+
+    // Close menu when clicking a link on mobile
+    const sidenavLinks = sidenav.querySelectorAll('a');
+    sidenavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                closeMenu();
+            }
+        });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidenav.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+</script>
 {% endblock content %}

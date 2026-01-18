@@ -25,16 +25,9 @@
     </div>
 
     <!-- Calendar View -->
-    <div id="calendarView" class="card shadow-sm mb-4 mb-md-5">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0 fs-5 fs-md-4">
-                <i class="bi bi-calendar3"></i> Course Calendar
-            </h4>
-        </div>
-        <div class="card-body p-2 p-md-3">
-            {% set role = 'public' %}
-            {% include 'private/components/calendar.html' %}
-        </div>
+    <div id="calendarView" class="mb-4 mb-md-5">
+        {% set role = 'public' %}
+        {% include 'private/components/mobile_calendar.html' %}
     </div>
 
     <!-- Course List -->

@@ -94,7 +94,7 @@ document.getElementById('announcementForm').addEventListener('submit', async fun
     }
     
     try {
-        const response = await fetch('{{ url_for("announcement.admin_create") }}', {
+        const response = await fetch('{{ url_for("announcements.admin_create") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
