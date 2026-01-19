@@ -145,9 +145,9 @@ class AppSettings(db.Model, CRUDMixin):
             'MAIL_SERVER': self.mail_server,
             'MAIL_PORT': self.mail_port,
             'MAIL_USE_TLS': self.mail_use_tls,
-            'MAIL_USE_SSL': self.mget_mail_password(),  # Decrypt the password
+            'MAIL_USE_SSL': self.mail_use_ssl,
             'MAIL_USERNAME': self.mail_username,
-            'MAIL_PASSWORD': self.mail_password_encrypted,  # Plain text for now
+            'MAIL_PASSWORD': self.get_mail_password(),  # Get decrypted password
             'MAIL_DEFAULT_SENDER': self.mail_default_sender or f'{self.app_name} <{self.mail_username}>',
             'MAIL_MAX_EMAILS': self.mail_max_emails
         }

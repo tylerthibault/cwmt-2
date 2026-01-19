@@ -1,0 +1,299 @@
+Date : 2026-01-19 11:26:09
+Directory : c:\Users\tyler\Documents\Coding\Flask\cwmt
+Total : 175 files,  29607 codes, 2706 comments, 5315 blanks, all 37628 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| HTML             |         69 |     15,568 |        245 |      2,003 |     17,816 |
+| Python           |         63 |      6,334 |      2,041 |      1,753 |     10,128 |
+| PostCSS          |         21 |      4,441 |        226 |        892 |      5,559 |
+| Markdown         |          9 |      1,785 |          0 |        444 |      2,229 |
+| JavaScript       |          7 |      1,354 |        166 |        185 |      1,705 |
+| Ini              |          1 |         38 |          0 |         13 |         51 |
+| pip requirements |          1 |         32 |          0 |          1 |         33 |
+| Batch            |          1 |         19 |          4 |          5 |         28 |
+| Docker           |          1 |         17 |         15 |         11 |         43 |
+| Shell Script     |          1 |         16 |          5 |          5 |         26 |
+| MS SQL           |          1 |          3 |          4 |          3 |         10 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                    | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                       |        175 |     29,607 |      2,706 |      5,315 |     37,628 |
+| . (Files)                                                                                                               |          7 |        129 |         51 |         49 |        229 |
+| docs                                                                                                                    |          8 |      1,703 |          0 |        425 |      2,128 |
+| docs (Files)                                                                                                            |          2 |        192 |          0 |         52 |        244 |
+| docs\todo                                                                                                               |          6 |      1,511 |          0 |        373 |      1,884 |
+| docs\todo\flask_mail                                                                                                    |          3 |        897 |          0 |        201 |      1,098 |
+| docs\todo\frontend                                                                                                      |          1 |        219 |          0 |         61 |        280 |
+| docs\todo\stripe                                                                                                        |          2 |        395 |          0 |        111 |        506 |
+| migrations                                                                                                              |          4 |        404 |         61 |         75 |        540 |
+| migrations (Files)                                                                                                      |          2 |         92 |         34 |         39 |        165 |
+| migrations\versions                                                                                                     |          2 |        312 |         27 |         36 |        375 |
+| src                                                                                                                     |        156 |     27,371 |      2,594 |      4,766 |     34,731 |
+| src (Files)                                                                                                             |          2 |        215 |         52 |         91 |        358 |
+| src\controllers                                                                                                         |         18 |      2,490 |        325 |        648 |      3,463 |
+| src\controllers (Files)                                                                                                 |          4 |        362 |         41 |        108 |        511 |
+| src\controllers\courses                                                                                                 |          3 |        324 |         39 |         82 |        445 |
+| src\controllers\flask_mail                                                                                              |          2 |        487 |         27 |        106 |        620 |
+| src\controllers\payments                                                                                                |          4 |        324 |         63 |         92 |        479 |
+| src\controllers\users                                                                                                   |          5 |        993 |        155 |        260 |      1,408 |
+| src\dev                                                                                                                 |          2 |        202 |         18 |         25 |        245 |
+| src\models                                                                                                              |         19 |      1,324 |        638 |        421 |      2,383 |
+| src\models (Files)                                                                                                      |          5 |        520 |        346 |        145 |      1,011 |
+| src\models\course_folder                                                                                                |          4 |        224 |         64 |         82 |        370 |
+| src\models\flask_mail                                                                                                   |          1 |        112 |        107 |         33 |        252 |
+| src\models\stripe                                                                                                       |          4 |        259 |         59 |         90 |        408 |
+| src\models\user_folder                                                                                                  |          5 |        209 |         62 |         71 |        342 |
+| src\services                                                                                                            |         15 |      1,645 |        832 |        449 |      2,926 |
+| src\services (Files)                                                                                                    |         12 |      1,327 |        635 |        364 |      2,326 |
+| src\services\flask_mail                                                                                                 |          3 |        318 |        197 |         85 |        600 |
+| src\static                                                                                                              |         28 |      5,795 |        392 |      1,077 |      7,264 |
+| src\static\css                                                                                                          |         21 |      4,441 |        226 |        892 |      5,559 |
+| src\static\css (Files)                                                                                                  |          6 |      1,421 |         95 |        307 |      1,823 |
+| src\static\css\components                                                                                               |         14 |      2,330 |        101 |        451 |      2,882 |
+| src\static\css\components (Files)                                                                                       |         11 |      2,128 |         98 |        415 |      2,641 |
+| src\static\css\components\calendar                                                                                      |          3 |        202 |          3 |         36 |        241 |
+| src\static\css\pages                                                                                                    |          1 |        690 |         30 |        134 |        854 |
+| src\static\js                                                                                                           |          7 |      1,354 |        166 |        185 |      1,705 |
+| src\static\js (Files)                                                                                                   |          2 |        238 |         30 |         51 |        319 |
+| src\static\js\components                                                                                                |          5 |      1,116 |        136 |        134 |      1,386 |
+| src\static\js\components\calendar                                                                                       |          5 |      1,116 |        136 |        134 |      1,386 |
+| src\templates                                                                                                           |         69 |     15,568 |        245 |      2,003 |     17,816 |
+| src\templates\bases                                                                                                     |          3 |        270 |          3 |         50 |        323 |
+| src\templates\components                                                                                                |          3 |        590 |          3 |         86 |        679 |
+| src\templates\components (Files)                                                                                        |          2 |        551 |          2 |         86 |        639 |
+| src\templates\components\testing                                                                                        |          1 |         39 |          1 |          0 |         40 |
+| src\templates\errors                                                                                                    |          2 |         34 |          0 |          4 |         38 |
+| src\templates\private                                                                                                   |         49 |     11,534 |        187 |      1,464 |     13,185 |
+| src\templates\private\admins                                                                                            |         14 |      4,983 |         65 |        531 |      5,579 |
+| src\templates\private\admins\announcements                                                                              |          1 |        320 |          8 |         35 |        363 |
+| src\templates\private\admins\components                                                                                 |          2 |        490 |          3 |         67 |        560 |
+| src\templates\private\admins\courses                                                                                    |          2 |        638 |         13 |         76 |        727 |
+| src\templates\private\admins\dashboard                                                                                  |          3 |        686 |          7 |         91 |        784 |
+| src\templates\private\admins\dashboard (Files)                                                                          |          1 |        102 |          0 |         17 |        119 |
+| src\templates\private\admins\dashboard\components                                                                       |          2 |        584 |          7 |         74 |        665 |
+| src\templates\private\admins\enrollments                                                                                |          1 |        218 |          9 |         28 |        255 |
+| src\templates\private\admins\logs                                                                                       |          1 |        360 |          6 |         16 |        382 |
+| src\templates\private\admins\payments                                                                                   |          1 |        361 |          8 |         39 |        408 |
+| src\templates\private\admins\students                                                                                   |          3 |      1,910 |         11 |        179 |      2,100 |
+| src\templates\private\components                                                                                        |          4 |      1,181 |          7 |        190 |      1,378 |
+| src\templates\private\components (Files)                                                                                |          2 |      1,036 |          7 |        172 |      1,215 |
+| src\templates\private\components\nav                                                                                    |          2 |        145 |          0 |         18 |        163 |
+| src\templates\private\flask_mail                                                                                        |          3 |        832 |         23 |        125 |        980 |
+| src\templates\private\instructors                                                                                       |          4 |        452 |          5 |         78 |        535 |
+| src\templates\private\instructors\components                                                                            |          2 |        428 |          5 |         70 |        503 |
+| src\templates\private\instructors\courses                                                                               |          1 |         14 |          0 |          4 |         18 |
+| src\templates\private\instructors\dashboard                                                                             |          1 |         10 |          0 |          4 |         14 |
+| src\templates\private\students                                                                                          |         14 |      2,429 |         65 |        309 |      2,803 |
+| src\templates\private\students\checkout                                                                                 |          4 |        647 |         23 |         89 |        759 |
+| src\templates\private\students\components                                                                               |          3 |        840 |          9 |        124 |        973 |
+| src\templates\private\students\dashboard                                                                                |          1 |        356 |          5 |         33 |        394 |
+| src\templates\private\students\enrollments                                                                              |          2 |        408 |         22 |         45 |        475 |
+| src\templates\private\students\settings                                                                                 |          4 |        178 |          6 |         18 |        202 |
+| src\templates\private\students\settings (Files)                                                                         |          1 |         51 |          5 |          7 |         63 |
+| src\templates\private\students\settings\tabs                                                                            |          3 |        127 |          1 |         11 |        139 |
+| src\templates\private\superusers                                                                                        |         10 |      1,657 |         22 |        231 |      1,910 |
+| src\templates\private\superusers\components                                                                             |          2 |        517 |          6 |         85 |        608 |
+| src\templates\private\superusers\course_templates                                                                       |          1 |        343 |          4 |         55 |        402 |
+| src\templates\private\superusers\dashboard                                                                              |          1 |          9 |          0 |          4 |         13 |
+| src\templates\private\superusers\payables                                                                               |          1 |        212 |          4 |         32 |        248 |
+| src\templates\private\superusers\settings                                                                               |          2 |        209 |          3 |         24 |        236 |
+| src\templates\private\superusers\settings (Files)                                                                       |          1 |        109 |          3 |         13 |        125 |
+| src\templates\private\superusers\settings\tabs                                                                          |          1 |        100 |          0 |         11 |        111 |
+| src\templates\private\superusers\users                                                                                  |          3 |        367 |          5 |         31 |        403 |
+| src\templates\public                                                                                                    |         12 |      3,140 |         52 |        399 |      3,591 |
+| src\templates\public\auth                                                                                               |          3 |      1,123 |          9 |        166 |      1,298 |
+| src\templates\public\components                                                                                         |          2 |        280 |          1 |         32 |        313 |
+| src\templates\public\courses                                                                                            |          1 |        161 |          4 |         21 |        186 |
+| src\templates\public\landing                                                                                            |          6 |      1,576 |         38 |        180 |      1,794 |
+| src\templates\public\landing (Files)                                                                                    |          1 |         19 |          0 |          2 |         21 |
+| src\templates\public\landing\components                                                                                 |          5 |      1,557 |         38 |        178 |      1,773 |
+| src\utils                                                                                                               |          3 |        132 |         92 |         52 |        276 |
++-------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                                                | language         | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\Dockerfile                                                                   | Docker           |         17 |         15 |         11 |         43 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\config.py                                                                    | Python           |         38 |         23 |         21 |         82 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\DEPLOYMENT_MIGRATION.md                                                 | Markdown         |        112 |          0 |         34 |        146 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\EMAIL_ENCRYPTION_FIX.md                                                 | Markdown         |         80 |          0 |         18 |         98 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\flask_mail\email-purposes.md                                       | Markdown         |        467 |          0 |         82 |        549 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\flask_mail\sql-tables.md                                           | Markdown         |        245 |          0 |         66 |        311 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\flask_mail\user-stories.md                                         | Markdown         |        185 |          0 |         53 |        238 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\frontend\style_description.md                                      | Markdown         |        219 |          0 |         61 |        280 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\stripe\integration-plan.md                                         | Markdown         |        112 |          0 |         28 |        140 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\docs\todo\stripe\user-stories-flow.md                                        | Markdown         |        283 |          0 |         83 |        366 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\fix_column.sql                                                               | MS SQL           |          3 |          4 |          3 |         10 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\migrations\alembic.ini                                                       | Ini              |         38 |          0 |         13 |         51 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\migrations\env.py                                                            | Python           |         54 |         34 |         26 |        114 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\migrations\versions\a1b2c3d4e5f6_rename_mail_password_hash_to_encrypted.py   | Python           |         20 |         15 |          7 |         42 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\migrations\versions\bdb5548afc4c_initial_migration_with_all_tables.py        | Python           |        292 |         12 |         29 |        333 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\requirements.txt                                                             | pip requirements |         32 |          0 |          1 |         33 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\reset_db.bat                                                                 | Batch            |         19 |          4 |          5 |         28 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\reset_db.sh                                                                  | Shell Script     |         16 |          5 |          5 |         26 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\run.py                                                                       | Python           |          4 |          0 |          3 |          7 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\__init__ copy.py                                                         | Python           |         91 |         21 |         41 |        153 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\__init__.py                                                              | Python           |        124 |         31 |         50 |        205 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\announcements.py                                             | Python           |        108 |         13 |         35 |        156 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\courses\course_instances.py                                  | Python           |        182 |         22 |         52 |        256 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\courses\course_template.py                                   | Python           |         85 |          9 |         15 |        109 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\courses\payable_template.py                                  | Python           |         57 |          8 |         15 |         80 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\enrollment_management.py                                     | Python           |        142 |         18 |         45 |        205 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\flask_mail\mail_routes.py                                    | Python           |        167 |         16 |         38 |        221 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\flask_mail\seed_templates.py                                 | Python           |        320 |         11 |         68 |        399 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\payments\__init__.py                                         | Python           |          0 |          1 |          1 |          2 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\payments\payment_management.py                               | Python           |         74 |         14 |         26 |        114 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\payments\stripe_payments.py                                  | Python           |        158 |         24 |         33 |        215 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\payments\stripe_webhooks.py                                  | Python           |         92 |         24 |         32 |        148 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\routes.py                                                    | Python           |         36 |          6 |         20 |         62 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\seeding.py                                                   | Python           |         76 |          4 |          8 |         88 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\users\admin.py                                               | Python           |        145 |         19 |         39 |        203 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\users\auth.py                                                | Python           |        217 |         32 |         45 |        294 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\users\instructor.py                                          | Python           |         25 |          8 |          7 |         40 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\users\student.py                                             | Python           |        478 |         79 |        135 |        692 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\controllers\users\superuser.py                                           | Python           |        128 |         17 |         34 |        179 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\dev\database.py                                                          | Python           |        116 |         16 |         20 |        152 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\dev\people.py                                                            | Python           |         86 |          2 |          5 |         93 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\announcements.py                                                  | Python           |         34 |         13 |         17 |         64 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\app_settings.py                                                   | Python           |        152 |        122 |         41 |        315 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\course_folder\course_instances.py                                 | Python           |         56 |         18 |         21 |         95 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\course_folder\course_templates.py                                 | Python           |         38 |         10 |         14 |         62 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\course_folder\enrollments.py                                      | Python           |        105 |         29 |         36 |        170 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\course_folder\payable_templates.py                                | Python           |         25 |          7 |         11 |         43 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\doorman.py                                                        | Python           |         61 |         17 |         24 |        102 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\flask_mail\email_templates.py                                     | Python           |        112 |        107 |         33 |        252 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\logs.py                                                           | Python           |        231 |        184 |         50 |        465 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\main.py                                                           | Python           |         42 |         10 |         13 |         65 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\stripe\overview.md                                                | Markdown         |         82 |          0 |         19 |        101 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\stripe\payment_line_items.py                                      | Python           |         55 |         20 |         23 |         98 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\stripe\payments.py                                                | Python           |         66 |         20 |         25 |        111 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\stripe\stripe_webhook_events.py                                   | Python           |         56 |         19 |         23 |         98 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\user_folder\admins.py                                             | Python           |         27 |          9 |         11 |         47 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\user_folder\instructors.py                                        | Python           |         27 |          9 |         11 |         47 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\user_folder\students.py                                           | Python           |         43 |         14 |         16 |         73 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\user_folder\superusers.py                                         | Python           |         27 |          9 |         11 |         47 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\models\user_folder\users.py                                              | Python           |         85 |         21 |         22 |        128 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\admin_service.py                                                | Python           |        201 |         11 |         61 |        273 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\announcement_service.py                                         | Python           |        100 |         59 |         31 |        190 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\calendar.py                                                     | Python           |         34 |         12 |          8 |         54 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\course_instance_service.py                                      | Python           |        134 |         81 |         29 |        244 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\course_template_service.py                                      | Python           |        167 |         84 |         35 |        286 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\database_manipulation.py                                        | Python           |         46 |         11 |         19 |         76 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\enrollment_service.py                                           | Python           |        228 |        110 |         59 |        397 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\flask_mail\email_config.py                                      | Python           |        100 |          8 |          8 |        116 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\flask_mail\email_service.py                                     | Python           |         98 |         57 |         30 |        185 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\flask_mail\email_template_service.py                            | Python           |        120 |        132 |         47 |        299 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\instructor_service.py                                           | Python           |         38 |         35 |         17 |         90 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\main.py                                                         | Python           |          0 |          0 |          1 |          1 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\payable_template_service.py                                     | Python           |         40 |         52 |         19 |        111 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\payment_service.py                                              | Python           |        142 |         70 |         36 |        248 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\services\superuser_service.py                                            | Python           |        197 |        110 |         49 |        356 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\bootstrap-overide.css                                         | PostCSS          |        640 |         29 |        151 |        820 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\animations.css                                     | PostCSS          |        223 |         16 |         53 |        292 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\buttons-badges.css                                 | PostCSS          |        112 |          4 |         25 |        141 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\calendar\calendar-events.css                       | PostCSS          |         91 |          1 |         15 |        107 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\calendar\calendar-wizard.css                       | PostCSS          |         59 |          1 |         11 |         71 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\calendar\calendar.css                              | PostCSS          |         52 |          1 |         10 |         63 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\dashboard.css                                      | PostCSS          |        247 |         14 |         47 |        308 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\info_box.css                                       | PostCSS          |         13 |          0 |          1 |         14 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\navbar.css                                         | PostCSS          |        210 |         10 |         33 |        253 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\sticky-stack.css                                   | PostCSS          |         48 |         11 |         11 |         70 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\student-dashboard.css                              | PostCSS          |        483 |          7 |         95 |        585 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\student-details.css                                | PostCSS          |        303 |          8 |         60 |        371 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\student-enrollments.css                            | PostCSS          |        290 |         11 |         51 |        352 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\student-navbar.css                                 | PostCSS          |        162 |         15 |         33 |        210 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\components\tabs.css                                           | PostCSS          |         37 |          2 |          6 |         45 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\email-forms.css                                               | PostCSS          |        131 |          9 |         24 |        164 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\email-management.css                                          | PostCSS          |        161 |          9 |         36 |        206 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\main.css                                                      | PostCSS          |        190 |         24 |         31 |        245 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\modal.css                                                     | PostCSS          |        128 |          7 |         23 |        158 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\pages\landing.css                                             | PostCSS          |        690 |         30 |        134 |        854 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\css\utilities.css                                                 | PostCSS          |        171 |         17 |         42 |        230 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\components\calendar\calendar-admin.js                          | JavaScript       |        329 |         14 |         21 |        364 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\components\calendar\calendar-core.js                           | JavaScript       |        129 |         29 |         21 |        179 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\components\calendar\calendar-events.js                         | JavaScript       |        203 |         38 |         35 |        276 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\components\calendar\calendar-instructor.js                     | JavaScript       |        208 |         28 |         31 |        267 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\components\calendar\calendar-student.js                        | JavaScript       |        247 |         27 |         26 |        300 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\main.js                                                        | JavaScript       |         18 |          2 |          4 |         24 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\static\js\modal.js                                                       | JavaScript       |        220 |         28 |         47 |        295 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\bases\nonstudents.html                                         | HTML             |        240 |          0 |         39 |        279 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\bases\private.html                                             | HTML             |          7 |          0 |          2 |          9 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\bases\public.html                                              | HTML             |         23 |          3 |          9 |         35 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\components\calendar_base.html                                  | HTML             |        401 |          2 |         69 |        472 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\components\flash_messages.html                                 | HTML             |        150 |          0 |         17 |        167 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\components\testing\roles.html                                  | HTML             |         39 |          1 |          0 |         40 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\errors\404.html                                                | HTML             |         17 |          0 |          2 |         19 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\errors\500.html                                                | HTML             |         17 |          0 |          2 |         19 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\announcements\index.html                        | HTML             |        320 |          8 |         35 |        363 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\components\mobile_calendar_admin.html           | HTML             |        473 |          1 |         67 |        541 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\components\navbar.html                          | HTML             |         17 |          2 |          0 |         19 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\courses\index.html                              | HTML             |         17 |          1 |          4 |         22 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\courses\view_instance.html                      | HTML             |        621 |         12 |         72 |        705 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\dashboard\components\quick_actions.html         | HTML             |        283 |          2 |         39 |        324 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\dashboard\components\stats_cards.html           | HTML             |        301 |          5 |         35 |        341 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\dashboard\index.html                            | HTML             |        102 |          0 |         17 |        119 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\enrollments\create.html                         | HTML             |        218 |          9 |         28 |        255 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\logs\index.html                                 | HTML             |        360 |          6 |         16 |        382 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\payments\details.html                           | HTML             |        361 |          8 |         39 |        408 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\students\details.html                           | HTML             |        432 |          5 |          9 |        446 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\students\details_backup.html                    | HTML             |        851 |          3 |         86 |        940 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\admins\students\index.html                             | HTML             |        627 |          3 |         84 |        714 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\components\calendar.html                               | HTML             |         81 |          2 |         12 |         95 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\components\mobile_calendar.html                        | HTML             |        955 |          5 |        160 |      1,120 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\components\nav\default.html                            | HTML             |          7 |          0 |          0 |          7 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\components\nav\role_switcher.html                      | HTML             |        138 |          0 |         18 |        156 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\flask_mail\form.html                                   | HTML             |        348 |          7 |         56 |        411 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\flask_mail\management.html                             | HTML             |        144 |          6 |         13 |        163 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\flask_mail\preview.html                                | HTML             |        340 |         10 |         56 |        406 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\instructors\components\mobile_calendar_instructor.html | HTML             |        418 |          2 |         70 |        490 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\instructors\components\navbar.html                     | HTML             |         10 |          3 |          0 |         13 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\instructors\courses\index.html                         | HTML             |         14 |          0 |          4 |         18 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\instructors\dashboard\index.html                       | HTML             |         10 |          0 |          4 |         14 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\checkout\failed.html                          | HTML             |         65 |          7 |         10 |         82 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\checkout\index copy.html                      | HTML             |        156 |          2 |         26 |        184 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\checkout\index.html                           | HTML             |        303 |          6 |         42 |        351 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\checkout\success.html                         | HTML             |        123 |          8 |         11 |        142 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\components\calendar.html                      | HTML             |        334 |          4 |         46 |        384 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\components\mobile_calendar_student.html       | HTML             |        429 |          2 |         72 |        503 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\components\navbar.html                        | HTML             |         77 |          3 |          6 |         86 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\dashboard\index.html                          | HTML             |        356 |          5 |         33 |        394 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\enrollments\details.html                      | HTML             |        246 |         13 |         29 |        288 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\enrollments\index.html                        | HTML             |        162 |          9 |         16 |        187 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\settings\index.html                           | HTML             |         51 |          5 |          7 |         63 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\settings\tabs\account.html                    | HTML             |         62 |          1 |          2 |         65 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\settings\tabs\password.html                   | HTML             |         30 |          0 |          4 |         34 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\students\settings\tabs\profile.html                    | HTML             |         35 |          0 |          5 |         40 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\components\mobile_calendar_superuser.html   | HTML             |        501 |          3 |         85 |        589 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\components\navbar.html                      | HTML             |         16 |          3 |          0 |         19 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\course_templates\index.html                 | HTML             |        343 |          4 |         55 |        402 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\dashboard\index.html                        | HTML             |          9 |          0 |          4 |         13 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\payables\index.html                         | HTML             |        212 |          4 |         32 |        248 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\settings\index.html                         | HTML             |        109 |          3 |         13 |        125 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\settings\tabs\email.html                    | HTML             |        100 |          0 |         11 |        111 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\users\add_to_role.html                      | HTML             |         99 |          1 |          7 |        107 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\users\index.html                            | HTML             |        132 |          0 |         16 |        148 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\private\superusers\users\manage_roles.html                     | HTML             |        136 |          4 |          8 |        148 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\auth\dev.html                                           | HTML             |        468 |          4 |         69 |        541 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\auth\loginReg.html                                      | HTML             |        552 |          3 |         82 |        637 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\auth\signup.html                                        | HTML             |        103 |          2 |         15 |        120 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\components\calendar.html                                | HTML             |        244 |          1 |         32 |        277 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\components\navbar.html                                  | HTML             |         36 |          0 |          0 |         36 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\courses\index.html                                      | HTML             |        161 |          4 |         21 |        186 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\components\FAQ.html                             | HTML             |        191 |         14 |         14 |        219 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\components\banner.html                          | HTML             |         66 |          0 |          9 |         75 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\components\hero.html                            | HTML             |        619 |          9 |         91 |        719 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\components\how_it_works.html                    | HTML             |        142 |         10 |          9 |        161 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\components\social_proof.html                    | HTML             |        539 |          5 |         55 |        599 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\templates\public\landing\index.html                                      | HTML             |         19 |          0 |          2 |         21 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\utils\custom_decorators.py                                               | Python           |         74 |         34 |         29 |        137 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\utils\encryption.py                                                      | Python           |         28 |         29 |         12 |         69 |
+| c:\Users\tyler\Documents\Coding\Flask\cwmt\src\utils\password_management.py                                             | Python           |         30 |         29 |         11 |         70 |
+| Total                                                                                                                   |                  |     29,607 |      2,706 |      5,315 |     37,628 |
++-------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
