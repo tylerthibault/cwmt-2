@@ -117,7 +117,7 @@ class AppSettings(db.Model, CRUDMixin):
         return new_settings
     
     def set_mail_password(self, password):
-        """Store mail password.
+        """Store mail password as plain text (no encryption for now).
         
         Args:
             password: Plain text password
@@ -128,7 +128,7 @@ class AppSettings(db.Model, CRUDMixin):
             self.mail_password_encrypted = None
     
     def get_mail_password(self):
-        """Get mail password.
+        """Get mail password as plain text (no decryption for now).
         
         Returns:
             str: Password or None
@@ -145,9 +145,9 @@ class AppSettings(db.Model, CRUDMixin):
             'MAIL_SERVER': self.mail_server,
             'MAIL_PORT': self.mail_port,
             'MAIL_USE_TLS': self.mail_use_tls,
-            'MAIL_USE_SSL': self.mail_use_ssl,
+            'MAIL_USE_SSL': self.mget_mail_password(),  # Decrypt the password
             'MAIL_USERNAME': self.mail_username,
-            'MAIL_PASSWORD': self.mail_password_encrypted,
+            'MAIL_PASSWORD': self.mail_password_encrypted,  # Plain text for now
             'MAIL_DEFAULT_SENDER': self.mail_default_sender or f'{self.app_name} <{self.mail_username}>',
             'MAIL_MAX_EMAILS': self.mail_max_emails
         }

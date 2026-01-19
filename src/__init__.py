@@ -41,6 +41,7 @@ def init_config(app):
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 
                                                         os.environ.get('MAIL_USERNAME', 'noreply@cwmt.com'))
+    app.config['MAIL_ASCII_ATTACHMENTS'] = False  # Allow UTF-8 in email content
 
 def init_mail(app):
     """Initialize Flask-Mail with database settings if available."""

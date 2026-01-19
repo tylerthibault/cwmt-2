@@ -178,9 +178,11 @@ class EmailTemplate(db.Model, CRUDMixin):
         Returns:
             Rendered subject string
         """
-        env = Environment()
+        env = Environment(autoescape=False)
         template = env.from_string(self.subject_template)
-        return template.render(**context)
+        rendered = template.render(**context)
+        # Ensure UTF-8 string, not bytes
+        return str(rendered) if rendered else ''
     
     def render_html_body(self, context):
         """Render the HTML body template with provided context.
@@ -191,9 +193,11 @@ class EmailTemplate(db.Model, CRUDMixin):
         Returns:
             Rendered HTML string
         """
-        env = Environment()
+        env = Environment(autoescape=False)
         template = env.from_string(self.body_html_template)
-        return template.render(**context)
+        rendered = template.render(**context)
+        # Ensure UTF-8 string, not bytes
+        return str(rendered) if rendered else ''
     
     def render_text_body(self, context):
         """Render the plain text body template with provided context.
@@ -204,9 +208,11 @@ class EmailTemplate(db.Model, CRUDMixin):
         Returns:
             Rendered plain text string
         """
-        env = Environment()
+        env = Environment(autoescape=False)
         template = env.from_string(self.body_text_template)
-        return template.render(**context)
+        rendered = template.render(**context)
+        # Ensure UTF-8 string, not bytes
+        return str(rendered) if rendered else ''
     
     def render_all(self, context):
         """Render all template parts with provided context.
