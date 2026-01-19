@@ -6,133 +6,230 @@
     {% include 'private/students/components/navbar.html' %}
 </div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Student Dashboard</h1>
-            <p class="text-muted">Welcome back, {{ current_user.first_name }}!</p>
-        </div>
-        <div>
-            <button class="btn btn-outline-primary me-2" onclick="showCreateGuestModal()">
-                <i class="bi bi-person-plus"></i> Add Family/Friend
-            </button>
-            <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-primary">
-                <i class="bi bi-list-ul"></i> My Enrollments
-            </a>
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div>
+                <h1 class="dashboard-title">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Dashboard
+                </h1>
+                <p class="dashboard-subtitle">Welcome back, {{ current_user.first_name }}! 👋</p>
+            </div>
+            <div class="dashboard-actions">
+                <button class="btn-secondary" onclick="showCreateGuestModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                    Add Family/Friend
+                </button>
+                <a href="{{ url_for('student.my_enrollments') }}" class="btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"/>
+                        <line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    My Enrollments
+                </a>
+            </div>
         </div>
     </div>
     
     <!-- Stats Cards -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card mb-3 border-primary">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Active Courses</h5>
-                    <h2 class="text-primary">{{ active_count }}</h2>
-                    <small class="text-muted">Currently enrolled</small>
-                </div>
+    <div class="stats-grid">
+        <div class="stat-card stat-card-active">
+            <div class="stat-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ active_count }}</div>
+                <div class="stat-label">Active Courses</div>
+                <div class="stat-sublabel">Currently enrolled</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card mb-3 border-success">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Completed</h5>
-                    <h2 class="text-success">{{ completed_count }}</h2>
-                    <small class="text-muted">Finished courses</small>
-                </div>
+        
+        <div class="stat-card stat-card-completed">
+            <div class="stat-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ completed_count }}</div>
+                <div class="stat-label">Completed</div>
+                <div class="stat-sublabel">Finished courses</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card mb-3 border-info">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Upcoming</h5>
-                    <h2 class="text-info">{{ upcoming_count }}</h2>
-                    <small class="text-muted">Starting soon</small>
-                </div>
+        
+        <div class="stat-card stat-card-upcoming">
+            <div class="stat-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ upcoming_count }}</div>
+                <div class="stat-label">Upcoming</div>
+                <div class="stat-sublabel">Starting soon</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card mb-3 border-warning">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total</h5>
-                    <h2 class="text-warning">{{ total_enrollments }}</h2>
-                    <small class="text-muted">All time enrollments</small>
-                </div>
+        
+        <div class="stat-card stat-card-total">
+            <div class="stat-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_enrollments }}</div>
+                <div class="stat-label">Total</div>
+                <div class="stat-sublabel">All time enrollments</div>
             </div>
         </div>
     </div>
     
     <!-- Guest Students Section -->
     {% if guest_students %}
-    <div class="mt-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-people"></i> Family & Friends</h5>
-                <span class="badge bg-primary">{{ guest_students|length }}</span>
-            </div>
-            <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    {% for guest in guest_students %}
-                    <div class="col">
-                        <div class="card h-100 border-info">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h6 class="mb-0">{{ guest.full_name }}</h6>
-                                        <small class="text-muted">
-                                            <i class="bi bi-person-heart"></i> {{ guest.relationship|capitalize }}
-                                        </small>
-                                    </div>
-                                    <span class="badge {% if guest.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ 'Active' if guest.is_active else 'Inactive' }}
-                                    </span>
-                                </div>
-                                <p class="mb-1 small"><i class="bi bi-envelope"></i> {{ guest.email }}</p>
-                                {% if guest.phone_number %}
-                                <p class="mb-2 small"><i class="bi bi-telephone"></i> {{ guest.phone_number }}</p>
-                                {% endif %}
-                                <hr class="my-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar-check"></i> 
-                                        {{ guest.enrollments.count() }} enrollment(s)
-                                    </small>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewGuestDetails({{ guest.id }})">
-                                        <i class="bi bi-eye"></i> View
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Family & Friends
+            </h2>
+            <span class="badge-count">{{ guest_students|length }}</span>
+        </div>
+        
+        <div class="guest-grid">
+            {% for guest in guest_students %}
+            <div class="guest-card">
+                <div class="guest-card-header">
+                    <div class="guest-avatar">
+                        {{ guest.first_name[0] }}{{ guest.last_name[0] }}
                     </div>
-                    {% endfor %}
+                    <div class="guest-info">
+                        <h3 class="guest-name">{{ guest.full_name }}</h3>
+                        <span class="guest-relationship">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                            {{ guest.relationship|capitalize }}
+                        </span>
+                    </div>
+                    <span class="status-badge {% if guest.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {{ 'Active' if guest.is_active else 'Inactive' }}
+                    </span>
+                </div>
+                
+                <div class="guest-card-body">
+                    <div class="guest-detail">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        {{ guest.email }}
+                    </div>
+                    {% if guest.phone_number %}
+                    <div class="guest-detail">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        {{ guest.phone_number }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="guest-card-footer">
+                    <div class="enrollment-count">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        {{ guest.enrollments.count() }} enrollment(s)
+                    </div>
+                    <button class="btn-view" onclick="viewGuestDetails({{ guest.id }})">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        View
+                    </button>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
     
     <!-- Current Enrollments Section -->
     {% if enrollments %}
-    <div class="mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>My Enrolled Courses</h3>
-            <a href="{{ url_for('student.my_enrollments') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                My Enrolled Courses
+            </h2>
+            <a href="{{ url_for('student.my_enrollments') }}" class="btn-link">
+                View All
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                </svg>
+            </a>
         </div>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        
+        <div class="enrollment-grid">
             {% for enrollment in enrollments[:3] %}
-            <div class="col">
-                <div class="card h-100 {% if enrollment.status == 'enrolled' %}border-primary{% elif enrollment.status == 'completed' %}border-success{% endif %}">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">{{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'Course' }}</h6>
-                        {% if enrollment.status == 'enrolled' %}
-                        <span class="badge bg-success">Enrolled</span>
-                        {% elif enrollment.status == 'completed' %}
-                        <span class="badge bg-primary">Completed</span>
-                        {% endif %}
+            <div class="enrollment-card {% if enrollment.status == 'enrolled' %}card-enrolled{% elif enrollment.status == 'completed' %}card-completed{% endif %}">
+                <div class="enrollment-card-header">
+                    <h3 class="course-name">{{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'Course' }}</h3>
+                    {% if enrollment.status == 'enrolled' %}
+                    <span class="enrollment-badge badge-enrolled">Enrolled</span>
+                    {% elif enrollment.status == 'completed' %}
+                    <span class="enrollment-badge badge-completed">Completed</span>
+                    {% endif %}
+                </div>
+                
+                <div class="enrollment-card-body">
+                    <div class="enrollment-detail">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span>{{ enrollment.course_instance.start_date.strftime('%b %d, %Y') }}</span>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-1 small"><i class="bi bi-calendar-event"></i> <strong>Start:</strong> {{ enrollment.course_instance.start_date.strftime('%b %d, %Y') }}</p>
-                        <p class="mb-0 small"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ enrollment.course_instance.location }}</p>
+                    <div class="enrollment-detail">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span>{{ enrollment.course_instance.location }}</span>
                     </div>
                 </div>
             </div>
@@ -141,10 +238,20 @@
     </div>
     {% endif %}
     
-    <div class="mt-4">
-        <h3>Available Courses</h3>
-        {% set role = 'student' %}
-        {% include 'private/components/calendar.html' %}
+    <!-- Available Courses Calendar -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Available Courses
+            </h2>
+        </div>
+        {% include 'private/students/components/calendar.html' %}
     </div>
 </div>
 

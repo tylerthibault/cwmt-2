@@ -1,23 +1,167 @@
 <style>
-.alert {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1050; /* Ensure it appears above other elements */
-    padding-right: 3rem; /* Space for the close button */
-}
+    .flash-messages-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1050;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .flash-alert {
+        position: relative;
+        margin-bottom: 1rem;
+        padding: 1rem 3rem 1rem 1rem;
+        border-radius: var(--radius-lg);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideIn 0.3s ease-out;
+        overflow: hidden;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .flash-alert-success {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .flash-alert-danger,
+    .flash-alert-error {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .flash-alert-warning {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .flash-alert-info {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .flash-alert-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .flash-close {
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .flash-close:hover {
+        opacity: 1;
+    }
+
+    .flash-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        width: 100%;
+        animation: progressShrink 5s linear forwards;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    @keyframes progressShrink {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+
+    .flash-alert.dismissing {
+        animation: slideOut 0.3s ease-out forwards;
+    }
+
+    @media (max-width: 576px) {
+        .flash-messages-container {
+            left: 1rem;
+            right: 1rem;
+            max-width: none;
+        }
+    }
 </style>
 
-
-<div>
+<div class="flash-messages-container" id="flashMessagesContainer">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show m-3" role="alert">
+    <div class="flash-alert flash-alert-{{ category }}" role="alert" data-auto-dismiss="5000">
         {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="flash-close" onclick="dismissFlash(this)">
+            <i class="bi bi-x"></i>
+        </button>
+        <div class="flash-progress"></div>
     </div>
     {% endfor %}
     {% endif %}
     {% endwith %}
 </div>
+
+<script>
+    function dismissFlash(button) {
+        const alert = button.closest('.flash-alert');
+        alert.classList.add('dismissing');
+        setTimeout(() => {
+            alert.remove();
+        }, 300);
+    }
+
+    // Auto-dismiss flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.flash-alert[data-auto-dismiss]');
+        alerts.forEach(alert => {
+            const duration = parseInt(alert.dataset.autoDismiss);
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.classList.add('dismissing');
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
+                }
+            }, duration);
+        });
+    });
+</script>

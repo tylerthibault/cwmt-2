@@ -27,7 +27,7 @@
     <!-- Calendar View -->
     <div id="calendarView" class="mb-4 mb-md-5">
         {% set role = 'public' %}
-        {% include 'private/components/mobile_calendar.html' %}
+        {% include 'public/components/calendar.html' %}
     </div>
 
     <!-- Course List -->
@@ -99,7 +99,7 @@
             </div>
             <form method="POST" action="{{ url_for('auth.register') }}">
                 <div class="modal-body p-3 p-md-4">
-                    <div class="alert alert-info p-2 mb-3">
+                    <div class="infobox infobox-info p-2 mb-3">
                         <strong>Course:</strong> <span id="modalCourseName"></span>
                     </div>
                     
@@ -125,7 +125,7 @@
                         <input type="tel" class="form-control" id="phone_number" name="phone_number">
                     </div>
 
-                    <div class="alert alert-secondary p-2 small">
+                    <div class="infobox infobox-secondary p-2 small">
                         <i class="bi bi-info-circle"></i> 
                         <strong>Note:</strong> Your account will be created with a temporary password that you can change after logging in.
                     </div>
