@@ -581,19 +581,43 @@
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });
         
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const eventDate = new Date(date);
+        eventDate.setHours(0, 0, 0, 0);
+        const isFuture = eventDate >= today;
+        
         let eventsList = '';
         dayEvents.forEach(event => {
             const statusClass = event.status || 'scheduled';
+            const isEnrolled = event.is_enrolled === true;
+            const canEnroll = isFuture && !isEnrolled && (statusClass === 'scheduled' || statusClass === 'active');
+            
+            console.log('Event Debug:', {
+                title: event.title,
+                isFuture: isFuture,
+                isEnrolled: isEnrolled,
+                status: statusClass,
+                canEnroll: canEnroll,
+                eventId: event.id
+            });
+            
             eventsList += `
                 <div style="border-left: 4px solid ${getStatusColor(statusClass)}; padding: 12px; margin-bottom: 12px; background: #f8f9fa; border-radius: 4px;">
                     <div style="font-weight: 600; margin-bottom: 8px;">${event.title || 'Untitled Event'}</div>
                     ${event.location ? `<div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;"><i class="bi bi-geo-alt"></i> ${event.location}</div>` : ''}
                     ${event.instructor ? `<div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;"><i class="bi bi-person"></i> ${event.instructor}</div>` : ''}
-                    ${event.enrollment !== undefined ? `<div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;"><i class="bi bi-people"></i> ${event.enrollment} enrolled</div>` : ''}
-                    <div style="margin-top: 8px;">
+                    ${event.enrollment !== undefined ? `<div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;"><i class="bi bi-people"></i> ${event.enrollment}/${event.max_students || '?'} enrolled</div>` : ''}
+                    <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span class="event-status-badge status-${statusClass}">${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}</span>
+                        ${isEnrolled ? '<span class="enrollment-badge" style="background: var(--success-color); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">✓ Enrolled</span>' : ''}
                     </div>
-                    ${event.id ? `<div style="margin-top: 8px;"><a href="/courses/view/${event.id}" class="btn btn-sm btn-primary">View Details</a></div>` : ''}
+                    ${event.id ? `
+                        <div style="margin-top: 8px; display: flex; gap: 8px;">
+                            <a href="/courses/view/${event.id}" class="btn btn-sm btn-primary">VIEW DETAILS</a>
+                            ${canEnroll ? `<a href="/courses/enroll/${event.id}" class="btn btn-sm btn-success">Sign Up</a>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         });

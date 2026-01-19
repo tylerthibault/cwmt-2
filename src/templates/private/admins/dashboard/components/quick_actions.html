@@ -1,23 +1,29 @@
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card border-0 shadow-sm animate-fade-up animate-delay-500">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-lightning-charge-fill text-primary me-2"></i>
-                        Quick Actions
-                    </h5>
-                </div>
-                
-                <div class="row g-3">
-                    <!-- Send Announcement -->
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="quick-action-card" data-bs-toggle="modal" data-bs-target="#announcementModal">
-                            <h6 class="fw-semibold mb-1">
-                                <i class="bi bi-megaphone-fill text-primary me-2"></i>
-                                Send Announcement
-                            </h6>
-                            <p class="text-muted small mb-0">Notify all users</p>
+        <div class="quick-actions-card animate-fade-up animate-delay-500">
+            <div class="quick-actions-header">
+                <h5 class="quick-actions-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor"/>
+                    </svg>
+                    Quick Actions
+                </h5>
+            </div>
+            
+            <div class="row g-3">
+                <!-- Send Announcement -->
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="quick-action-item" data-bs-toggle="modal" data-bs-target="#announcementModal">
+                        <div class="quick-action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="quick-action-content">
+                            <h6 class="quick-action-label">Send Announcement</h6>
+                            <p class="quick-action-desc">Notify all users</p>
                         </div>
                     </div>
                 </div>
@@ -29,20 +35,24 @@
 <!-- Announcement Modal -->
 <div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="announcementModalLabel">
-                    <i class="bi bi-megaphone-fill text-primary me-2"></i>
+        <div class="modal-content modern-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="announcementModalLabel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                     Send Announcement
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body pt-3">
+            <div class="modal-body">
                 <form id="announcementForm">
                     <div class="mb-3">
-                        <label for="announcementMessage" class="form-label fw-semibold">Message</label>
+                        <label for="announcementMessage" class="form-label">Message</label>
                         <textarea 
-                            class="form-control" 
+                            class="form-control modern-input" 
                             id="announcementMessage" 
                             rows="4" 
                             placeholder="Type your announcement message here..."
@@ -51,8 +61,11 @@
                         <div class="form-text">This message will be visible to all users on their dashboards.</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-grow-1">
-                            <i class="bi bi-send-fill me-1"></i> Send Announcement
+                        <button type="submit" class="btn btn-gradient-primary flex-grow-1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Send Announcement
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                             Cancel
@@ -65,20 +78,204 @@
 </div>
 
 <style>
-.quick-action-card {
+/* Quick Actions Card */
+.quick-actions-card {
+    background: var(--overlay-white-90);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 1.75rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.quick-actions-header {
+    margin-bottom: 1.5rem;
+}
+
+.quick-actions-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--brand-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.quick-actions-title svg {
+    color: var(--brand-primary);
+    -webkit-text-fill-color: var(--brand-primary);
+}
+
+/* Quick Action Item */
+.quick-action-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     padding: 1.25rem;
-    border: 2px solid #e9ecef;
+    background: white;
+    border: 2px solid rgba(169, 50, 38, 0.1);
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100%;
 }
 
-.quick-action-card:hover {
-    border-color: var(--bs-primary);
-    background-color: #f8f9fa;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.quick-action-item:hover {
+    transform: translateY(-4px);
+    border-color: var(--brand-primary);
+    box-shadow: 0 8px 24px rgba(169, 50, 38, 0.12);
+    background: linear-gradient(135deg, rgba(169, 50, 38, 0.03), rgba(231, 76, 60, 0.05));
+}
+
+.quick-action-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--brand-gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.quick-action-item:hover .quick-action-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.quick-action-content {
+    flex: 1;
+}
+
+.quick-action-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--brand-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.quick-action-desc {
+    font-size: 0.8125rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
+}
+
+/* Modern Modal */
+.modern-modal {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+}
+
+.modern-modal .modal-header {
+    background: var(--brand-gradient-primary);
+    color: white;
+    border: none;
+    padding: 1.5rem;
+}
+
+.modern-modal .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.modern-modal .modal-title svg {
+    stroke: white;
+}
+
+.modern-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modern-modal .btn-close:hover {
+    opacity: 1;
+}
+
+.modern-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.modern-modal .form-label {
+    font-weight: 600;
+    color: var(--brand-dark);
+    margin-bottom: 0.5rem;
+}
+
+.modern-input {
+    border: 2px solid rgba(169, 50, 38, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.modern-input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(169, 50, 38, 0.1);
+    outline: none;
+}
+
+.btn-gradient-primary {
+    background: var(--brand-gradient-primary);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(169, 50, 38, 0.3);
+    color: white;
+}
+
+.btn-gradient-primary svg {
+    stroke: white;
+}
+
+.btn-outline-secondary {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quick-actions-card {
+        padding: 1.25rem;
+    }
+    
+    .quick-action-item {
+        padding: 1rem;
+    }
+    
+    .quick-action-icon {
+        width: 40px;
+        height: 40px;
+    }
 }
 </style>
 

@@ -5,78 +5,130 @@
     .container-3ddf343b {
         display: flex;
         flex-direction: row;
-        gap: 1rem;
-        height: 100vh;
+        gap: 1.5rem;
+        min-height: 100vh;
         width: 100%;
+        background: var(--brand-gradient-bg);
         overflow: hidden;
-        overflow-y: auto;
     }
 
     .sidenav-3ddf343b {
         position: sticky;
         top: 0;
         height: 100vh;
-        width: 13em;
-        padding: 15px;
-        background-color: var(--gray-100);
+        width: 280px;
+        padding: 2rem 1.25rem;
+        background: var(--overlay-white-90);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
         flex-shrink: 0;
         overflow-y: auto;
+        box-shadow: 4px 0 24px color-mix(in srgb, var(--black) 5%, transparent);
     }
 
     .content-3ddf343b {
         width: 100%;
-        background-color: white;
         flex-grow: 1;
-        padding: 1em;
+        padding: 2rem;
         overflow-y: auto;
     }
     
     .sidenav-list-3ddf343b {
         list-style-type: none;
         padding: 0;
+        margin: 0;
     }
     
     .sidenav-title-3ddf343b {
-        font-weight: bold;
-        margin-bottom: 10px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted-color);
+        margin-bottom: 0.75rem;
+        margin-top: 1.5rem;
+        padding-left: 0.75rem;
+    }
+    
+    .sidenav-title-3ddf343b:first-child {
+        margin-top: 0;
     }
     
     .sidenav-btn-3ddf343b {
         text-decoration: none;
-        color: var(--text-color);
-        display: block;
-        padding: 8px 0.25em;
-        border-radius: var(--radius-sm);
-        transition: background-color var(--transition-base);
+        color: var(--brand-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 0.75rem;
+        border-radius: 12px;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .sidenav-btn-3ddf343b::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--brand-gradient-primary);
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 12px;
     }
     
     .sidenav-btn-3ddf343b:hover {
-        background-color: var(--gray-200);
+        background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+        color: var(--brand-primary);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--brand-primary) 10%, transparent);
+    }
+    
+    .sidenav-btn-3ddf343b:hover::before {
+        opacity: 0.05;
+    }
+    
+    .sidenav-btn-3ddf343b.active {
+        background: var(--brand-gradient-primary);
+        color: var(--white);
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--brand-primary) 25%, transparent);
+    }
+    
+    .sidenav-btn-3ddf343b.active::before {
+        opacity: 0;
     }
 
     /* Mobile hamburger menu */
     .mobile-menu-toggle {
         display: none;
         position: fixed;
-        top: 15px;
-        left: 15px;
+        top: 1rem;
+        left: 1rem;
         z-index: 1001;
-        background: var(--primary-gradient);
-        color: white;
+        background: var(--brand-gradient-primary);
+        color: var(--white);
         border: none;
-        border-radius: var(--radius-md);
-        width: 44px;
-        height: 44px;
+        border-radius: 12px;
+        width: 48px;
+        height: 48px;
         align-items: center;
         justify-content: center;
         font-size: 24px;
         cursor: pointer;
-        box-shadow: var(--shadow-lg);
-        transition: transform var(--transition-base);
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mobile-menu-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px color-mix(in srgb, var(--brand-primary) 40%, transparent);
     }
 
     .mobile-menu-toggle:active {
-        transform: scale(0.95);
+        transform: translateY(0);
     }
 
     /* Mobile overlay */
@@ -87,14 +139,22 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
         z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .sidenav-overlay.active {
+        opacity: 1;
     }
 
     /* Mobile responsive */
     @media (max-width: 768px) {
         .container-3ddf343b {
             flex-direction: column;
+            gap: 0;
         }
 
         .mobile-menu-toggle {
@@ -105,12 +165,13 @@
             position: fixed;
             top: 0;
             left: -100%;
-            width: 280px;
-            max-width: 80%;
+            width: 300px;
+            max-width: 85%;
             height: 100vh;
             z-index: 1000;
-            transition: left var(--transition-slow);
-            box-shadow: var(--shadow-xl);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 8px 0 32px color-mix(in srgb, var(--black) 15%, transparent);
+            border-right: none;
         }
 
         .sidenav-3ddf343b.active {
@@ -122,19 +183,24 @@
         }
 
         .content-3ddf343b {
-            padding: 1em 0.75em;
-            margin-top: 60px;
+            padding: 1.5rem 1rem;
+            margin-top: 4rem;
         }
     }
 
     @media (max-width: 480px) {
         .content-3ddf343b {
-            padding: 0.75em 0.5em;
+            padding: 1rem 0.75rem;
         }
 
         .sidenav-3ddf343b {
-            width: 260px;
-            padding: 12px;
+            width: 280px;
+            padding: 1.5rem 1rem;
+        }
+        
+        .mobile-menu-toggle {
+            width: 44px;
+            height: 44px;
         }
     }
 

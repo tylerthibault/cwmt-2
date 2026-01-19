@@ -1,14 +1,10 @@
-<div class="row g-3 g-lg-4 mb-4">
+<div class="row g-4 mb-4 animate-fade-up">
     <!-- Total Students Card -->
     <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100 animate-fade-up">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted text-uppercase small fw-semibold mb-1">Total Students</p>
-                        <h3 class="mb-0 fw-bold">{{ total_students }}</h3>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-body">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                             <rect x="4" y="4" width="24" height="24"/>
                             <line x1="4" y1="16" x2="28" y2="16"/>
@@ -20,21 +16,20 @@
                         </svg>
                     </div>
                 </div>
+                <div class="stat-content">
+                    <p class="stat-label">Total Students</p>
+                    <h3 class="stat-value">{{ total_students }}</h3>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Active Courses Card -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100 animate-fade-up animate-delay-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted text-uppercase small fw-semibold mb-1">Active Courses</p>
-                        <h3 class="mb-0 fw-bold">{{ active_courses }}</h3>
-                        <small class="text-muted">This month</small>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+    <div class="col-md-6 col-xl-4 animate-delay-100">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-body">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                             <rect x="6" y="4" width="20" height="24"/>
                             <line x1="6" y1="11" x2="26" y2="11"/>
@@ -46,21 +41,21 @@
                         </svg>
                     </div>
                 </div>
+                <div class="stat-content">
+                    <p class="stat-label">Active Courses</p>
+                    <h3 class="stat-value">{{ active_courses }}</h3>
+                    <small class="stat-subtext">This month</small>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Pending Enrollments Card -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100 animate-fade-up animate-delay-200">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted text-uppercase small fw-semibold mb-1">Enrollments</p>
-                        <h3 class="mb-0 fw-bold">{{ pending_enrollments }}</h3>
-                        <small class="text-muted">Active</small>
-                    </div>
-                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+    <div class="col-md-6 col-xl-4 animate-delay-200">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-body">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                             <rect x="6" y="4" width="20" height="24"/>
                             <rect x="10" y="8" width="12" height="8"/>
@@ -71,28 +66,21 @@
                         </svg>
                     </div>
                 </div>
+                <div class="stat-content">
+                    <p class="stat-label">Enrollments</p>
+                    <h3 class="stat-value">{{ pending_enrollments }}</h3>
+                    <small class="stat-subtext">Active</small>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Revenue This Month Card -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100 animate-fade-up animate-delay-300">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted text-uppercase small fw-semibold mb-1">Revenue This Month</p>
-                        <h3 class="mb-0 fw-bold">${{ "%.2f"|format(revenue_this_month) }}</h3>
-                        {% if revenue_change != 0 %}
-                            <small class="{% if revenue_change > 0 %}text-success{% else %}text-danger{% endif %}">
-                                <i class="bi bi-arrow-{% if revenue_change > 0 %}up{% else %}down{% endif %}"></i>
-                                {{ "%.1f"|format(revenue_change|abs) }}% vs last month
-                            </small>
-                        {% else %}
-                            <small class="text-muted">No change</small>
-                        {% endif %}
-                    </div>
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+    <div class="col-md-6 col-xl-4 animate-delay-300">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-body">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                             <rect x="4" y="8" width="24" height="16"/>
                             <line x1="11" y1="8" x2="11" y2="24"/>
@@ -103,21 +91,34 @@
                         </svg>
                     </div>
                 </div>
+                <div class="stat-content">
+                    <p class="stat-label">Revenue This Month</p>
+                    <h3 class="stat-value">${{ "%.2f"|format(revenue_this_month) }}</h3>
+                    {% if revenue_change != 0 %}
+                        <small class="stat-change {% if revenue_change > 0 %}stat-change-up{% else %}stat-change-down{% endif %}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                {% if revenue_change > 0 %}
+                                <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                {% else %}
+                                <path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                {% endif %}
+                            </svg>
+                            {{ "%.1f"|format(revenue_change|abs) }}% vs last month
+                        </small>
+                    {% else %}
+                        <small class="stat-subtext">No change</small>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Upcoming Courses Card -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100 animate-fade-up animate-delay-400">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted text-uppercase small fw-semibold mb-1">Upcoming Courses</p>
-                        <h3 class="mb-0 fw-bold">{{ upcoming_courses }}</h3>
-                        <small class="text-muted">Next 7 days</small>
-                    </div>
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+    <div class="col-md-6 col-xl-4 animate-delay-400">
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-body">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                             <rect x="8" y="6" width="16" height="20"/>
                             <line x1="8" y1="12" x2="24" y2="12"/>
@@ -128,20 +129,72 @@
                         </svg>
                     </div>
                 </div>
+                <div class="stat-content">
+                    <p class="stat-label">Upcoming Courses</p>
+                    <h3 class="stat-value">{{ upcoming_courses }}</h3>
+                    <small class="stat-subtext">Next 7 days</small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+/* Stats Cards */
+.stat-card {
+    position: relative;
+    background: var(--overlay-white-90);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    height: 100%;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--brand-gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(169, 50, 38, 0.15);
+    border-color: rgba(169, 50, 38, 0.2);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon-wrapper {
+    position: relative;
+}
+
 .stat-icon {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    font-size: 1.75rem;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
 .stat-icon svg {
@@ -149,12 +202,140 @@
     height: 32px;
 }
 
-.card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+.stat-card-primary .stat-icon {
+    background: linear-gradient(135deg, rgba(169, 50, 38, 0.1), rgba(231, 76, 60, 0.15));
+    color: var(--brand-primary);
+}
+
+.stat-card-success .stat-icon {
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.1), rgba(46, 204, 113, 0.15));
+    color: #27ae60;
+}
+
+.stat-card-info .stat-icon {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.15));
+    color: var(--brand-accent-blue);
+}
+
+.stat-card-warning .stat-icon {
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(243, 156, 18, 0.15));
+    color: #f39c12;
+}
+
+.stat-card-danger .stat-icon {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.15));
+    color: #e74c3c;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--brand-gradient-dark);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-subtext {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.5);
+    margin-top: 0.25rem;
+}
+
+.stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.stat-change-up {
+    color: #27ae60;
+}
+
+.stat-change-down {
+    color: #e74c3c;
+}
+
+.animate-fade-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-delay-100 {
+    animation-delay: 0.1s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.animate-delay-200 {
+    animation-delay: 0.2s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.animate-delay-300 {
+    animation-delay: 0.3s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.animate-delay-400 {
+    animation-delay: 0.4s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .stat-icon svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+    }
 }
 </style>
