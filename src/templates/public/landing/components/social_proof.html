@@ -1,188 +1,598 @@
 <!-- Social Proof Section -->
-<section class="social-proof-section bg-hexagon-pattern py-5">
-    <div class="container">
+<section class="social-proof-section">
+    <div class="social-proof-container">
         <!-- Stats Row -->
-        <div class="row text-center mb-5" data-aos="fade-up">
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-box">
-                    <div class="stat-number">5,000+</div>
-                    <div class="stat-label">Students Trained</div>
+        <div class="stats-grid" data-aos="fade-up">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                 </div>
+                <div class="stat-number">5,000+</div>
+                <div class="stat-label">Students Trained</div>
             </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-box">
-                    <div class="stat-number">15+</div>
-                    <div class="stat-label">Years Experience</div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
                 </div>
+                <div class="stat-number">15+</div>
+                <div class="stat-label">Years Experience</div>
             </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-box">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Pass Rate</div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
                 </div>
+                <div class="stat-number">98%</div>
+                <div class="stat-label">Pass Rate</div>
             </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-box">
-                    <div class="stat-number">4.9/5</div>
-                    <div class="stat-label">Average Rating</div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
                 </div>
+                <div class="stat-number">4.9/5</div>
+                <div class="stat-label">Average Rating</div>
             </div>
         </div>
 
         <!-- Testimonials Header -->
-        <div class="text-center mb-5" data-aos="fade-up">
+        <div class="section-header" data-aos="fade-up">
+            <div class="section-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Testimonials</span>
+            </div>
             <h2 class="section-title">What Our Students Say</h2>
-            <p class="section-subtitle text-muted">Real feedback from real riders</p>
+            <p class="section-subtitle">Real feedback from real riders</p>
         </div>
 
         <!-- Testimonials Grid -->
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "The instructors were patient and knowledgeable. I went from never riding to getting my 
-                        license in just one weekend. Highly recommend CWMT!"
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=1" alt="Sarah M." class="author-avatar">
-                        <div>
-                            <div class="author-name">Sarah M.</div>
-                            <div class="author-title">Basic Rider Course</div>
-                        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "The instructors were patient and knowledgeable. I went from never riding to getting my 
+                    license in just one weekend. Highly recommend CWMT!"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=1" alt="Sarah M." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">Sarah M.</div>
+                        <div class="author-title">Basic Rider Course</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "Best decision I ever made! The hands-on training and supportive environment made learning 
-                        to ride so much easier than I expected."
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=13" alt="Mike T." class="author-avatar">
-                        <div>
-                            <div class="author-name">Mike T.</div>
-                            <div class="author-title">Intermediate Course</div>
-                        </div>
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "Best decision I ever made! The hands-on training and supportive environment made learning 
+                    to ride so much easier than I expected."
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=13" alt="Mike T." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">Mike T.</div>
+                        <div class="author-title">Intermediate Course</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "Professional, thorough, and fun! The instructors really care about your success. I feel 
-                        confident and safe on the road now."
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=5" alt="Jessica L." class="author-avatar">
-                        <div>
-                            <div class="author-name">Jessica L.</div>
-                            <div class="author-title">Basic Rider Course</div>
-                        </div>
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "Professional, thorough, and fun! The instructors really care about your success. I feel 
+                    confident and safe on the road now."
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=5" alt="Jessica L." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">Jessica L.</div>
+                        <div class="author-title">Basic Rider Course</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "I was nervous at first, but the instructors made me feel comfortable right away. The 
-                        course structure is perfect for building skills gradually."
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=33" alt="David R." class="author-avatar">
-                        <div>
-                            <div class="author-name">David R.</div>
-                            <div class="author-title">Advanced Training</div>
-                        </div>
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "I was nervous at first, but the instructors made me feel comfortable right away. The 
+                    course structure is perfect for building skills gradually."
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=33" alt="David R." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">David R.</div>
+                        <div class="author-title">Advanced Training</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "Excellent training program! Small class sizes and personalized attention made all the 
-                        difference. Worth every penny!"
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=20" alt="Emily K." class="author-avatar">
-                        <div>
-                            <div class="author-name">Emily K.</div>
-                            <div class="author-title">Basic Rider Course</div>
-                        </div>
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "Excellent training program! Small class sizes and personalized attention made all the 
+                    difference. Worth every penny!"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=20" alt="Emily K." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">Emily K.</div>
+                        <div class="author-title">Basic Rider Course</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                <div class="testimonial-card">
-                    <div class="stars mb-3">
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                        <i class="bi bi-star-fill text-warning"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "From classroom theory to parking lot practice, everything was top-notch. I passed my test 
-                        with flying colors!"
-                    </p>
-                    <div class="testimonial-author">
-                        <img src="https://i.pravatar.cc/150?img=8" alt="Jason P." class="author-avatar">
-                        <div>
-                            <div class="author-name">Jason P.</div>
-                            <div class="author-title">Weekend Course</div>
-                        </div>
+            <div class="testimonial-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="quote-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                    </svg>
+                </div>
+                <div class="stars">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <p class="testimonial-text">
+                    "From classroom theory to parking lot practice, everything was top-notch. I passed my test 
+                    with flying colors!"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/150?img=8" alt="Jason P." class="author-avatar">
+                    <div class="author-info">
+                        <div class="author-name">Jason P.</div>
+                        <div class="author-title">Weekend Course</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Certification Badge -->
-        <div class="text-center mt-5" data-aos="fade-up">
-            <div class="certification-badge">
-                <i class="bi bi-patch-check-fill text-primary fs-1 mb-2"></i>
-                <h5 class="mb-1">Washington State DOL Approved</h5>
-                <p class="text-muted small mb-0">Licensed and certified motorcycle training provider</p>
+        <div class="certification-section" data-aos="fade-up">
+            <div class="certification-card">
+                <div class="certification-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <h3 class="certification-title">Washington State DOL Approved</h3>
+                <p class="certification-description">Licensed and certified motorcycle training provider</p>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+/* ===================================
+   Social Proof Section - Modern Style
+   =================================== */
+
+.social-proof-section {
+    padding: 5rem 1rem;
+    background: var(--white);
+    position: relative;
+    overflow: hidden;
+}
+
+.social-proof-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 5rem;
+}
+
+.stat-card {
+    padding: 2rem 1.5rem;
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+    border-radius: 20px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--brand-gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 0;
+}
+
+.stat-card:hover::before {
+    opacity: 0.05;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1rem;
+    background: var(--brand-gradient-primary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    position: relative;
+    z-index: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--brand-dark);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
+}
+
+/* Section Header */
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    margin-bottom: 1.5rem;
+}
+
+.section-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.section-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 900;
+    color: var(--brand-dark);
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-muted-color);
+}
+
+/* Testimonials Grid */
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+}
+
+.testimonial-card {
+    padding: 2rem;
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+    border-radius: 24px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--black) 10%, transparent);
+    border-color: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.quote-icon {
+    color: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+    margin-bottom: 1rem;
+}
+
+.stars {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--warning-color);
+}
+
+.testimonial-text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-color-light);
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--black) 8%, transparent);
+}
+
+.author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--black) 10%, transparent);
+}
+
+.author-info {
+    flex: 1;
+}
+
+.author-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-dark);
+    margin-bottom: 0.125rem;
+}
+
+.author-title {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+}
+
+/* Certification Section */
+.certification-section {
+    text-align: center;
+}
+
+.certification-card {
+    display: inline-block;
+    padding: 3rem 2rem;
+    background: var(--brand-gradient-primary);
+    border-radius: 24px;
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+    color: var(--white);
+    max-width: 500px;
+}
+
+.certification-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-primary);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--black) 20%, transparent);
+}
+
+.certification-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.certification-description {
+    font-size: 1rem;
+    opacity: 0.95;
+    margin: 0;
+}
+
+/* Tablet (640px+) */
+@media (min-width: 640px) {
+    .social-proof-section {
+        padding: 6rem 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .social-proof-section {
+        padding: 8rem 3rem;
+    }
+    
+    .stats-grid {
+        gap: 2rem;
+    }
+    
+    .stat-card {
+        padding: 2.5rem 2rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .testimonials-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+    
+    .testimonial-card {
+        padding: 2.5rem;
+    }
+}
+
+/* Large Desktop (1280px+) */
+@media (min-width: 1280px) {
+    .section-title {
+        font-size: 3.5rem;
+    }
+    
+    .section-subtitle {
+        font-size: 1.25rem;
+    }
+}
+</style>

@@ -1,62 +1,128 @@
-<!-- Hero Section - Mobile First Design -->
+<!-- Hero Section - Modern Mobile First Design -->
 <section class="hero-section">
+    <!-- Animated Background Elements -->
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
     <div class="hero-container">
-        <!-- Mobile & Tablet Layout (Default) -->
-        <div class="hero-content">
-            <div class="hero-badge">
-                <span class="badge bg-primary">Certified Training</span>
+        <!-- Main Content Grid -->
+        <div class="hero-grid">
+            <!-- Content Block -->
+            <div class="hero-content">
+                <div class="hero-badge-wrapper">
+                    <div class="hero-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <span>Certified Training</span>
+                    </div>
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="hero-title-top">Master the Road</span>
+                    <span class="hero-title-main">Central Washington</span>
+                    <span class="hero-title-accent">Motorcycle Training</span>
+                </h1>
+                
+                <p class="hero-description">
+                    Professional training courses designed for riders of all levels. 
+                    Build confidence, master skills, and ride safely with expert instruction.
+                </p>
+                
+                <!-- Action Buttons -->
+                <div class="hero-actions">
+                    <a href="{{ url_for('auth.loginReg') }}" class="hero-btn hero-btn-primary">
+                        <span>Get Started</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="{{ url_for('main.public_courses') }}" class="hero-btn hero-btn-secondary">
+                        <span>Explore Courses</span>
+                    </a>
+                </div>
+                
+                <!-- Quick Stats - Mobile -->
+                <div class="hero-quick-stats">
+                    <div class="quick-stat">
+                        <span class="quick-stat-value">1,000+</span>
+                        <span class="quick-stat-label">Graduates</span>
+                    </div>
+                    <div class="quick-stat-divider"></div>
+                    <div class="quick-stat">
+                        <span class="quick-stat-value">15 Yrs</span>
+                        <span class="quick-stat-label">Experience</span>
+                    </div>
+                    <div class="quick-stat-divider"></div>
+                    <div class="quick-stat">
+                        <span class="quick-stat-value">4.9★</span>
+                        <span class="quick-stat-label">Rating</span>
+                    </div>
+                </div>
             </div>
             
-            <h1 class="hero-main-title">
-                Central Washington<br>
-                Motorcycle Training
-            </h1>
-            
-            <h2 class="hero-tagline">
-                Ride with <span class="text-primary">Confidence</span>
-            </h2>
-            
-            <p class="hero-description">
-                Professional motorcycle training courses designed for riders of all experience levels. 
-                From beginners to advanced, we'll help you become a safer, more skilled rider.
-            </p>
-            
-            <div class="hero-actions">
-                <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary btn-lg">
-                    Signup Now
-                </a>
-                <a href="{{ url_for('main.public_courses') }}" class="btn btn-outline-dark btn-lg">
-                    View Courses
-                </a>
+            <!-- Media Block with Floating Card -->
+            <div class="hero-media">
+                <div class="hero-video-card">
+                    <div class="video-card-inner">
+                        <video class="hero-video" autoplay muted loop playsinline>
+                            <source src="{{ url_for('static', filename='vid/cwmt.mp4') }}" type="video/mp4">
+                        </video>
+                        <div class="video-overlay">
+                            <div class="video-play-badge">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Floating Stats Card -->
+                <div class="floating-stats-card">
+                    <div class="floating-stat">
+                        <div class="floating-stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <div class="floating-stat-content">
+                            <div class="floating-stat-value">98%</div>
+                            <div class="floating-stat-label">Pass Rate</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <!-- Video Section -->
-        <div class="hero-media">
-            <div class="hero-video-wrapper">
-                <video class="hero-video" autoplay muted loop playsinline>
-                    <source src="{{ url_for('static', filename='vid/cwmt.mp4') }}" type="video/mp4">
-                </video>
+        <!-- Feature Pills - Desktop Only -->
+        <div class="hero-features">
+            <div class="feature-pill">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Expert Instructors</span>
             </div>
-        </div>
-        
-        <!-- Stats Section -->
-        <div class="hero-stats">
-            <div class="stat-item">
-                <div class="stat-value">1,000</div>
-                <div class="stat-label">Students Trained</div>
+            <div class="feature-pill">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <span>Modern Equipment</span>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">15+</div>
-                <div class="stat-label">Years Experience</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">98%</div>
-                <div class="stat-label">Success Rate</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">4.9/5</div>
-                <div class="stat-label">Average Rating</div>
+            <div class="feature-pill">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Flexible Schedule</span>
             </div>
         </div>
     </div>
@@ -64,19 +130,73 @@
 
 <style>
 /* ===================================
-   Hero Section - Mobile First
+   Modern Hero Section - Mobile First
    =================================== */
 
 /* Base Mobile Styles (320px+) */
 .hero-section {
     width: 100%;
-    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
-    padding: 2rem 1rem;
+    position: relative;
+    padding: 1.5rem 1rem 3rem;
     min-height: 100vh;
     display: flex;
     align-items: center;
+    overflow: hidden;
+    background: var(--brand-gradient-bg);
 }
 
+/* Animated Background Shapes */
+.hero-bg-shapes {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 20s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 300px;
+    height: 300px;
+    background: var(--brand-gradient-primary);
+    top: -100px;
+    right: -100px;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 250px;
+    height: 250px;
+    background: var(--brand-gradient-blue);
+    bottom: -80px;
+    left: -80px;
+    animation-delay: 5s;
+}
+
+.shape-3 {
+    width: 200px;
+    height: 200px;
+    background: var(--brand-gradient-dark);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 10s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -30px) scale(1.1); }
+    50% { transform: translate(-20px, 20px) scale(0.9); }
+    75% { transform: translate(20px, 30px) scale(1.05); }
+}
+
+/* Container */
 .hero-container {
     width: 100%;
     max-width: 1400px;
@@ -85,68 +205,226 @@
     z-index: 1;
 }
 
+/* Grid Layout */
+.hero-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
 /* Content */
 .hero-content {
-    text-align: center;
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 2;
+    order: 1;
+}
+
+.hero-badge-wrapper {
+    margin-bottom: 1.5rem;
+    animation: fadeInDown 0.8s ease-out;
 }
 
 .hero-badge {
-    margin-bottom: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--brand-primary) 10%, transparent);
 }
 
-.hero-main-title {
-    font-size: clamp(2rem, 8vw, 3rem);
+.hero-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Title */
+.hero-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero-title-top {
+    font-size: clamp(0.875rem, 3vw, 1rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted-light);
+}
+
+.hero-title-main {
+    font-size: clamp(2rem, 10vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--brand-dark);
+    background: var(--brand-gradient-dark);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-title-accent {
+    font-size: clamp(1.5rem, 8vw, 2rem);
     font-weight: 800;
-    color: #a93226;
-    margin-bottom: 1rem;
     line-height: 1.2;
-}
-
-.hero-tagline {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
+    color: var(--brand-primary);
+    background: var(--brand-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .hero-description {
     font-size: 1rem;
-    line-height: 1.6;
-    color: #6c757d;
+    line-height: 1.7;
+    color: var(--text-color-light);
     margin-bottom: 2rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 500px;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
+/* Action Buttons */
 .hero-actions {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.875rem;
     margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-.hero-actions .btn {
-    width: 100%;
-}
-
-/* Video */
-.hero-media {
-    margin-bottom: 2rem;
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    z-index: 1;
-}
-
-.hero-video-wrapper {
-    width: 100%;
-    border-radius: var(--border-radius-lg);
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    aspect-ratio: 16 / 9;
+}
+
+.hero-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-gradient-white);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hero-btn:hover::before {
+    opacity: 1;
+}
+
+.hero-btn-primary {
+    background: var(--brand-gradient-primary);
+    color: var(--white);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+.hero-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+    color: var(--white);
+}
+
+.hero-btn-primary svg {
+    transition: transform 0.3s;
+}
+
+.hero-btn-primary:hover svg {
+    transform: translateX(4px);
+}
+
+.hero-btn-secondary {
+    background: var(--overlay-white-90);
+    color: var(--brand-dark);
+    border: 2px solid color-mix(in srgb, var(--brand-dark) 10%, transparent);
+    backdrop-filter: blur(10px);
+}
+
+.hero-btn-secondary:hover {
+    background: var(--white);
+    border-color: color-mix(in srgb, var(--brand-dark) 30%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px var(--overlay-black-10);
+    color: var(--brand-dark);
+}
+
+/* Quick Stats - Mobile */
+.hero-quick-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    background: var(--overlay-white-80);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--black) 5%, transparent);
+    animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.quick-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.quick-stat-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--brand-dark);
+    line-height: 1;
+}
+
+.quick-stat-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted-light);
+}
+
+.quick-stat-divider {
+    width: 1px;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, var(--overlay-black-10), transparent);
+}
+
+/* Media Block */
+.hero-media {
+    order: 2;
     position: relative;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.hero-video-card {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    transform: perspective(1000px) rotateY(0deg);
+    transition: transform 0.6s ease;
+}
+
+.video-card-inner {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: var(--brand-gradient-dark);
 }
 
 .hero-video {
@@ -154,135 +432,287 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    position: relative;
 }
 
-/* Stats */
-.hero-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    padding: 2rem 0;
-    position: relative;
-    z-index: 2;
+.video-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-gradient-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
-.stat-item {
-    text-align: center;
-    padding: 1rem;
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.hero-video-card:hover .video-overlay {
+    opacity: 1;
 }
 
-.stat-value {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
+.video-play-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--overlay-white-95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-primary);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--black) 20%, transparent);
+    transform: scale(0.9);
+    transition: transform 0.3s;
 }
 
-.stat-label {
+.hero-video-card:hover .video-play-badge {
+    transform: scale(1);
+}
+
+/* Floating Stats Card */
+.floating-stats-card {
+    position: absolute;
+    bottom: -20px;
+    right: -10px;
+    padding: 1rem 1.25rem;
+    background: var(--overlay-white-95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--black) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--white) 50%, transparent);
+    animation: floatCard 3s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.floating-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.floating-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color-hover) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.floating-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.floating-stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-dark);
+    line-height: 1;
+}
+
+.floating-stat-label {
     font-size: 0.75rem;
     font-weight: 600;
+    color: var(--text-muted-light);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #7f8c8d;
 }
 
-/* Tablet (768px+) */
-@media (min-width: 768px) {
-    .hero-section {
-        padding: 3rem 2rem;
+/* Feature Pills - Hidden on Mobile */
+.hero-features {
+    display: none;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
     }
-    
-    .hero-actions {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .hero-actions .btn {
-        width: auto;
-        min-width: 180px;
-    }
-    
-    .hero-stats {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 2rem;
-    }
-    
-    .stat-value {
-        font-size: 2.5rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Desktop (992px+) - Split Layout */
-@media (min-width: 992px) {
-    .hero-section {
-        padding: 4rem 3rem;
-        min-height: 100vh;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    
-    .hero-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto;
-        gap: 3rem;
-        align-items: center;
-    }
-    
-    .hero-content {
-        grid-column: 1;
-        grid-row: 1;
-        text-align: left;
-        margin-bottom: 0;
-    }
-    
-    .hero-description {
-        margin-left: 0;
-        margin-right: 0;
-    }
-    
-    .hero-actions {
-        justify-content: flex-start;
-    }
-    
-    .hero-media {
-        grid-column: 2;
-        grid-row: 1 / 3;
-        margin-bottom: 0;
-    }
-    
-    .hero-video-wrapper {
-        aspect-ratio: 4 / 5;
-        max-height: 600px;
-    }
-    
-    .hero-stats {
-        grid-column: 1;
-        grid-row: 2;
-        grid-template-columns: repeat(2, 1fr);
-        padding-top: 3rem;
-        border-top: 2px solid #e9ecef;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Large Desktop (1200px+) */
-@media (min-width: 1200px) {
+/* Tablet (640px+) */
+@media (min-width: 640px) {
     .hero-section {
-        padding: 5rem 4rem;
-    }
-    
-    .hero-main-title {
-        font-size: 3.5rem;
-    }
-    
-    .hero-tagline {
-        font-size: 2.5rem;
+        padding: 2rem 1.5rem 4rem;
     }
     
     .hero-description {
         font-size: 1.125rem;
+        max-width: 600px;
+    }
+    
+    .hero-actions {
+        flex-direction: row;
+    }
+    
+    .hero-btn {
+        padding: 1.125rem 2rem;
+    }
+    
+    .quick-stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .quick-stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .floating-stats-card {
+        right: 20px;
+        bottom: 20px;
+    }
+}
+
+/* Tablet Landscape (768px+) */
+@media (min-width: 768px) {
+    .hero-section {
+        padding: 3rem 2rem 5rem;
+    }
+    
+    .hero-grid {
+        gap: 3rem;
+    }
+    
+    .hero-title-main {
+        font-size: clamp(2.5rem, 8vw, 3.5rem);
+    }
+    
+    .hero-title-accent {
+        font-size: clamp(2rem, 6vw, 2.75rem);
+    }
+    
+    .video-card-inner {
+        aspect-ratio: 16 / 10;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .hero-section {
+        padding: 4rem 3rem;
+    }
+    
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+    
+    .hero-content {
+        order: 0;
+    }
+    
+    .hero-media {
+        order: 0;
+    }
+    
+    .hero-quick-stats {
+        display: none;
+    }
+    
+    .hero-video-card:hover {
+        transform: perspective(1000px) rotateY(-5deg);
+    }
+    
+    .video-card-inner {
+        aspect-ratio: 4 / 5;
+    }
+    
+    /* Feature Pills - Visible on Desktop */
+    .hero-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 3rem;
+        animation: fadeInUp 0.8s ease-out 1s both;
+    }
+    
+    .feature-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--overlay-white-80);
+        backdrop-filter: blur(10px);
+        border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--brand-dark);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--black) 5%, transparent);
+        transition: all 0.3s;
+    }
+    
+    .feature-pill:hover {
+        background: var(--white);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px var(--overlay-black-10);
+    }
+    
+    .feature-pill svg {
+        width: 18px;
+        height: 18px;
+        color: var(--brand-primary);
+    }
+}
+
+/* Large Desktop (1280px+) */
+@media (min-width: 1280px) {
+    .hero-section {
+        padding: 5rem 4rem;
+    }
+    
+    .hero-grid {
+        gap: 5rem;
+    }
+    
+    .hero-title-main {
+        font-size: 4rem;
+    }
+    
+    .hero-title-accent {
+        font-size: 3rem;
+    }
+    
+    .hero-description {
+        font-size: 1.25rem;
+        max-width: 560px;
+    }
+}
+
+/* Extra Large Desktop (1536px+) */
+@media (min-width: 1536px) {
+    .hero-title-main {
+        font-size: 4.5rem;
+    }
+    
+    .hero-title-accent {
+        font-size: 3.5rem;
     }
 }
 </style>

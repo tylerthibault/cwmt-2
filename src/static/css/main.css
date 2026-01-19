@@ -18,7 +18,17 @@
     --font-accent: 'JetBrains Mono', monospace;
     
     /* ===== MODERN COLOR PALETTE ===== */
-    /* Primary - Purple/Blue gradient theme */
+    /* CWMT Brand Colors */
+    --brand-primary: #a93226;
+    --brand-primary-light: #e74c3c;
+    --brand-primary-dark: #8b2a1f;
+    --brand-dark: #2c3e50;
+    --brand-dark-light: #34495e;
+    --brand-dark-lighter: #475569;
+    --brand-accent-blue: #3498db;
+    --brand-accent-blue-dark: #2980b9;
+    
+    /* Primary - Purple/Blue gradient theme (legacy) */
     --primary-color: #667eea;
     --primary-color-hover: #5568d3;
     --primary-color-light: #8b9aef;
@@ -26,6 +36,13 @@
     --primary-color-lightest: #e7eaf9;
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --primary-gradient-hover: linear-gradient(135deg, #5568d3 0%, #653996 100%);
+    
+    /* CWMT Brand Gradients */
+    --brand-gradient-primary: linear-gradient(135deg, #a93226 0%, #e74c3c 100%);
+    --brand-gradient-primary-hover: linear-gradient(135deg, #8b2a1f 0%, #d43f2f 100%);
+    --brand-gradient-dark: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    --brand-gradient-blue: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    --brand-gradient-bg: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f5 100%);
     
     /* Secondary - Neutral grays */
     --secondary-color: #6c757d;
@@ -66,11 +83,22 @@
 
     /* ===== TEXT COLORS ===== */
     --text-color: #1f2937;
+    --text-color-light: #495057;
     --text-muted-color: #6b7280;
+    --text-muted-light: #6c757d;
     --text-inverse-color: #ffffff;
     --text-inverse-muted-color: #d1d5db;
     --link-color: #667eea;
     --link-hover-color: #5568d3;
+    
+    /* ===== OVERLAY COLORS ===== */
+    --overlay-white-90: rgba(255, 255, 255, 0.9);
+    --overlay-white-80: rgba(255, 255, 255, 0.8);
+    --overlay-white-95: rgba(255, 255, 255, 0.95);
+    --overlay-black-10: rgba(0, 0, 0, 0.1);
+    --overlay-black-40: rgba(0, 0, 0, 0.4);
+    --overlay-gradient-white: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    --overlay-gradient-dark: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%);
     
     /* ===== SPACING SCALE ===== */
     --space-1: 0.25rem;   /* 4px */

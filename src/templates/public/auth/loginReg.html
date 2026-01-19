@@ -2,132 +2,177 @@
 
 {% block content %}
 {% include 'public/components/navbar.html' %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Welcome</h2>
-                <button id="devModeToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleDevMode()">
-                    <i class="bi bi-code-slash"></i> Dev Mode
+<div class="auth-page">
+    <!-- Animated Background Shapes -->
+    <div class="auth-bg-shapes">
+        <div class="auth-shape auth-shape-1"></div>
+        <div class="auth-shape auth-shape-2"></div>
+    </div>
+    
+    <div class="auth-container">
+        <div class="auth-content">
+            <div class="auth-header">
+                <h2 class="auth-page-title">Welcome to CWMT</h2>
+                <button id="devModeToggle" class="dev-mode-btn" onclick="toggleDevMode()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"/>
+                        <polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                    <span>Dev Mode</span>
                 </button>
             </div>
             
-            <div class="row justify-content-center">
-                <div class="col-lg-5 col-md-8">
-                    <div class="auth-card-container">
-                        <div class="auth-card" id="authCard">
-                            <!-- Login Form (Front) -->
-                            <div class="auth-card-face auth-card-front">
-                                <div class="card border-0 shadow-lg">
-                                    <div class="card-body p-4 p-md-5">
-                                        <div class="text-center mb-4">
-                                            <div class="auth-icon mb-3">
-                                                <i class="bi bi-person-circle text-primary"></i>
+            <div class="auth-card-wrapper">
+                <div class="auth-card-container">
+                    <div class="auth-card" id="authCard">
+                        <!-- Login Form (Front) -->
+                        <div class="auth-card-face auth-card-front">
+                            <div class="auth-form-card">
+                                <div class="auth-form-header">
+                                    <div class="auth-icon-badge">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                    </div>
+                                    <h3 class="auth-form-title">Welcome Back</h3>
+                                    <p class="auth-form-subtitle">Sign in to your account</p>
+                                </div>
+                                
+                                <form action="{{ url_for('auth.login') }}" method="POST" class="auth-form">
+                                    <div class="form-group">
+                                        <label for="login_email" class="form-label">Email Address</label>
+                                        <div class="input-wrapper">
+                                            <div class="input-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                                    <polyline points="22,6 12,13 2,6"/>
+                                                </svg>
                                             </div>
-                                            <h3 class="fw-bold mb-2">Welcome Back</h3>
-                                            <p class="text-muted">Sign in to your account</p>
-                                        </div>
-                                        
-                                        <form action="{{ url_for('auth.login') }}" method="POST">
-                                            <div class="mb-3">
-                                                <label for="login_email" class="form-label">Email Address</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-envelope"></i>
-                                                    </span>
-                                                    <input type="email" class="form-control border-start-0 ps-0" id="login_email" name="email" placeholder="your@email.com" required>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="login_password" class="form-label">Password</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-lock"></i>
-                                                    </span>
-                                                    <input type="password" class="form-control border-start-0 ps-0" id="login_password" name="password" placeholder="Enter your password" required>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                                                    <label class="form-check-label" for="remember_me">Remember me</label>
-                                                </div>
-                                                <a href="#" class="text-primary text-decoration-none small">Forgot password?</a>
-                                            </div>
-                                            <button type="submit" class="btn btn-primary w-100 py-2 mb-3 hover-lift">
-                                                Sign In
-                                            </button>
-                                        </form>
-                                        
-                                        <div class="text-center">
-                                            <p class="text-muted mb-0">
-                                                Don't have an account? 
-                                                <a href="#" class="text-primary text-decoration-none fw-bold" onclick="flipCard(); return false;">
-                                                    Sign Up
-                                                </a>
-                                            </p>
+                                            <input type="email" class="form-input" id="login_email" name="email" placeholder="your@email.com" required>
                                         </div>
                                     </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="login_password" class="form-label">Password</label>
+                                        <div class="input-wrapper">
+                                            <div class="input-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                                </svg>
+                                            </div>
+                                            <input type="password" class="form-input" id="login_password" name="password" placeholder="Enter your password" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-options">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" class="checkbox-input" id="remember_me" name="remember_me">
+                                            <span class="checkbox-text">Remember me</span>
+                                        </label>
+                                        <a href="#" class="forgot-link">Forgot password?</a>
+                                    </div>
+                                    
+                                    <button type="submit" class="auth-btn auth-btn-primary">
+                                        <span>Sign In</span>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                                
+                                <div class="auth-form-footer">
+                                    <p class="footer-text">
+                                        Don't have an account? 
+                                        <a href="#" class="footer-link" onclick="flipCard(); return false;">
+                                            Sign Up
+                                        </a>
+                                    </p>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Register Form (Back) -->
-                            <div class="auth-card-face auth-card-back">
-                                <div class="card border-0 shadow-lg">
-                                    <div class="card-body p-4 p-md-5">
-                                        <div class="text-center mb-4">
-                                            <div class="auth-icon mb-3">
-                                                <i class="bi bi-person-plus-fill text-success"></i>
+                        <!-- Register Form (Back) -->
+                        <div class="auth-card-face auth-card-back">
+                            <div class="auth-form-card">
+                                <div class="auth-form-header">
+                                    <div class="auth-icon-badge auth-icon-success">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="8.5" cy="7" r="4"/>
+                                            <line x1="20" y1="8" x2="20" y2="14"/>
+                                            <line x1="23" y1="11" x2="17" y2="11"/>
+                                        </svg>
+                                    </div>
+                                    <h3 class="auth-form-title">Create Account</h3>
+                                    <p class="auth-form-subtitle">Join us today</p>
+                                </div>
+                                
+                                <form action="{{ url_for('auth.register') }}" method="POST" class="auth-form">
+                                    <div class="form-group">
+                                        <label for="reg_first_name" class="form-label">First Name</label>
+                                        <div class="input-wrapper">
+                                            <div class="input-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="12" cy="7" r="4"/>
+                                                </svg>
                                             </div>
-                                            <h3 class="fw-bold mb-2">Create Account</h3>
-                                            <p class="text-muted">Join us today</p>
-                                        </div>
-                                        
-                                        <form action="{{ url_for('auth.register') }}" method="POST">
-                                            <div class="mb-3">
-                                                <label for="reg_first_name" class="form-label">First Name</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-person"></i>
-                                                    </span>
-                                                    <input type="text" class="form-control border-start-0 ps-0" id="reg_first_name" name="first_name" placeholder="John" required>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="reg_last_name" class="form-label">Last Name</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-person"></i>
-                                                    </span>
-                                                    <input type="text" class="form-control border-start-0 ps-0" id="reg_last_name" name="last_name" placeholder="Doe" required>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="reg_email" class="form-label">Email Address</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-envelope"></i>
-                                                    </span>
-                                                    <input type="email" class="form-control border-start-0 ps-0" id="reg_email" name="email" placeholder="your@email.com" required>
-                                                </div>
-                                            </div>
-                                            <div class="alert alert-info py-2 mb-3" role="alert">
-                                                <small><i class="bi bi-info-circle me-1"></i>A temporary password will be sent to your email</small>
-                                            </div>
-                                            <button type="submit" class="btn btn-success w-100 py-2 mb-3 hover-lift">
-                                                Create Account
-                                            </button>
-                                        </form>
-                                        
-                                        <div class="text-center">
-                                            <p class="text-muted mb-0">
-                                                Already have an account? 
-                                                <a href="#" class="text-primary text-decoration-none fw-bold" onclick="flipCard(); return false;">
-                                                    Sign In
-                                                </a>
-                                            </p>
+                                            <input type="text" class="form-input" id="reg_first_name" name="first_name" placeholder="John" required>
                                         </div>
                                     </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="reg_last_name" class="form-label">Last Name</label>
+                                        <div class="input-wrapper">
+                                            <div class="input-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="12" cy="7" r="4"/>
+                                                </svg>
+                                            </div>
+                                            <input type="text" class="form-input" id="reg_last_name" name="last_name" placeholder="Doe" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="reg_email" class="form-label">Email Address</label>
+                                        <div class="input-wrapper">
+                                            <div class="input-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                                    <polyline points="22,6 12,13 2,6"/>
+                                                </svg>
+                                            </div>
+                                            <input type="email" class="form-input" id="reg_email" name="email" placeholder="your@email.com" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-alert">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="16" x2="12" y2="12"/>
+                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        <span>A temporary password will be sent to your email</span>
+                                    </div>
+                                    
+                                    <button type="submit" class="auth-btn auth-btn-success">
+                                        <span>Create Account</span>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                                
+                                <div class="auth-form-footer">
+                                    <p class="footer-text">
+                                        Already have an account? 
+                                        <a href="#" class="footer-link" onclick="flipCard(); return false;">
+                                            Sign In
+                                        </a>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -141,16 +186,133 @@
 </div>
 
 <style>
-/* Auth Card Flip Animation */
-.auth-card-container {
-    perspective: 1000px;
+/* ===================================
+   Auth Page - Modern Style
+   =================================== */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--brand-gradient-bg);
+    position: relative;
+    overflow: hidden;
+    padding-top: 80px;
+}
+
+/* Animated Background Shapes */
+.auth-bg-shapes {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.auth-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.3;
+    animation: authFloat 25s ease-in-out infinite;
+}
+
+.auth-shape-1 {
+    width: 400px;
+    height: 400px;
+    background: var(--brand-gradient-primary);
+    top: -150px;
+    right: -150px;
+    animation-delay: 0s;
+}
+
+.auth-shape-2 {
+    width: 350px;
+    height: 350px;
+    background: var(--brand-gradient-blue);
+    bottom: -100px;
+    left: -100px;
+    animation-delay: 7s;
+}
+
+@keyframes authFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(40px, -40px) scale(1.1); }
+    66% { transform: translate(-30px, 30px) scale(0.9); }
+}
+
+/* Container */
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-content {
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Header */
+.auth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 2rem;
+}
+
+.auth-page-title {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 900;
+    color: var(--brand-dark);
+    margin: 0;
+}
+
+.dev-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--overlay-white-80);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-dark);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dev-mode-btn:hover {
+    background: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--black) 10%, transparent);
+}
+
+.dev-mode-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Card Wrapper and Flip Animation */
+.auth-card-wrapper {
+    perspective: 1200px;
+}
+
+.auth-card-container {
+    position: relative;
+    width: 100%;
 }
 
 .auth-card {
     position: relative;
     width: 100%;
-    transition: transform 0.6s;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
 }
 
@@ -176,31 +338,291 @@
     transform: rotateY(180deg);
 }
 
-.auth-icon {
-    font-size: 4rem;
-    line-height: 1;
+/* Form Card */
+.auth-form-card {
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(20px);
+    border: 1px solid color-mix(in srgb, var(--black) 5%, transparent);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--black) 10%, transparent);
 }
 
-.input-group-text {
-    background-color: transparent;
+/* Form Header */
+.auth-form-header {
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
-.form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+.auth-icon-badge {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.5rem;
+    background: var(--brand-gradient-primary);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
-.input-group:focus-within .input-group-text {
-    color: var(--bs-primary);
+.auth-icon-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color-hover) 100%);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--success-color) 30%, transparent);
 }
 
-@media (max-width: 767px) {
-    .auth-icon {
-        font-size: 3rem;
+.auth-form-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--brand-dark);
+    margin-bottom: 0.5rem;
+}
+
+.auth-form-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted-color);
+    margin: 0;
+}
+
+/* Form Elements */
+.auth-form {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-dark);
+    margin-bottom: 0.5rem;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted-color);
+    pointer-events: none;
+    transition: color 0.3s;
+    z-index: 1;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    font-size: 1rem;
+    background: var(--white);
+    border: 2px solid color-mix(in srgb, var(--black) 8%, transparent);
+    border-radius: 12px;
+    color: var(--brand-dark);
+    transition: all 0.3s;
+}
+
+.form-input::placeholder {
+    color: var(--text-muted-color);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+.form-input:focus ~ .input-icon,
+.input-wrapper:focus-within .input-icon {
+    color: var(--brand-primary);
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--brand-primary);
+}
+
+.checkbox-text {
+    font-size: 0.875rem;
+    color: var(--text-color-light);
+}
+
+.forgot-link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.forgot-link:hover {
+    color: var(--brand-primary-dark);
+}
+
+/* Info Alert */
+.info-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: color-mix(in srgb, var(--info-color) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--info-color) 15%, transparent);
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+    color: var(--info-color-hover);
+    font-size: 0.875rem;
+}
+
+.info-alert svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+/* Auth Buttons */
+.auth-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-gradient-white);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.auth-btn:hover::before {
+    opacity: 1;
+}
+
+.auth-btn svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s;
+}
+
+.auth-btn:hover svg {
+    transform: translateX(4px);
+}
+
+.auth-btn-primary {
+    background: var(--brand-gradient-primary);
+    color: var(--white);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+.auth-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+}
+
+.auth-btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color-hover) 100%);
+    color: var(--white);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--success-color) 30%, transparent);
+}
+
+.auth-btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--success-color) 40%, transparent);
+}
+
+/* Form Footer */
+.auth-form-footer {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--black) 8%, transparent);
+}
+
+.footer-text {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    margin: 0;
+}
+
+.footer-link {
+    font-weight: 700;
+    color: var(--brand-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-link:hover {
+    color: var(--brand-primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .auth-page {
+        padding-top: 70px;
     }
     
-    .card-body {
-        padding: 1.5rem !important;
+    .auth-container {
+        padding: 1.5rem 1rem;
+    }
+    
+    .auth-form-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-icon-badge {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .auth-form-title {
+        font-size: 1.5rem;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}
+
+@media (min-width: 641px) {
+    .auth-container {
+        padding: 3rem 2rem;
     }
 }
 </style>
