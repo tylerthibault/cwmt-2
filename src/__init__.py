@@ -102,8 +102,8 @@ def init_db(app):
     import os
 
     # Use DATABASE_URL from environment if available, otherwise fall back to SQLite
-    # database_url = os.environ.get('DATABASE_URL')
-    database_url = 'sqlite:///cwmt.db'
+    database_url = os.environ.get('DATABASE_URL')
+    # database_url = 'sqlite:///cwmt.db'
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
