@@ -1,0 +1,410 @@
+/* =================================
+   Modern Card Styles
+   ================================= */
+
+.card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-slow);
+    background: var(--white);
+    overflow: hidden;
+    position: relative;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-4px);
+}
+
+/* Filter Card - Glassmorphism Style */
+.filter-card {
+    background: var(--overlay-white-90);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-4);
+}
+
+/* Summary Stats Cards */
+.summary-stat-card {
+    position: relative;
+    background: var(--overlay-white-90);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all var(--transition-slow);
+    overflow: hidden;
+}
+
+.summary-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    opacity: 1;
+    transition: opacity var(--transition-base);
+}
+
+.summary-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(169, 50, 38, 0.12);
+}
+
+.stat-card-primary::before {
+    background: var(--brand-gradient-primary);
+}
+
+.stat-card-success::before {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.stat-card-info::before {
+    background: var(--brand-gradient-blue);
+}
+
+.stat-card-warning::before {
+    background: linear-gradient(135deg, #f39c12, #f1c40f);
+}
+
+.stat-card-danger::before {
+    background: linear-gradient(135deg, var(--danger-color), var(--danger-color-hover));
+}
+
+.summary-stat-value {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--brand-gradient-dark);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-2);
+}
+
+.summary-stat-label {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted-color);
+    margin: 0;
+}
+
+/* Card Header */
+.card-header {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+    border-bottom: 2px solid var(--gray-200);
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    color: var(--brand-dark);
+    font-size: 1.125rem;
+    position: relative;
+}
+
+.card-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--brand-gradient-primary);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.card-header:hover::after {
+    opacity: 1;
+}
+
+/* Card Body */
+.card-body {
+    padding: var(--space-6);
+    position: relative;
+}
+
+/* Card Footer */
+.card-footer {
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+    border-top: 1px solid var(--gray-200);
+    padding: var(--space-4) var(--space-6);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* Card Title */
+.card-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--brand-dark);
+    margin-bottom: var(--space-3);
+    font-size: 1.25rem;
+}
+
+.card-subtitle {
+    font-family: var(--font-body);
+    color: var(--text-muted-color);
+    margin-bottom: var(--space-4);
+    font-size: 0.95rem;
+}
+
+.card-text {
+    font-family: var(--font-body);
+    color: var(--text-color-light);
+    line-height: 1.6;
+}
+
+/* Card Variants */
+
+/* Gradient Card */
+.card-gradient {
+    background: var(--brand-gradient-bg);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-gradient:hover {
+    box-shadow: var(--shadow-2xl);
+}
+
+/* Glass Card */
+.card-glass {
+    background: var(--overlay-white-90);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--overlay-white-80);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-glass:hover {
+    background: var(--overlay-white-95);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Elevated Card */
+.card-elevated {
+    box-shadow: var(--shadow-xl);
+}
+
+.card-elevated:hover {
+    box-shadow: var(--shadow-2xl);
+    transform: translateY(-6px);
+}
+
+/* Primary Card */
+.card-primary {
+    background: var(--brand-gradient-primary);
+    color: var(--white);
+}
+
+.card-primary .card-header,
+.card-primary .card-footer {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-primary .card-title,
+.card-primary .card-text {
+    color: var(--white);
+}
+
+.card-primary:hover {
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+}
+
+/* Dark Card */
+.card-dark {
+    background: var(--brand-gradient-dark);
+    color: var(--white);
+}
+
+.card-dark .card-header,
+.card-dark .card-footer {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.card-dark .card-title,
+.card-dark .card-text {
+    color: var(--white);
+}
+
+/* Bordered Card */
+.card-bordered {
+    border: 2px solid var(--gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-bordered:hover {
+    border-color: var(--brand-primary);
+    box-shadow: var(--shadow-md);
+}
+
+/* Compact Card */
+.card-compact .card-body {
+    padding: var(--space-4);
+}
+
+.card-compact .card-header,
+.card-compact .card-footer {
+    padding: var(--space-3) var(--space-4);
+}
+
+/* Interactive Card */
+.card-interactive {
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.card-interactive:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: var(--shadow-2xl);
+}
+
+.card-interactive:active {
+    transform: translateY(-2px) scale(1.01);
+}
+
+/* Card with Accent Border */
+.card-accent-top {
+    border-top: 4px solid var(--brand-primary);
+}
+
+.card-accent-left {
+    border-left: 4px solid var(--brand-primary);
+}
+
+.card-accent-success {
+    border-top: 4px solid var(--success-color);
+}
+
+.card-accent-warning {
+    border-top: 4px solid var(--warning-color);
+}
+
+.card-accent-danger {
+    border-top: 4px solid var(--danger-color);
+}
+
+.card-accent-info {
+    border-top: 4px solid var(--info-color);
+}
+
+/* Card Image Styles */
+.card-img-top {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    object-fit: cover;
+}
+
+.card-img-bottom {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    object-fit: cover;
+}
+
+.card-img-overlay {
+    background: var(--overlay-gradient-dark);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+}
+
+.card-img-overlay .card-title,
+.card-img-overlay .card-text {
+    color: var(--white);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Group Enhancements */
+.card-group .card {
+    margin-bottom: var(--space-4);
+}
+
+@media (min-width: 768px) {
+    .card-group {
+        display: flex;
+        gap: var(--space-4);
+    }
+    
+    .card-group .card {
+        flex: 1;
+        margin-bottom: 0;
+    }
+}
+
+/* Card Deck */
+.card-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+}
+
+/* Card Loading State */
+.card-loading {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.card-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 3px solid var(--gray-300);
+    border-top-color: var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Card Empty State */
+.card-empty {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--text-muted-color);
+}
+
+.card-empty i {
+    font-size: 3rem;
+    color: var(--gray-300);
+    margin-bottom: var(--space-4);
+}
+
+.card-empty p {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-4);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .card-body {
+        padding: var(--space-4);
+    }
+    
+    .card-header,
+    .card-footer {
+        padding: var(--space-3) var(--space-4);
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+    }
+    
+    .filter-card {
+        padding: var(--space-5);
+    }
+    
+    .summary-stat-value {
+        font-size: 1.75rem;
+    }
+}

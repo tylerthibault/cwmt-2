@@ -1,0 +1,85 @@
+/* =================================
+   Modern Badge Styles
+   ================================= */
+
+.badge {
+    padding: var(--space-2) var(--space-3);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-accent);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Badge Variants */
+.badge.bg-success {
+    background: var(--success-color) !important;
+}
+
+.badge.bg-danger {
+    background: var(--danger-color) !important;
+}
+
+.badge.bg-warning {
+    background: var(--warning-color) !important;
+    color: var(--dark-color) !important;
+}
+
+.badge.bg-info {
+    background: var(--info-color) !important;
+}
+
+.badge.bg-secondary {
+    background: var(--secondary-color) !important;
+}
+
+.badge.bg-primary {
+    background: var(--brand-primary) !important;
+}
+
+/* Outlined Badges */
+.badge-outline-success {
+    background: transparent;
+    border: 2px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.badge-outline-danger {
+    background: transparent;
+    border: 2px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+.badge-outline-warning {
+    background: transparent;
+    border: 2px solid var(--warning-color);
+    color: var(--warning-color);
+}
+
+.badge-outline-info {
+    background: transparent;
+    border: 2px solid var(--info-color);
+    color: var(--info-color);
+}
+
+/* Soft Badges */
+.badge-soft-success {
+    background: var(--success-color-light);
+    color: var(--success-color-hover);
+}
+
+.badge-soft-danger {
+    background: var(--danger-color-light);
+    color: var(--danger-color-hover);
+}
+
+.badge-soft-warning {
+    background: var(--warning-color-light);
+    color: var(--warning-color-hover);
+}
+
+.badge-soft-info {
+    background: var(--info-color-light);
+    color: var(--info-color-hover);
+}
