@@ -1,5 +1,9 @@
 {% extends "bases/nonstudents.html" %}
 
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
 {% block title %}Preview Email Template - Email Management{% endblock %}
 
 {% block inner_content %}

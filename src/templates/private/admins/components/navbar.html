@@ -4,17 +4,114 @@
         <ul class="sidenav-list-3ddf343b">
             <p class="sidenav-title-3ddf343b">Admins</p>
             <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('auth.dashboard') }}">Dashboard</a></li>
-            <!-- create course templates -->
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('courses.admin_course_instances') }}">Manage Courses</a></li>
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('locations.admin_list') }}">Manage Locations</a></li>
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('admin.students') }}">All Students</a></li>
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('announcements.admin_list') }}">Announcements</a></li>
-            <!-- email templates -->
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('mail.management') }}">Email Management</a></li>
-            <li><a class="sidenav-btn-3ddf343b" href="{{ url_for('admin.activity_logs') }}">Activity Logs</a></li>
+            
+            <!-- Management Section -->
+            <li class="sidenav-section">
+                <button class="sidenav-section-btn" type="button">
+                    <svg class="section-icon" width="16" height="16" fill="currentColor">
+                        <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
+                    </svg>
+                    Management
+                    <svg class="section-arrow" width="12" height="12" fill="currentColor">
+                        <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+                <ul class="sidenav-submenu">
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('courses.admin_course_instances') }}">Manage Courses</a></li>
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('locations.admin_list') }}">Manage Locations</a></li>
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('admin.students') }}">All Students</a></li>
+                </ul>
+            </li>
+
+            <!-- Communication Section -->
+            <li class="sidenav-section">
+                <button class="sidenav-section-btn" type="button">
+                    <svg class="section-icon" width="16" height="16" fill="currentColor">
+                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                    </svg>
+                    Communication
+                    <svg class="section-arrow" width="12" height="12" fill="currentColor">
+                        <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+                <ul class="sidenav-submenu">
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('announcements.admin_list') }}">Announcements</a></li>
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('mail.management') }}">Email Management</a></li>
+                </ul>
+            </li>
+
+            <!-- System Section -->
+            <li class="sidenav-section">
+                <button class="sidenav-section-btn" type="button">
+                    <svg class="section-icon" width="16" height="16" fill="currentColor">
+                        <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                        <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/>
+                    </svg>
+                    System
+                    <svg class="section-arrow" width="12" height="12" fill="currentColor">
+                        <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+                <ul class="sidenav-submenu">
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('admin.activity_logs') }}">Activity Logs</a></li>
+                </ul>
+            </li>
+
+            <!-- Content Section -->
+            <li class="sidenav-section">
+                <button class="sidenav-section-btn" type="button">
+                    <svg class="section-icon" width="16" height="16" fill="currentColor">
+                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+                    </svg>
+                    Content
+                    <svg class="section-arrow" width="12" height="12" fill="currentColor">
+                        <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+                <ul class="sidenav-submenu">
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('admin.faq') }}">FAQ</a></li>
+                    <li><a class="sidenav-btn-3ddf343b sub" href="#">About Us</a></li>
+                </ul>
+            </li>
         </ul>
     </div>
     <div>
         {% include 'private/components/nav/default.html' %}
     </div>
 </nav>
+
+<script>
+// Collapsible section functionality
+document.querySelectorAll('.sidenav-section-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const section = this.parentElement;
+        const submenu = section.querySelector('.sidenav-submenu');
+        const arrow = this.querySelector('.section-arrow');
+        
+        // Toggle current section
+        section.classList.toggle('open');
+        
+        // Animate submenu
+        if (section.classList.contains('open')) {
+            submenu.style.maxHeight = submenu.scrollHeight + 'px';
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            submenu.style.maxHeight = '0';
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    });
+});
+
+// Auto-open section with active link
+document.querySelectorAll('.sidenav-btn-3ddf343b.sub').forEach(link => {
+    if (link.classList.contains('active') || window.location.pathname === new URL(link.href).pathname) {
+        const section = link.closest('.sidenav-section');
+        const submenu = section.querySelector('.sidenav-submenu');
+        const arrow = section.querySelector('.section-arrow');
+        
+        section.classList.add('open');
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        arrow.style.transform = 'rotate(180deg)';
+    }
+});
+</script>

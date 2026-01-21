@@ -1,0 +1,233 @@
+{% extends 'bases/public.html' %}
+
+{% block content %}
+{% include 'public/components/navbar.html' %}
+
+<!-- Course Details Hero -->
+<section class="overview-hero" style="padding: var(--space-12) 0;">
+    <div class="container overview-hero-content">
+        <div class="row">
+            <div class="col-12">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" style="margin-bottom: var(--space-4);">
+                    <ol class="breadcrumb" style="background: transparent; padding: 0; margin: 0;">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" style="color: var(--brand-primary);">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.public_overview') }}" style="color: var(--brand-primary);">Course Overview</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
+                    </ol>
+                </nav>
+
+                <!-- Course Title and Level Badge -->
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="level-badge {{ course.experience_level.lower() }}">
+                        {{ course.experience_level }}
+                    </span>
+                    {% if course.is_featured %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-star-fill me-1"></i>Featured
+                    </span>
+                    {% endif %}
+                </div>
+                <h1 style="font-family: var(--font-heading); font-weight: 800; font-size: 2.5rem; color: var(--brand-dark); margin-bottom: var(--space-4);">
+                    {{ course.name }}
+                </h1>
+                
+                {% if course.short_blurb %}
+                <p class="lead" style="font-size: 1.25rem; color: var(--text-muted-color); max-width: 800px;">
+                    {{ course.short_blurb }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Course Details Content -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Course Description -->
+                <div class="card mb-4" style="border: none; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
+                    <div class="card-body" style="padding: var(--space-8);">
+                        <h2 class="h3 mb-4" style="font-family: var(--font-heading); color: var(--brand-dark);">
+                            <i class="bi bi-file-text me-2" style="color: var(--brand-primary);"></i>
+                            Course Description
+                        </h2>
+                        {% if course.description %}
+                        <div style="color: var(--text-color-light); line-height: 1.8; font-size: 1.05rem;">
+                            {{ course.description|safe }}
+                        </div>
+                        {% else %}
+                        <p style="color: var(--text-muted-color);">
+                            This comprehensive motorcycle training course is designed to provide you with the skills and knowledge necessary for safe and confident riding. Our experienced instructors will guide you through both classroom and hands-on training.
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- What You'll Learn -->
+                <div class="card mb-4" style="border: none; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
+                    <div class="card-body" style="padding: var(--space-8);">
+                        <h2 class="h3 mb-4" style="font-family: var(--font-heading); color: var(--brand-dark);">
+                            <i class="bi bi-check-circle me-2" style="color: var(--brand-primary);"></i>
+                            What You'll Learn
+                        </h2>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-check-lg me-3" style="color: var(--success-color); font-size: 1.25rem; margin-top: 0.25rem;"></i>
+                                    <div>
+                                        <strong>Basic Controls & Operation</strong>
+                                        <p class="mb-0 small text-muted">Master throttle, clutch, braking, and shifting techniques</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-check-lg me-3" style="color: var(--success-color); font-size: 1.25rem; margin-top: 0.25rem;"></i>
+                                    <div>
+                                        <strong>Safety Techniques</strong>
+                                        <p class="mb-0 small text-muted">Learn defensive riding and hazard awareness</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-check-lg me-3" style="color: var(--success-color); font-size: 1.25rem; margin-top: 0.25rem;"></i>
+                                    <div>
+                                        <strong>Maneuvering Skills</strong>
+                                        <p class="mb-0 small text-muted">Practice turns, curves, and emergency stops</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-check-lg me-3" style="color: var(--success-color); font-size: 1.25rem; margin-top: 0.25rem;"></i>
+                                    <div>
+                                        <strong>Traffic Strategies</strong>
+                                        <p class="mb-0 small text-muted">Navigate real-world riding situations confidently</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Requirements -->
+                <div class="card" style="border: none; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
+                    <div class="card-body" style="padding: var(--space-8);">
+                        <h2 class="h3 mb-4" style="font-family: var(--font-heading); color: var(--brand-dark);">
+                            <i class="bi bi-clipboard-check me-2" style="color: var(--brand-primary);"></i>
+                            Requirements
+                        </h2>
+                        <ul style="line-height: 2; color: var(--text-color-light);">
+                            <li>Valid Washington State motorcycle instruction permit</li>
+                            <li>Must be at least 16 years of age</li>
+                            <li>Long-sleeved shirt or jacket, long pants, over-the-ankle footwear</li>
+                            <li>Full-fingered gloves and eye protection</li>
+                            <li>Physical ability to balance and operate a motorcycle</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Course Info Card -->
+                <div class="card sticky-top" style="top: 2rem; border: none; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border-top: 4px solid {{ course.color }};">
+                    <div class="card-body" style="padding: var(--space-8);">
+                        <h3 class="h4 mb-4" style="font-family: var(--font-heading); color: var(--brand-dark);">
+                            Course Information
+                        </h3>
+                        
+                        <!-- Duration -->
+                        <div class="d-flex align-items-center mb-3 pb-3" style="border-bottom: 1px solid var(--gray-200);">
+                            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--brand-gradient-primary); display: flex; align-items: center; justify-content: center; margin-right: var(--space-4);">
+                                <i class="bi bi-calendar-event" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Duration</div>
+                                <strong style="color: var(--brand-dark); font-size: 1.125rem;">{{ course.duration_days }} day{% if course.duration_days != 1 %}s{% endif %}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Max Students -->
+                        <div class="d-flex align-items-center mb-3 pb-3" style="border-bottom: 1px solid var(--gray-200);">
+                            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--brand-gradient-blue); display: flex; align-items: center; justify-content: center; margin-right: var(--space-4);">
+                                <i class="bi bi-people" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Class Size</div>
+                                <strong style="color: var(--brand-dark); font-size: 1.125rem;">Max {{ course.max_students }} students</strong>
+                            </div>
+                        </div>
+
+                        <!-- Experience Level -->
+                        <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--gray-200);">
+                            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--brand-gradient-dark); display: flex; align-items: center; justify-content: center; margin-right: var(--space-4);">
+                                <i class="bi bi-speedometer2" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Experience Level</div>
+                                <strong style="color: var(--brand-dark); font-size: 1.125rem;">{{ course.experience_level }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Tuition -->
+                        {% if tuition %}
+                        <div class="text-center mb-4" style="background: var(--gray-50); padding: var(--space-5); border-radius: var(--radius-lg);">
+                            <div class="small text-muted mb-1">Course Tuition</div>
+                            <div style="font-family: var(--font-heading); font-size: 2.5rem; font-weight: 700; color: var(--brand-primary);">
+                                ${{ "%.2f"|format(tuition.amount) }}
+                            </div>
+                            <div class="small text-muted">Per person</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- CTA Buttons -->
+                        <a href="{{ url_for('main.public_courses') }}" class="btn btn-primary w-100 mb-2" style="padding: var(--space-4); font-weight: 600; border-radius: var(--radius-lg);">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            View Available Dates
+                        </a>
+                        <a href="{{ url_for('main.public_faq') }}" class="btn btn-outline-secondary w-100" style="padding: var(--space-4); font-weight: 600; border-radius: var(--radius-lg);">
+                            <i class="bi bi-question-circle me-2"></i>
+                            Have Questions?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-4 p-4" style="background: var(--info-color-light); border-radius: var(--radius-lg); border-left: 4px solid var(--info-color);">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-info-circle-fill me-3" style="color: var(--info-color); font-size: 1.5rem;"></i>
+                        <div>
+                            <strong style="color: var(--brand-dark);">Course Completion Benefits</strong>
+                            <p class="small mb-0 mt-2" style="color: var(--text-color-light);">
+                                Upon successful completion, you'll receive a completion card that waives the DOL riding skills test for your motorcycle endorsement!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Courses -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5" style="font-family: var(--font-heading); font-weight: 700; color: var(--brand-dark);">
+            Explore Other Courses
+        </h2>
+        <div class="text-center">
+            <a href="{{ url_for('main.public_overview') }}" class="btn btn-primary btn-lg" style="padding: var(--space-4) var(--space-8); font-weight: 600;">
+                <i class="bi bi-grid-3x3-gap me-2"></i>
+                View All Courses
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

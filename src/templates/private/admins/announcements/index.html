@@ -7,143 +7,221 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Announcements Management</h2>
-            <p class="text-muted">Create and manage system announcements</p>
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-                <i class="bi bi-plus-circle"></i> New Announcement
-            </button>
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header animate-fade-down">
+        <div class="dashboard-header-content">
+            <div class="dashboard-welcome">
+                <h1 class="dashboard-title">Announcements Management</h1>
+                <p class="dashboard-subtitle">Create and manage system announcements</p>
+            </div>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Announcement
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Status Filter Tabs -->
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='active') }}">
-                Active <span class="badge bg-success">{{ active_count }}</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='inactive') }}">
-                Inactive <span class="badge bg-secondary">{{ inactive_count }}</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='deleted') }}">
-                Deleted <span class="badge bg-danger">{{ deleted_count }}</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='all') }}">
-                All
-            </a>
-        </li>
-    </ul>
+    <!-- Summary Stats -->
+    <div class="row g-3 mb-4 animate-fade-up animate-delay-1">
+        <div class="col-md-4">
+            <div class="summary-stat-card stat-card-success">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ active_count }}</div>
+                    <div class="stat-label">Active Announcements</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-stat-card stat-card-info">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ inactive_count }}</div>
+                    <div class="stat-label">Inactive Announcements</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-stat-card stat-card-danger">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ deleted_count }}</div>
+                    <div class="stat-label">Deleted Announcements</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Announcements List -->
-    <div class="card">
-        <div class="card-body">
-            {% if announcements %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th style="width: 50%">Message</th>
-                            <th>Created By</th>
-                            <th>Created</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for announcement in announcements %}
-                        <tr>
-                            <td>
-                                <div class="text-truncate" style="max-width: 400px;">
-                                    {{ announcement.message }}
-                                </div>
-                            </td>
-                            <td>
-                                {% if announcement.created_by %}
-                                {{ announcement.created_by.first_name }} {{ announcement.created_by.last_name }}
-                                {% else %}
-                                Unknown
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small>{{ announcement.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
-                            </td>
-                            <td>
-                                {% if announcement.deleted_at %}
-                                <span class="badge bg-danger">Deleted</span>
-                                {% elif announcement.is_active %}
-                                <span class="badge bg-success">Active</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end">
-                                <div class="btn-group btn-group-sm">
-                                    {% if not announcement.deleted_at %}
-                                    <!-- Edit Button -->
-                                    <button class="btn btn-outline-primary" 
-                                            onclick="editAnnouncement({{ announcement.id }}, '{{ announcement.message|replace("'", "\\'") }}')"
-                                            title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    
-                                    <!-- Toggle Status Button -->
-                                    {% if announcement.is_active %}
-                                    <button class="btn btn-outline-warning" 
-                                            onclick="toggleStatus({{ announcement.id }})"
-                                            title="Deactivate">
-                                        <i class="bi bi-pause-circle"></i>
-                                    </button>
-                                    {% else %}
-                                    <button class="btn btn-outline-success" 
-                                            onclick="toggleStatus({{ announcement.id }})"
-                                            title="Activate">
-                                        <i class="bi bi-play-circle"></i>
-                                    </button>
-                                    {% endif %}
-                                    
-                                    <!-- Delete Button -->
-                                    <button class="btn btn-outline-danger" 
-                                            onclick="deleteAnnouncement({{ announcement.id }})"
-                                            title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                    {% else %}
-                                    <!-- Restore Button -->
-                                    <button class="btn btn-outline-info" 
-                                            onclick="restoreAnnouncement({{ announcement.id }})"
-                                            title="Restore">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Restore
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Announcements Table -->
+    <div class="table-card animate-fade-up animate-delay-2">
+        <!-- Table Header with Tabs -->
+        <div class="table-card-header">
+            <ul class="nav nav-tabs border-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='active') }}">
+                        Active <span class="badge bg-success">{{ active_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='inactive') }}">
+                        Inactive <span class="badge bg-secondary">{{ inactive_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='deleted') }}">
+                        Deleted <span class="badge bg-danger">{{ deleted_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('announcements.admin_list', status='all') }}">
+                        All
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        {% if announcements %}
+        <!-- Data List -->
+        <div class="data-list">
+            {% for announcement in announcements %}
+            <div class="data-row">
+                <div class="data-cell data-cell-main">
+                    <div class="data-label">Message</div>
+                    <div class="data-value">
+                        {{ announcement.message }}
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Created By</div>
+                    <div class="data-value">
+                        {% if announcement.created_by %}
+                        <strong>{{ announcement.created_by.first_name }} {{ announcement.created_by.last_name }}</strong>
+                        {% else %}
+                        <span class="text-muted">Unknown</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Created</div>
+                    <div class="data-value">
+                        <small class="text-muted">{{ announcement.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Status</div>
+                    <div class="data-value">
+                        {% if announcement.deleted_at %}
+                        <span class="badge bg-danger">Deleted</span>
+                        {% elif announcement.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="data-cell data-cell-actions">
+                    <div class="data-label">Actions</div>
+                    <div class="action-buttons">
+                        {% if not announcement.deleted_at %}
+                        <!-- Edit Button -->
+                        <button class="action-btn edit-btn" 
+                                onclick="editAnnouncement({{ announcement.id }}, '{{ announcement.message|replace("'", "\\'") }}')"
+                                title="Edit">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18.5 2.50023C18.8978 2.1024 19.4374 1.87891 20 1.87891C20.5626 1.87891 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1213 3.43762 22.1213 4.00023C22.1213 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Toggle Status Button -->
+                        {% if announcement.is_active %}
+                        <button class="action-btn info-btn" 
+                                onclick="toggleStatus({{ announcement.id }})"
+                                title="Deactivate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                <rect x="8" y="8" width="8" height="8" rx="1" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        {% else %}
+                        <button class="action-btn view-btn" 
+                                onclick="toggleStatus({{ announcement.id }})"
+                                title="Activate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        {% endif %}
+                        
+                        <!-- Delete Button -->
+                        <button class="action-btn delete-btn" 
+                                onclick="deleteAnnouncement({{ announcement.id }})"
+                                title="Delete">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        {% else %}
+                        <!-- Restore Button -->
+                        <button class="action-btn info-btn" 
+                                onclick="restoreAnnouncement({{ announcement.id }})"
+                                title="Restore">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.25rem;">
+                                <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3.51 15C4.15839 16.8404 5.38734 18.4202 7.01166 19.5014C8.63598 20.5826 10.5677 21.1066 12.5157 20.9945C14.4637 20.8824 16.3226 20.1402 17.8121 18.8798C19.3017 17.6193 20.3413 15.909 20.7742 14.0064C21.2072 12.1037 21.0101 10.112 20.2126 8.33111C19.4152 6.55025 18.0605 5.07723 16.3528 4.13343C14.6451 3.18963 12.6769 2.82534 10.7447 3.09445C8.81245 3.36355 7.02091 4.25315 5.64 5.64L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Restore
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-megaphone" style="font-size: 3rem; color: #ccc;"></i>
-                <p class="text-muted mt-3">No announcements found</p>
-                {% if status_filter == 'active' %}
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-                    Create First Announcement
-                </button>
-                {% endif %}
-            </div>
+            {% endfor %}
+        </div>
+        <div class="table-footer">
+            <span class="table-info">Showing {{ announcements|length }} announcement(s)</span>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2; margin-bottom: 1rem;">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="text-muted mt-3 mb-3">No announcements found</p>
+            {% if status_filter == 'active' %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;">
+                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Create First Announcement
+            </button>
             {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 

@@ -87,56 +87,45 @@
 
         <!-- Course Options -->
         <div class="row mt-5">
-            <div class="col-lg-6 mb-4" data-aos="fade-right">
-                <div class="course-option-card">
-                    <div class="course-badge">Most Popular</div>
-                    <h3 class="course-option-title">Basic Rider Course</h3>
-                    <p class="course-option-description">
-                        Perfect for beginners with little to no riding experience. This comprehensive course covers everything you need to know to ride safely and confidently.
-                    </p>
-                    <ul class="course-features">
-                        <li><i class="bi bi-check-circle-fill text-success"></i> 15+ hours of instruction</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Motorcycles & helmets provided</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Classroom & range training</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> DOL skills test included</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Completion card for endorsement</li>
-                    </ul>
-                    <div class="course-option-footer">
-                        <div class="course-price">
-                            <span class="price-amount">$350</span>
-                            <span class="price-label">per person</span>
+            {% if featured_courses %}
+                {% for course in featured_courses %}
+                <div class="col-lg-6 mb-4" data-aos="{% if loop.index is odd %}fade-right{% else %}fade-left{% endif %}">
+                    <div class="course-option-card">
+                        <h3 class="course-option-title">{{ course.name }}</h3>
+                        <p class="course-option-description">
+                            {{ course.short_blurb or course.description or 'Comprehensive training to help you ride safely and confidently.' }}
+                        </p>
+                        <ul class="course-features">
+                            <li><i class="bi bi-check-circle-fill text-success"></i> {{ course.duration_days }} day{% if course.duration_days > 1 %}s{% endif %} of instruction</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Maximum {{ course.max_students }} students per class</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> {{ course.experience_level }} level training</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> DOL skills test included</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Completion card for endorsement</li>
+                        </ul>
+                        <div class="course-option-footer">
+                            <div class="course-price">
+                                {% set payable = course.payable_templates.first() %}
+                                {% if payable %}
+                                <span class="price-amount">${{ payable.amount|int }}</span>
+                                <span class="price-label">per person</span>
+                                {% else %}
+                                <span class="price-amount">Contact Us</span>
+                                <span class="price-label">for pricing</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('auth.loginReg') }}" class="btn {% if loop.index == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Enroll Now
+                            </a>
                         </div>
-                        <a href="{{ url_for('auth.loginReg') }}" class="btn btn-primary">
-                            Enroll Now
-                        </a>
                     </div>
                 </div>
+                {% endfor %}
+            {% else %}
+            <!-- Fallback if no featured courses -->
+            <div class="col-12 text-center">
+                <p class="text-muted">No featured courses available at this time. Please check back soon!</p>
             </div>
-
-            <div class="col-lg-6 mb-4" data-aos="fade-left">
-                <div class="course-option-card">
-                    <h3 class="course-option-title">Intermediate Course</h3>
-                    <p class="course-option-description">
-                        Already have some riding experience? This course refines your skills and prepares you for your endorsement test with advanced techniques.
-                    </p>
-                    <ul class="course-features">
-                        <li><i class="bi bi-check-circle-fill text-success"></i> 8 hours of instruction</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Bring your own motorcycle</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Advanced riding techniques</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> DOL skills test included</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Completion card for endorsement</li>
-                    </ul>
-                    <div class="course-option-footer">
-                        <div class="course-price">
-                            <span class="price-amount">$225</span>
-                            <span class="price-label">per person</span>
-                        </div>
-                        <a href="{{ url_for('auth.loginReg') }}" class="btn btn-outline-primary">
-                            Enroll Now
-                        </a>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
 
         <!-- Important Note -->

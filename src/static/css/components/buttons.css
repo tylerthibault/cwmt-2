@@ -45,6 +45,81 @@
     transform: translateY(0);
 }
 
+/* Gradient Primary Button */
+.btn-gradient-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--brand-gradient-primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(169, 50, 38, 0.3);
+}
+
+.btn-gradient-primary svg {
+    stroke: white;
+}
+
+/* Export Button */
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--overlay-white-90);
+    border: 2px solid rgba(169, 50, 38, 0.2);
+    border-radius: 12px;
+    color: var(--brand-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-export:hover {
+    background: var(--brand-gradient-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(169, 50, 38, 0.3);
+}
+
+.btn-export:hover svg {
+    stroke: white;
+}
+
+/* Icon Buttons */
+.btn-icon {
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: rgba(169, 50, 38, 0.1);
+}
+
+.btn-icon.delete:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
 /* Outline Buttons */
 .btn-outline-primary {
     border: 2px solid var(--brand-primary);
@@ -112,9 +187,26 @@
 }
 
 .btn-outline-secondary {
-    border: 2px solid var(--gray-300);
-    color: var(--text-color-light);
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: white;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgba(0, 0, 0, 0.8);
+}
 }
 
 .btn-outline-secondary:hover {

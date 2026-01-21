@@ -5,83 +5,78 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/components/tabs.css') }}">
 
 <style>
-    @media (max-width: 992px) {
-        .course-layout {
-            flex-direction: column;
-        }
-        
-        .course-list-col {
-            width: 100%;
-            margin-bottom: 1.5rem;
-        }
-        
-        .course-detail-col {
-            width: 100%;
-        }
-        
-        .list-group {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        
-        h1 {
-            font-size: 1.75rem;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .card-header h3 {
-            font-size: 1.25rem;
-        }
-        
-        .tabs {
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .tab-link {
-            white-space: nowrap;
-            font-size: 0.875rem;
-        }
-        
-        .list-group-item {
-            font-size: 0.875rem;
-            padding: 0.75rem;
-        }
-        
-        .btn-sm {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-    }
-    
     .course-layout {
-        display: flex;
-        gap: 1rem;
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
     
-    .course-list-col {
-        flex: 0 0 33.333333%;
+    .course-list-card {
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
     }
     
-    .course-detail-col {
-        flex: 1;
+    .course-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .course-template-item {
+        padding: 1rem;
+        border: none;
+        border-bottom: 1px solid var(--overlay-white-90);
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .course-template-item:hover {
+        background: rgba(169, 50, 38, 0.02);
+        padding-left: 1.25rem;
+    }
+    
+    .course-template-item.active {
+        background: var(--overlay-white-90);
+        border-left: 3px solid var(--brand-primary);
+        padding-left: 1.25rem;
+    }
+    
+    @media (max-width: 1024px) {
+        .course-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .course-list-card {
+            position: static;
+        }
+        
+        .course-list {
+            max-height: 300px;
+        }
     }
 </style>
 
-<div>
-    <h1 class="mb-3">Course Templates</h1>
+<!-- Dashboard Header -->
+<div class="dashboard-header animate-fade-down">
+    <h1 class="dashboard-title">
+        <span class="gradient-text">Course Templates</span>
+    </h1>
+    <p class="dashboard-subtitle">Manage course offerings and pricing</p>
+</div>
 
-    <div class="course-layout">
-        <div class="course-list-col">
-            <!-- show all course templates -->
-            <div class="list-group" id="courseTemplateList">
+<div class="course-layout animate-fade-up animate-delay-1">
+        <!-- Course List -->
+        <div class="table-card course-list-card">
+            <div class="table-card-header">
+                <h2 style="font-size: 1.25rem; margin: 0;">All Templates</h2>
+            </div>
+            <div class="course-list p-3" id="courseTemplateList">
                 {% for template in course_templates %}
-                <a href="#" class="list-group-item list-group-item-action course-template-item" 
+                <a href="#" class="course-template-item"
                    data-template-id="{{ template.id }}"
                    data-name="{{ template.name }}"
                    data-description="{{ template.description or '' }}"
@@ -89,6 +84,8 @@
                    data-duration-days="{{ template.duration_days }}"
                    data-max-students="{{ template.max_students }}"
                    data-is-active="{{ template.is_active }}"
+                   data-is-featured="{{ template.is_featured }}"
+                   data-short-blurb="{{ template.short_blurb or '' }}"
                    data-color="{{ template.color }}"
                    data-payables="{{ template.payable_templates.all()|map(attribute='id')|list|tojson }}"
                    data-tuition="{{ template.payable_templates.filter_by(name=template.name + ' Tuition').first().amount if template.payable_templates.filter_by(name=template.name + ' Tuition').first() else 0 }}">
@@ -97,46 +94,60 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="course-detail-col">
-            <!-- Tabs -->
-            <ul class="tabs">
-                <li><a href="#" class="tab-link active" data-tab="details">Details</a></li>
-                <li><a href="#" class="tab-link" data-tab="create">Create New</a></li>
-            </ul>
+
+        <!-- Course Details/Forms -->
+        <div class="table-card">
+            <div class="table-card-header">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active tab-link" data-tab="details">Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link tab-link" data-tab="create">Create New</a>
+                    </li>
+                </ul>
+            </div>
 
             <!-- Details Tab Content -->
-            <div id="detailsTab" class="tab-content active">
-                <div id="detailsView" class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3>Course Template Details</h3>
-                        <button type="button" class="btn btn-sm btn-primary" id="editBtn" style="display: none;">Edit</button>
+            <div id="detailsTab" class="tab-content active" style="padding: 2rem;">
+                <div id="detailsView">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0;">Course Template Details</h3>
+                        <button type="button" class="btn-gradient-primary" id="editBtn" style="display: none;">
+                            <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                            </svg>
+                            Edit
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <p class="text-muted">Select a course template from the list to view details</p>
-                    </div>
+                    <p style="color: #6c757d;">Select a course template from the list to view details</p>
                 </div>
 
-                <div id="editView" class="card" style="display: none;">
-                    <div class="card-header">
-                        <h3>Edit Course Template</h3>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="{{ url_for('course_temp.create_course_temp') }}" id="editForm">
-                            <input type="hidden" name="template_id" id="edit_template_id">
+                <div id="editView" style="display: none;">
+                    <h3 style="margin-bottom: 1.5rem;">Edit Course Template</h3>
+                    <form method="POST" action="{{ url_for('course_temp.create_course_temp') }}" id="editForm">
+                        <input type="hidden" name="template_id" id="edit_template_id">
 
-                            <div class="mb-3">
-                                <label for="edit_name" class="form-label">Course Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="edit_name" name="name" required>
-                            </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="filter-label">Course Name <span style="color: var(--brand-primary);">*</span></label>
+                            <input type="text" class="modern-input" id="edit_name" name="name" required>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="edit_description" class="form-label">Description</label>
-                                <textarea class="form-control" id="edit_description" name="description" rows="4"></textarea>
-                            </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="filter-label">Short Blurb</label>
+                            <input type="text" class="modern-input" id="edit_short_blurb" name="short_blurb" maxlength="250" placeholder="Brief description for course cards">
+                            <small style="color: #6c757d; font-size: 0.875rem;">Max 250 characters - shown on landing page</small>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="edit_experience_level" class="form-label">Experience Level <span class="text-danger">*</span></label>
-                                <select class="form-select" id="edit_experience_level" name="experience_level" required>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="filter-label">Full Description</label>
+                            <textarea class="modern-input" id="edit_description" name="description" rows="4" placeholder="Detailed course description"></textarea>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <label class="filter-label">Experience Level <span style="color: var(--brand-primary);">*</span></label>
+                                <select class="modern-select" id="edit_experience_level" name="experience_level" required>
                                     <option value="">Select Level</option>
                                     <option value="Beginner">Beginner</option>
                                     <option value="Intermediate">Intermediate</option>
@@ -144,101 +155,129 @@
                                 </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="edit_duration_days" class="form-label">Duration (Days) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="edit_duration_days" name="duration_days" min="1" required>
+                            <div>
+                                <label class="filter-label">Duration (Days) <span style="color: var(--brand-primary);">*</span></label>
+                                <input type="number" class="modern-input" id="edit_duration_days" name="duration_days" min="1" required>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <label class="filter-label">Maximum Students <span style="color: var(--brand-primary);">*</span></label>
+                                <input type="number" class="modern-input" id="edit_max_students" name="max_students" min="1" required>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="edit_max_students" class="form-label">Maximum Students <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="edit_max_students" name="max_students" min="1" required>
+                            <div>
+                                <label class="filter-label">Tuition Amount <span style="color: var(--brand-primary);">*</span></label>
+                                <input type="number" class="modern-input" id="edit_tuition" name="tuition" min="0" step="0.01" required>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="edit_tuition" class="form-label">Tuition Amount <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="edit_tuition" name="tuition" min="0" step="0.01" required>
-                            </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="filter-label">Calendar Color <span style="color: var(--brand-primary);">*</span></label>
+                            <input type="color" class="modern-input" id="edit_color" name="color" required style="height: 50px;">
+                            <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course on the calendar</small>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="edit_color" class="form-label">Calendar Color <span class="text-danger">*</span></label>
-                                <input type="color" class="form-control form-control-color" id="edit_color" name="color" required>
-                                <small class="form-text text-muted">Choose a color for this course on the calendar</small>
+                        <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="edit_is_active" name="is_active" style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="edit_is_active" style="margin: 0; cursor: pointer;">Active</label>
                             </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="edit_is_featured" name="is_featured" style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="edit_is_featured" style="margin: 0; cursor: pointer;">Featured on Landing Page</label>
+                            </div>
+                        </div>
 
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="edit_is_active" name="is_active">
-                                <label class="form-check-label" for="edit_is_active">Active</label>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">Update Template</button>
-                                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button type="submit" class="btn-gradient-primary">
+                                <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                                </svg>
+                                Update Template
+                            </button>
+                            <button type="button" class="btn-outline-secondary" id="cancelEditBtn">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
             <!-- Create Tab Content -->
-            <div id="createTab" class="tab-content" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Create Course Template</h3>
+            <div id="createTab" class="tab-content" style="display: none; padding: 2rem;">
+                <h3 style="margin-bottom: 1.5rem;">Create Course Template</h3>
+                <form method="POST" action="{{ url_for('course_temp.create_course_temp') }}">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="filter-label">Course Name <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="text" class="modern-input" id="name" name="name" required>
                     </div>
-                    <div class="card-body">
-                        <form method="POST" action="{{ url_for('course_temp.create_course_temp') }}">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Course Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
 
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="experience_level" class="form-label">Experience Level <span class="text-danger">*</span></label>
-                                <select class="form-select" id="experience_level" name="experience_level" required>
-                                    <option value="">Select Level</option>
-                                    <option value="Beginner">Beginner</option>
-                                    <option value="Intermediate">Intermediate</option>
-                                    <option value="Advanced">Advanced</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="duration_days" class="form-label">Duration (Days) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="duration_days" name="duration_days" min="1" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="max_students" class="form-label">Maximum Students <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="max_students" name="max_students" min="1" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="tuition" class="form-label">Tuition Amount <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="tuition" name="tuition" min="0" step="0.01" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="color" class="form-label">Calendar Color <span class="text-danger">*</span></label>
-                                <input type="color" class="form-control form-control-color" id="color" name="color" value="#0d6efd" required>
-                                <small class="form-text text-muted">Choose a color for this course on the calendar</small>
-                            </div>
-
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
-                                <label class="form-check-label" for="is_active">Active</label>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">Create Template</button>
-                            </div>
-                        </form>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="filter-label">Short Blurb</label>
+                        <input type="text" class="modern-input" id="short_blurb" name="short_blurb" maxlength="250" placeholder="Brief description for course cards">
+                        <small style="color: #6c757d; font-size: 0.875rem;">Max 250 characters - shown on landing page</small>
                     </div>
-                </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="filter-label">Full Description</label>
+                        <textarea class="modern-input" id="description" name="description" rows="4" placeholder="Detailed course description"></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="filter-label">Experience Level <span style="color: var(--brand-primary);">*</span></label>
+                            <select class="modern-select" id="experience_level" name="experience_level" required>
+                                <option value="">Select Level</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Duration (Days) <span style="color: var(--brand-primary);">*</span></label>
+                            <input type="number" class="modern-input" id="duration_days" name="duration_days" min="1" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="filter-label">Maximum Students <span style="color: var(--brand-primary);">*</span></label>
+                            <input type="number" class="modern-input" id="max_students" name="max_students" min="1" required>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Tuition Amount <span style="color: var(--brand-primary);">*</span></label>
+                            <input type="number" class="modern-input" id="tuition" name="tuition" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="filter-label">Calendar Color <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="color" class="modern-input" id="color" name="color" value="#a93226" required style="height: 50px;">
+                        <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course on the calendar</small>
+                    </div>
+
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="is_active" name="is_active" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <label for="is_active" style="margin: 0; cursor: pointer;">Active</label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="is_featured" name="is_featured" style="width: 18px; height: 18px; cursor: pointer;">
+                            <label for="is_featured" style="margin: 0; cursor: pointer;">Featured on Landing Page</label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="submit" class="btn-gradient-primary">
+                            <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                                <path d="M12 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1zm0 2h3a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1z"/>
+                            </svg>
+                            Create Template
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -252,14 +291,19 @@
             const tabName = this.dataset.tab;
             
             // Update active tab
-            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-link').forEach(l => {
+                l.classList.remove('active');
+            });
             this.classList.add('active');
             
             // Show/hide content
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.style.display = 'none';
             });
-            document.getElementById(tabName + 'Tab').style.display = 'block';
+            const targetTab = document.getElementById(tabName + 'Tab');
+            if (targetTab) {
+                targetTab.style.display = 'block';
+            }
         });
     });
 
@@ -267,6 +311,12 @@
     document.querySelectorAll('.course-template-item').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
+            
+            // Switch to details tab
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+            document.querySelector('[data-tab="details"]').classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById('detailsTab').style.display = 'block';
             
             // Update active item
             document.querySelectorAll('.course-template-item').forEach(i => i.classList.remove('active'));
@@ -277,10 +327,12 @@
                 id: this.dataset.templateId,
                 name: this.dataset.name,
                 description: this.dataset.description,
+                shortBlurb: this.dataset.shortBlurb,
                 experienceLevel: this.dataset.experienceLevel,
                 durationDays: this.dataset.durationDays,
                 maxStudents: this.dataset.maxStudents,
                 isActive: this.dataset.isActive === 'True',
+                isFeatured: this.dataset.isFeatured === 'True',
                 color: this.dataset.color,
                 tuition: this.dataset.tuition,
                 payables: JSON.parse(this.dataset.payables || '[]')
@@ -289,9 +341,6 @@
             // Show details view, hide edit view
             document.getElementById('detailsView').style.display = 'block';
             document.getElementById('editView').style.display = 'none';
-            
-            // Update details view
-            const detailsBody = document.querySelector('#detailsView .card-body');
             
             // Get payable details
             const allPayables = [
@@ -310,19 +359,19 @@
             
             let payablesHtml = '';
             if (coursePayables.length > 0) {
-                payablesHtml = '<div class="mt-3"><strong>Associated Payables:</strong><div class="list-group mt-2">';
+                payablesHtml = '<div style="margin-top: 1rem;"><strong>Associated Payables:</strong><div style="margin-top: 0.5rem;">';
                 coursePayables.forEach(p => {
                     payablesHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 0.5rem;">
                             <div>
                                 <strong>${p.name}</strong>
-                                <span class="badge bg-primary ms-2">$${parseFloat(p.amount).toFixed(2)}</span>
+                                <span class="modern-badge badge-primary" style="margin-left: 0.5rem;">$${parseFloat(p.amount).toFixed(2)}</span>
                             </div>
                             <form method="POST" action="{{ url_for('course_temp.add_payable_to_course') }}" style="display:inline;">
                                 <input type="hidden" name="course_template_id" value="${data.id}">
                                 <input type="hidden" name="payable_template_id" value="${p.id}">
                                 <input type="hidden" name="action" value="remove">
-                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                <button type="submit" class="btn-outline-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">Remove</button>
                             </form>
                         </div>`;
                 });
@@ -332,64 +381,71 @@
             let addPayableHtml = '';
             if (availablePayables.length > 0) {
                 addPayableHtml = `
-                    <div class="mt-3">
+                    <div style="margin-top: 1rem;">
                         <strong>Add Payable:</strong>
-                        <form method="POST" action="{{ url_for('course_temp.add_payable_to_course') }}" class="mt-2">
+                        <form method="POST" action="{{ url_for('course_temp.add_payable_to_course') }}" style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
                             <input type="hidden" name="course_template_id" value="${data.id}">
                             <input type="hidden" name="action" value="add">
-                            <div class="input-group">
-                                <select name="payable_template_id" class="form-select" required>
-                                    <option value="">Select a payable...</option>
-                                    ${availablePayables.map(p => `<option value="${p.id}">${p.name} - $${parseFloat(p.amount).toFixed(2)}</option>`).join('')}
-                                </select>
-                                <button type="submit" class="btn btn-primary">Add</button>
-                            </div>
+                            <select name="payable_template_id" class="modern-select" required style="flex: 1;">
+                                <option value="">Select a payable...</option>
+                                ${availablePayables.map(p => `<option value="${p.id}">${p.name} - $${parseFloat(p.amount).toFixed(2)}</option>`).join('')}
+                            </select>
+                            <button type="submit" class="btn-gradient-primary" style="padding: 0.5rem 1rem;">Add</button>
                         </form>
                     </div>`;
             }
             
-            detailsBody.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Name:</strong> ${data.name}</p>
-                        <p><strong>Experience Level:</strong> ${data.experienceLevel}</p>
-                        <p><strong>Duration:</strong> ${data.durationDays} days</p>
+            // Update details view
+            const detailsContainer = document.querySelector('#detailsView p').parentElement;
+            detailsContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0;">Course Template Details</h3>
+                    <button type="button" class="btn-gradient-primary" id="editBtn">
+                        <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                        </svg>
+                        Edit
+                    </button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <p style="margin-bottom: 0.5rem;"><strong>Name:</strong> ${data.name}</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Experience Level:</strong> <span class="modern-badge badge-primary">${data.experienceLevel}</span></p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Duration:</strong> ${data.durationDays} days</p>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong>Max Students:</strong> ${data.maxStudents}</p>
-                        <p><strong>Status:</strong> <span class="badge ${data.isActive ? 'bg-success' : 'bg-secondary'}">${data.isActive ? 'Active' : 'Inactive'}</span></p>
+                    <div>
+                        <p style="margin-bottom: 0.5rem;"><strong>Max Students:</strong> ${data.maxStudents}</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="modern-badge ${data.isActive ? 'badge-success' : 'badge-secondary'}">${data.isActive ? 'Active' : 'Inactive'}</span></p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Featured:</strong> <span class="modern-badge ${data.isFeatured ? 'badge-warning' : 'badge-secondary'}">${data.isFeatured ? 'Yes' : 'No'}</span></p>
                     </div>
                 </div>
-                ${data.description ? `<hr><p><strong>Description:</strong></p><p>${data.description}</p>` : ''}
-                <hr>
+                ${data.shortBlurb ? `<div style="margin-bottom: 1rem;"><strong>Short Blurb:</strong><p style="color: #6c757d; margin-top: 0.25rem;">${data.shortBlurb}</p></div>` : ''}
+                ${data.description ? `<div style="margin-bottom: 1rem;"><strong>Full Description:</strong><p style="color: #6c757d; margin-top: 0.25rem;">${data.description}</p></div>` : ''}
+                <hr style="margin: 1.5rem 0;">
                 ${payablesHtml}
                 ${addPayableHtml}
             `;
             
-            // Show edit button
-            document.getElementById('editBtn').style.display = 'block';
-            document.getElementById('editBtn').dataset.templateData = JSON.stringify(data);
+            // Re-attach edit button event
+            document.getElementById('editBtn').addEventListener('click', function() {
+                // Populate edit form
+                document.getElementById('edit_template_id').value = data.id;
+                document.getElementById('edit_name').value = data.name;
+                document.getElementById('edit_description').value = data.description;
+                document.getElementById('edit_short_blurb').value = data.shortBlurb;
+                document.getElementById('edit_experience_level').value = data.experienceLevel;
+                document.getElementById('edit_duration_days').value = data.durationDays;
+                document.getElementById('edit_max_students').value = data.maxStudents;
+                document.getElementById('edit_tuition').value = data.tuition;
+                document.getElementById('edit_color').value = data.color;
+                document.getElementById('edit_is_active').checked = data.isActive;
+                document.getElementById('edit_is_featured').checked = data.isFeatured;
+                
+                // Show edit view, hide details view
+                document.getElementById('detailsView').style.display = 'none';
+                document.getElementById('editView').style.display = 'block';
+            });
         });
-    });
-
-    // Edit button click
-    document.getElementById('editBtn').addEventListener('click', function() {
-        const data = JSON.parse(this.dataset.templateData);
-        
-        // Populate edit form
-        document.getElementById('edit_template_id').value = data.id;
-        document.getElementById('edit_name').value = data.name;
-        document.getElementById('edit_description').value = data.description;
-        document.getElementById('edit_experience_level').value = data.experienceLevel;
-        document.getElementById('edit_duration_days').value = data.durationDays;
-        document.getElementById('edit_max_students').value = data.maxStudents;
-        document.getElementById('edit_tuition').value = data.tuition;
-        document.getElementById('edit_color').value = data.color;
-        document.getElementById('edit_is_active').checked = data.isActive;
-        
-        // Show edit view, hide details view
-        document.getElementById('detailsView').style.display = 'none';
-        document.getElementById('editView').style.display = 'block';
     });
 
     // Cancel edit button

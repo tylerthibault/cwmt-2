@@ -26,35 +26,6 @@
         </div>
     </div>
 
-    <!-- Status Filter Tabs -->
-    <div class="filter-card animate-fade-up">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-9">
-                <label class="filter-label">Filter by Status</label>
-                <ul class="nav nav-tabs mb-0">
-                    <li class="nav-item">
-                        <a class="nav-link {% if status_filter == 'active' %}active{% endif %}"
-                            href="{{ url_for('locations.admin_list', status='active') }}">
-                            Active
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}"
-                            href="{{ url_for('locations.admin_list', status='deleted') }}">
-                            Deleted
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if status_filter == 'all' %}active{% endif %}"
-                            href="{{ url_for('locations.admin_list', status='all') }}">
-                            All
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
     <!-- Summary Stats -->
     <div class="row g-4 mb-4 animate-fade-up animate-delay-100">
         <div class="col-md-4">
@@ -79,53 +50,80 @@
 
     <!-- Locations Table -->
     <div class="table-card animate-fade-up animate-delay-200">
-        <div class="table-wrapper">
-            <table class="modern-table" id="locationsTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Location</th>
-                        <th>Additional Notes</th>
-                        <th>Created</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if locations %}
-                    {% for location in locations %}
-                    <tr>
-                        <td>
-                            <strong>{{ location.name }}</strong>
-                        </td>
-                        <td>
-                            <div class="text-truncate" style="max-width: 300px;">
-                                {{ location.location }}
-                            </div>
-                        </td>
-                        <td>
-                            {% if location.additional_notes %}
-                            <div class="text-truncate" style="max-width: 250px;" title="{{ location.additional_notes }}">
-                                {{ location.additional_notes }}
-                            </div>
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ location.created_at.strftime('%b %d, %Y') }}</td>
-                        <td>
-                            {% if location.deleted_at %}
-                            <span class="badge bg-danger">Deleted</span>
-                            {% elif location.is_active %}
-                            <span class="badge bg-success">Active</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <div class="action-buttons">
+        <!-- Table Header with Tabs -->
+        <div class="table-card-header">
+            <ul class="nav nav-tabs border-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'active' %}active{% endif %}"
+                        href="{{ url_for('locations.admin_list', status='active') }}">
+                        Active
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'deleted' %}active{% endif %}"
+                        href="{{ url_for('locations.admin_list', status='deleted') }}">
+                        Deleted
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'all' %}active{% endif %}"
+                        href="{{ url_for('locations.admin_list', status='all') }}">
+                        All
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        {% if locations %}
+        <!-- Data List -->
+        <div class="data-list">
+            {% for location in locations %}
+            <div class="data-row">
+                <div class="data-cell data-cell-main">
+                    <div class="data-label">Name</div>
+                    <div class="data-value">
+                        <strong>{{ location.name }}</strong>
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Location</div>
+                    <div class="data-value">
+                        {{ location.location }}
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Additional Notes</div>
+                    <div class="data-value">
+                        {% if location.additional_notes %}
+                        {{ location.additional_notes }}
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Created</div>
+                    <div class="data-value">
+                        <small class="text-muted">{{ location.created_at.strftime('%b %d, %Y') }}</small>
+                    </div>
+                </div>
+                <div class="data-cell">
+                    <div class="data-label">Status</div>
+                    <div class="data-value">
+                        {% if location.deleted_at %}
+                        <span class="badge bg-danger">Deleted</span>
+                        {% elif location.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="data-cell data-cell-actions">
+                    <div class="data-label">Actions</div>
+                    <div class="action-buttons">
                                 {% if not location.deleted_at %}
-                                <button type="button" class="action-btn action-btn-view"
+                                <button type="button" class="action-btn view-btn"
                                     onclick="viewLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}')"
                                     title="View">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -133,7 +131,7 @@
                                         <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </button>
-                                <button type="button" class="action-btn action-btn-edit"
+                                <button type="button" class="action-btn edit-btn"
                                     onclick="editLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}')"
                                     title="Edit">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -141,7 +139,7 @@
                                         <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89783 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </button>
-                                <button type="button" class="action-btn action-btn-delete"
+                                <button type="button" class="action-btn delete-btn"
                                     onclick="deleteLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}')"
                                     title="Delete">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -150,7 +148,7 @@
                                     </svg>
                                 </button>
                                 {% else %}
-                                <button type="button" class="action-btn action-btn-info"
+                                <button type="button" class="action-btn info-btn"
                                     onclick="restoreLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}')"
                                     title="Restore">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -159,29 +157,27 @@
                                     </svg>
                                 </button>
                                 {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="table-empty-state">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <p>No locations found</p>
-                            {% if status_filter == 'active' %}
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLocationModal">
-                                Create First Location
-                            </button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+        {% endif %}
+        <!-- Empty State -->
+        {% if not locations %}
+        <div class="text-center py-5">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2; margin-bottom: 1rem;">
+                <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="text-muted mt-3 mb-3">No locations found</p>
+            {% if status_filter == 'active' %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLocationModal">
+                Create First Location
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="table-footer">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="footer-text">

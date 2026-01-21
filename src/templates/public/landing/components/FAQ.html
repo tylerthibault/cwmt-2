@@ -9,195 +9,49 @@
 
         <div class="row">
             <div class="col-lg-8 mx-auto">
-                <!-- FAQ Accordion -->
-                <div class="accordion faq-accordion" id="faqAccordion">
-                    
-                    <!-- Question 1 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="50">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                <i class="bi bi-patch-question me-3"></i>
-                                Do I need a motorcycle permit before taking the course?
-                            </button>
-                        </h3>
-                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Yes, you must have a valid Washington State motorcycle instruction permit before attending your first class. 
-                                You can obtain your permit by visiting any DOL licensing office and passing the written knowledge test. 
-                                The permit fee is $25 and is separate from the course tuition.
+                {% if grouped_faqs %}
+                    {% for category, faqs in grouped_faqs.items() %}
+                        {% if category and faqs %}
+                        <!-- Category Section -->
+                        <div class="mb-4">
+                            <h3 class="h5 text-primary mb-3">
+                                <i class="bi bi-folder2-open me-2"></i>{{ category }}
+                            </h3>
+                            
+                            <!-- FAQ Accordion for this category -->
+                            <div class="accordion faq-accordion mb-4" id="faqAccordion{{ loop.index }}">
+                                {% for faq in faqs %}
+                                <div class="accordion-item" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                                                type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#faq{{ category|replace(' ', '_') }}{{ loop.index }}">
+                                            <i class="bi bi-patch-question me-3"></i>
+                                            {{ faq.question }}
+                                        </button>
+                                    </h3>
+                                    <div id="faq{{ category|replace(' ', '_') }}{{ loop.index }}" 
+                                         class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                                         data-bs-parent="#faqAccordion{{ loop.index }}">
+                                        <div class="accordion-body">
+                                            {{ faq.answer|safe }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="text-muted">No FAQs Available</h4>
+                        <p class="text-muted">Check back soon for answers to common questions.</p>
                     </div>
-
-                    <!-- Question 2 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                <i class="bi bi-patch-question me-3"></i>
-                                What should I bring to the course?
-                            </button>
-                        </h3>
-                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                <strong>Required items:</strong>
-                                <ul class="mt-2 mb-2">
-                                    <li>Valid motorcycle instruction permit</li>
-                                    <li>Long-sleeved shirt or jacket</li>
-                                    <li>Long pants (jeans or heavier material)</li>
-                                    <li>Over-the-ankle boots or sturdy shoes</li>
-                                    <li>Full-fingered gloves (leather or textile)</li>
-                                    <li>Eye protection (if not using a full-face helmet)</li>
-                                </ul>
-                                <strong>We provide:</strong> DOT-approved helmets and motorcycles for the Basic Rider Course.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 3 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="150">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                <i class="bi bi-patch-question me-3"></i>
-                                How long is the course and what's the schedule?
-                            </button>
-                        </h3>
-                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                The <strong>Basic Rider Course</strong> is 15+ hours over 2-3 days (typically a weekend format: Friday evening, 
-                                Saturday and Sunday). The <strong>Intermediate Course</strong> is 8 hours, usually completed in one day. 
-                                We offer both weekend and weekday classes to fit your schedule. Specific times will be provided when you enroll.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 4 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                <i class="bi bi-patch-question me-3"></i>
-                                Will I get my motorcycle endorsement immediately after the course?
-                            </button>
-                        </h3>
-                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Upon successful completion of the course, you'll receive a completion card. Take this card along with 
-                                your instruction permit to any Washington State DOL office to get your motorcycle endorsement added to 
-                                your driver's license. The completion card <strong>waives the DOL riding skills test</strong>, so you won't 
-                                need to take another test at the DOL!
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 5 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="250">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
-                                <i class="bi bi-patch-question me-3"></i>
-                                What if I've never ridden a motorcycle before?
-                            </button>
-                        </h3>
-                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                No problem! The Basic Rider Course is specifically designed for beginners with little to no riding experience. 
-                                Our certified instructors will teach you everything from the basics of operating a motorcycle to advanced 
-                                safety techniques. We start with classroom instruction and progress to hands-on riding in a safe, controlled 
-                                environment. Many of our students have never been on a motorcycle before their first class.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 6 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="300">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
-                                <i class="bi bi-patch-question me-3"></i>
-                                What's the difference between the Basic and Intermediate courses?
-                            </button>
-                        </h3>
-                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                The <strong>Basic Rider Course</strong> is for new riders or those with limited experience. It includes 
-                                more classroom time, uses training motorcycles we provide, and covers fundamental riding skills. 
-                                <br><br>
-                                The <strong>Intermediate Course</strong> is for riders who already have some experience and own a motorcycle. 
-                                It's shorter, focuses on refining your skills, and requires you to bring your own street-legal motorcycle. 
-                                Both courses culminate in the DOL skills test and provide a completion card for your endorsement.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 7 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="350">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
-                                <i class="bi bi-patch-question me-3"></i>
-                                What is your refund and cancellation policy?
-                            </button>
-                        </h3>
-                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                <ul class="mb-0">
-                                    <li><strong>Full refund:</strong> If you cancel 7+ days before the course start date</li>
-                                    <li><strong>50% refund:</strong> If you cancel 3-6 days before the course start date</li>
-                                    <li><strong>No refund:</strong> If you cancel within 48 hours of the course start date</li>
-                                    <li><strong>Weather cancellations:</strong> If we cancel due to weather, you can reschedule or receive a full refund</li>
-                                    <li><strong>No-shows:</strong> No refund for students who don't attend without prior notice</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 8 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="400">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
-                                <i class="bi bi-patch-question me-3"></i>
-                                How many students are in each class?
-                            </button>
-                        </h3>
-                        <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                We maintain small class sizes to ensure personalized attention and safety. Our classes typically have 
-                                12-16 students with multiple certified instructors. This ratio allows us to provide individual feedback 
-                                and ensure everyone gets the practice time they need to succeed.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 9 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="450">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
-                                <i class="bi bi-patch-question me-3"></i>
-                                Are there age requirements for the course?
-                            </button>
-                        </h3>
-                        <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                You must be at least 16 years old to obtain a motorcycle instruction permit in Washington State. 
-                                Students under 18 must have parental consent to enroll in the course. There is no maximum age limit - 
-                                we've successfully trained riders of all ages, from teenagers to retirees!
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 10 -->
-                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="500">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">
-                                <i class="bi bi-patch-question me-3"></i>
-                                What happens if I don't pass the course?
-                            </button>
-                        </h3>
-                        <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Our instructors are committed to your success, and the vast majority of students pass on their first attempt. 
-                                If you don't pass the skills evaluation, you may be eligible to retake the course at a reduced rate or 
-                                schedule additional practice sessions. We'll work with you to identify areas for improvement and help you 
-                                succeed. Remember, our goal is to make you a safe, confident rider!
-                            </div>
-                        </div>
-                    </div>
+                {% endif %}
 
                 </div>
 

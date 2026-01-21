@@ -1,0 +1,216 @@
+/* =================================
+   Data List - Responsive Table Alternative
+   Mobile-First Design
+   ================================= */
+
+/* Data List Container */
+.data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+/* Data Row - Card-style layout */
+.data-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+}
+
+.data-row:hover {
+    background: rgba(169, 50, 38, 0.02);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+/* Data Cell */
+.data-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Data Label - Only visible on mobile */
+.data-label {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Data Value */
+.data-value {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--brand-dark);
+    word-break: break-word;
+}
+
+/* Main content cell - takes more space */
+.data-cell-main .data-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--brand-dark);
+}
+
+/* Actions cell */
+.data-cell-actions .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* =================================
+   Tablet & Desktop Layouts (768px+)
+   ================================= */
+
+@media (min-width: 768px) {
+    /* Horizontal card layout */
+    .data-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    /* Hide labels on desktop */
+    .data-label {
+        display: none;
+    }
+    
+    /* Main content area - left side */
+    .data-cell-main {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Other cells - compact display */
+    .data-cell:not(.data-cell-main):not(.data-cell-actions) {
+        flex-shrink: 0;
+    }
+    
+    /* Actions always on the right */
+    .data-cell-actions {
+        margin-left: auto;
+    }
+    
+    .data-cell-actions .action-buttons {
+        flex-wrap: nowrap;
+    }
+}
+
+/* =================================
+   Large Desktop (1024px+)
+   ================================= */
+
+@media (min-width: 1024px) {
+    .data-row {
+        padding: 1.5rem 1.75rem;
+    }
+    
+    .data-value {
+        font-size: 0.9rem;
+    }
+    
+    .data-cell-main .data-value {
+        font-size: 1rem;
+    }
+}
+
+/* =================================
+   Announcements Specific Layout
+   ================================= */
+
+/* For announcements, we have different columns */
+.data-list[data-type="announcements"] .data-row {
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .data-list[data-type="announcements"] .data-row {
+        grid-template-columns: 3fr 1.5fr 1.5fr 0.8fr 1.2fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .data-list[data-type="announcements"] .data-row {
+        grid-template-columns: 3.5fr 1.5fr 1.5fr 0.8fr 1.2fr;
+    }
+}
+
+/* =================================
+   Students Specific Layout (8 columns)
+   ================================= */
+
+@meSpecific Layout Adjustments
+   ================================= */
+
+/* Remove old grid-based layouts - using flexbox now */   border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.25rem;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.2));
+    color: var(--brand-accent-blue);
+}
+
+.badge-secondary {
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.account-type {
+    font-weight: 600;
+    font-size: 0.8125rem;
+}
+
+.type-guest {
+    color: var(--brand-accent-blue);
+}
+
+.type-primary {
+    color: #27ae60;
+}
+
+.enrollment-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--brand-gradient-primary);
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8125rem;
+}
+
+.footer-text {
+    font-size: 0.8125rem;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.footer-text strong {
+    color: var(--brand-dark);
+    font-weight: 600;
+}
+
+.filtered-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: var(--brand-gradient-primary);
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}

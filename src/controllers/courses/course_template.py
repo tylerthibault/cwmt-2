@@ -39,11 +39,14 @@ def create_course_temp():
                 course_template_service.update_course_template(
                     template_id=template_id,
                     name=request.form.get('name'),
+                    description=request.form.get('description'),
+                    short_blurb=request.form.get('short_blurb'),
                     experience_level=request.form.get('experience_level'),
                     duration_days=request.form.get('duration_days'),
                     max_students=request.form.get('max_students'),
                     tuition=request.form.get('tuition'),
                     color=request.form.get('color', '#0d6efd'),
+                    is_featured=request.form.get('is_featured') == 'on',
                     current_user_id=_get_current_user().id
                 )
                 flash('Course template updated successfully!', 'success')
@@ -51,11 +54,14 @@ def create_course_temp():
                 # Create new template
                 course_template_service.create_course_template(
                     name=request.form.get('name'),
+                    description=request.form.get('description'),
+                    short_blurb=request.form.get('short_blurb'),
                     experience_level=request.form.get('experience_level'),
                     duration_days=request.form.get('duration_days'),
                     max_students=request.form.get('max_students'),
                     tuition=request.form.get('tuition'),
                     color=request.form.get('color', '#0d6efd'),
+                    is_featured=request.form.get('is_featured') == 'on',
                     current_user_id=_get_current_user().id
                 )
                 flash('Course template created successfully with tuition!', 'success')

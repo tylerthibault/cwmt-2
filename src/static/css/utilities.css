@@ -48,6 +48,18 @@
     box-shadow: var(--shadow-inner) !important;
 }
 
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-state svg {
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
 .shadow-none {
     box-shadow: none !important;
 }

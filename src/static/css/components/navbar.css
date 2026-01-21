@@ -93,6 +93,70 @@
     font-family: 'Courier New', monospace;
 }
 
+/* Collapsible Section Styles */
+.sidenav-section {
+    list-style: none;
+    margin: 0.5rem 0;
+}
+
+.sidenav-section-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: calc(100% - 1rem);
+    padding: 0.75rem 1rem;
+    margin: 0 0.5rem;
+    background-color: #f8f9fa;
+    border: none;
+    border-left: 3px solid transparent;
+    color: #34495e;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.sidenav-section-btn:hover {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border-left-color: #e74c3c;
+    padding-left: 1.25rem;
+}
+
+.sidenav-section.open .sidenav-section-btn {
+    background-color: #dfe4e8;
+    border-left-color: #7f8c8d;
+}
+
+.sidenav-section.open .sidenav-section-btn:hover {
+    background-color: #ecf0f1;
+    border-left-color: #e74c3c;
+}
+
+.section-icon {
+    flex-shrink: 0;
+}
+
+.section-arrow {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidenav-submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.sidenav-section.open .sidenav-submenu {
+    margin-bottom: 0.5rem;
+}
+
 .sidenav-btn-3ddf343b {
     display: block;
     padding: 0.75rem 1rem;
@@ -106,6 +170,20 @@
     position: relative;
     background-color: #f8f9fa;
     font-size: 0.9rem;
+}
+
+.sidenav-btn-3ddf343b.sub {
+    padding-left: 2.5rem;
+    margin-left: 1rem;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+}
+
+.sidenav-btn-3ddf343b.sub::before {
+    content: '•';
+    position: absolute;
+    left: 1.5rem;
+    color: #7f8c8d;
 }
 
 .sidenav-btn-3ddf343b::after {
@@ -124,6 +202,10 @@
     border-left-color: #e74c3c;
     padding-left: 1.25rem;
     text-decoration: none;
+}
+
+.sidenav-btn-3ddf343b.sub:hover {
+    padding-left: 2.75rem;
 }
 
 .sidenav-btn-3ddf343b:hover::after {

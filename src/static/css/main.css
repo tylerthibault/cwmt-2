@@ -12,9 +12,11 @@
 @import url(components/modals.css);
 @import url(components/cards.css);
 @import url(components/tables.css);
+@import url(components/data-list.css);
 @import url(components/badges.css);
 @import url(components/buttons.css);
 @import url(components/forms.css);
+@import url(components/course-overview.css);
 @import url(pages/landing.css);
 @import url(components/animations.css);
 @import url(bootstrap-overide.css);

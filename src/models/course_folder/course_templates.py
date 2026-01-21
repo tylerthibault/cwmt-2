@@ -20,6 +20,7 @@ class CourseTemplate(db.Model, CRUDMixin):
     # Course Information
     name = db.Column(db.String(200), nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
+    short_blurb = db.Column(db.String(250), nullable=True)  # Short description for cards and landing page
     experience_level = db.Column(db.String(50), nullable=False)  # e.g., Beginner, Intermediate, Advanced
     duration_days = db.Column(db.Integer, nullable=False)  # Duration in days
     max_students = db.Column(db.Integer, nullable=False)  # Maximum number of students allowed
@@ -27,6 +28,7 @@ class CourseTemplate(db.Model, CRUDMixin):
     
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_featured = db.Column(db.Boolean, default=False, nullable=False)  # Show on landing page
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -54,6 +56,11 @@ class CourseTemplate(db.Model, CRUDMixin):
     def get_active_templates(cls):
         """Get all active course templates."""
         return cls.query.filter_by(is_active=True).all()
+    
+    @classmethod
+    def get_featured_templates(cls):
+        """Get all featured and active course templates."""
+        return cls.query.filter_by(is_active=True, is_featured=True).all()
     
     @classmethod
     def get_by_experience_level(cls, level):

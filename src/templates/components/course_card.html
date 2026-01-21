@@ -1,0 +1,54 @@
+<!-- Course Card Component -->
+{% macro course_card(course, level_class) %}
+<div class="col-12 col-md-6 col-lg-4 mb-4">
+    <div class="course-card {{ level_class }}">
+        <div class="course-card-color-bar" style="background-color: {{ course.color }};"></div>
+        
+        <div class="course-card-body">
+            <h3 class="course-card-title">{{ course.name }}</h3>
+            
+            {% if course.short_blurb %}
+            <p class="course-card-description">{{ course.short_blurb }}</p>
+            {% elif course.description %}
+            <p class="course-card-description">{{ course.description }}</p>
+            {% else %}
+            <p class="course-card-description text-muted">
+                A comprehensive motorcycle training course designed to build your skills and confidence.
+            </p>
+            {% endif %}
+            
+            <div class="course-card-meta">
+                <div class="meta-item">
+                    <i class="bi bi-calendar-event"></i>
+                    <span><strong>{{ course.duration_days }}</strong> day{% if course.duration_days != 1 %}s{% endif %}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-people"></i>
+                    <span><strong>{{ course.max_students }}</strong> max students</span>
+                </div>
+            </div>
+            
+            {% if course.payable_templates %}
+                {% set tuition = course.payable_templates.filter_by(is_required=True).first() %}
+                {% if tuition %}
+                <div class="course-tuition">
+                    <div class="tuition-label">Course Tuition</div>
+                    <div class="tuition-amount">${{ "%.2f"|format(tuition.amount) }}</div>
+                </div>
+                {% endif %}
+            {% endif %}
+            
+            <div class="course-card-cta">
+                <a href="{{ url_for('main.course_details', course_id=course.id) }}" class="btn-course-enroll" style="margin-bottom: 0.5rem;">
+                    See Details
+                    <i class="bi bi-info-circle ms-2"></i>
+                </a>
+                <a href="{{ url_for('main.public_courses') }}" class="btn btn-outline-primary" style="width: 100%; padding: 0.75rem; text-align: center; text-decoration: none; border-radius: 0.75rem;">
+                    View Available Dates
+                    <i class="bi bi-calendar-event ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

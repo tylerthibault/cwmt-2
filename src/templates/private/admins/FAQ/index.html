@@ -1,0 +1,271 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+
+<!-- Dashboard Header -->
+<div class="dashboard-header animate-fade-down">
+    <div class="dashboard-header-content">
+        <div class="dashboard-welcome">
+            <h1 class="dashboard-title">
+                <span class="gradient-text">FAQ Management</span>
+            </h1>
+            <p class="dashboard-subtitle">Manage frequently asked questions for the public site</p>
+        </div>
+        <button class="btn-gradient-primary" id="createNewBtn">
+            <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            Create New FAQ
+        </button>
+    </div>
+</div>
+
+<!-- FAQ Table -->
+<div class="table-card animate-fade-up animate-delay-1">
+    <!-- Table Header -->
+    <div class="table-card-header">
+        <h2 style="font-size: 1.25rem; margin: 0;">All FAQs ({{ faqs|length }})</h2>
+    </div>
+    
+    {% if faqs %}
+    <!-- Data List -->
+    <div class="data-list">
+        {% for faq in faqs %}
+        <div class="data-row">
+            <div class="data-cell data-cell-main">
+                <div class="data-label">Question</div>
+                <div class="data-value">
+                    <strong>{{ faq.question }}</strong>
+                </div>
+            </div>
+            <div class="data-cell" style="flex: 2;">
+                <div class="data-label">Answer</div>
+                <div class="data-value">
+                    {{ faq.answer }}
+                </div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Category</div>
+                <div class="data-value">
+                    <span class="badge bg-primary">{{ faq.category or 'General' }}</span>
+                </div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Order</div>
+                <div class="data-value">
+                    {{ faq.display_order }}
+                </div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Status</div>
+                <div class="data-value">
+                    {% if faq.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="data-cell data-cell-actions">
+                <div class="data-label">Actions</div>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="openEditModal({{ faq.id }})" title="Edit">
+                        <svg width="16" height="16" fill="currentColor">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                        </svg>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteFaq({{ faq.id }})" title="Delete">
+                        <svg width="16" height="16" fill="currentColor">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg width="64" height="64" fill="currentColor">
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+        </svg>
+        <h3 style="margin-bottom: 0.5rem;">No FAQs Yet</h3>
+        <p>Create your first FAQ to get started.</p>
+        <button class="btn-gradient-primary" onclick="openCreateModal()" style="margin-top: 1rem;">
+            Create New FAQ
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Modal -->
+<div class="modal-overlay" id="createModalOverlay" onclick="closeCreateModal()"></div>
+<div class="modal-container" id="createModal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Create New FAQ</h2>
+            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin.faq_create') }}">
+            <div class="form-section">
+                <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
+                <input type="text" class="modern-input" name="question" required placeholder="What is your question?">
+            </div>
+
+            <div class="form-section">
+                <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
+                <textarea class="modern-input" name="answer" rows="6" required placeholder="Provide a detailed answer..."></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label class="filter-label">Category</label>
+                    <input type="text" class="modern-input" name="category" placeholder="e.g., Enrollment, Courses">
+                    <small style="color: #6c757d; font-size: 0.875rem;">Leave blank for 'General'</small>
+                </div>
+
+                <div>
+                    <label class="filter-label">Display Order</label>
+                    <input type="number" class="modern-input" name="display_order" value="0" min="0">
+                    <small style="color: #6c757d; font-size: 0.875rem;">Lower numbers appear first</small>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <input type="checkbox" id="is_active_create" name="is_active" checked style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="is_active_create" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn-outline-secondary" onclick="closeCreateModal()">Cancel</button>
+                <button type="submit" class="btn-gradient-primary">
+                    <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    Create FAQ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModalOverlay" onclick="closeEditModal()"></div>
+<div class="modal-container" id="editModal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Edit FAQ</h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin.faq_update') }}">
+            <input type="hidden" name="faq_id" id="edit_faq_id">
+
+            <div class="form-section">
+                <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
+                <input type="text" class="modern-input" name="question" id="edit_question" required>
+            </div>
+
+            <div class="form-section">
+                <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
+                <textarea class="modern-input" name="answer" id="edit_answer" rows="6" required></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label class="filter-label">Category</label>
+                    <input type="text" class="modern-input" name="category" id="edit_category">
+                </div>
+
+                <div>
+                    <label class="filter-label">Display Order</label>
+                    <input type="number" class="modern-input" name="display_order" id="edit_display_order" min="0">
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <input type="checkbox" id="edit_is_active" name="is_active" style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="edit_is_active" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn-outline-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-gradient-primary">
+                    <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                    </svg>
+                    Update FAQ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Create Modal
+function openCreateModal() {
+    document.getElementById('createModalOverlay').classList.add('active');
+    document.getElementById('createModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCreateModal() {
+    document.getElementById('createModalOverlay').classList.remove('active');
+    document.getElementById('createModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Edit Modal
+function openEditModal(faqId) {
+    fetch(`{{ url_for('admin.faq_get', faq_id=0) }}`.replace('0', faqId))
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_faq_id').value = data.id;
+            document.getElementById('edit_question').value = data.question;
+            document.getElementById('edit_answer').value = data.answer;
+            document.getElementById('edit_category').value = data.category || '';
+            document.getElementById('edit_display_order').value = data.display_order;
+            document.getElementById('edit_is_active').checked = data.is_active;
+            
+            document.getElementById('editModalOverlay').classList.add('active');
+            document.getElementById('editModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+}
+
+function closeEditModal() {
+    document.getElementById('editModalOverlay').classList.remove('active');
+    document.getElementById('editModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Delete FAQ
+function deleteFaq(faqId) {
+    if (confirm('Are you sure you want to delete this FAQ? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url_for('admin.faq_delete', faq_id=0) }}`.replace('0', faqId);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Create button event
+document.getElementById('createNewBtn').addEventListener('click', openCreateModal);
+
+// Close modals on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCreateModal();
+        closeEditModal();
+    }
+});
+</script>
+
+{% endblock inner_content %}

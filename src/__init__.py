@@ -123,6 +123,7 @@ def init_db(app):
     from src.models.course_folder.enrollments import Enrollment
     from src.models.announcements import Announcement
     from src.models.locations import Location
+    from src.models.faq import FAQ
 
     # stripe models
     from src.models.stripe.payments import Payment
@@ -176,6 +177,9 @@ def init_blueprints(app):
     
     from src.controllers.locations import locations_bp
     app.register_blueprint(locations_bp)
+    
+    from src.controllers.faq import faq_bp
+    app.register_blueprint(faq_bp)
     
     # Payment management
     from src.controllers.payments.payment_management import payments_bp

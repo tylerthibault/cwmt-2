@@ -1,0 +1,162 @@
+{% extends 'bases/public.html' %}
+{% from 'components/course_card.html' import course_card %}
+
+{% block content %}
+{% include 'public/components/navbar.html' %}
+
+<!-- Hero Section -->
+<section class="overview-hero">
+    <div class="container overview-hero-content">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1>Course Overview</h1>
+                <p class="lead">
+                    Explore our comprehensive motorcycle training programs designed for riders at every skill level.
+                    From beginners taking their first ride to advanced riders perfecting their technique.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Beginner Level Courses -->
+{% if beginner_courses %}
+<section class="course-level-section">
+    <div class="container">
+        <div class="level-header">
+            <span class="level-badge beginner">Beginner</span>
+            <h2 class="level-title">Starting Your Journey</h2>
+            <p class="level-description">
+                Perfect for new riders with little to no experience. Learn the fundamentals of motorcycle operation,
+                safety procedures, and build confidence in a controlled environment.
+            </p>
+        </div>
+        
+        <div class="row">
+            {% for course in beginner_courses %}
+                {{ course_card(course, 'beginner') }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Intermediate Level Courses -->
+{% if intermediate_courses %}
+<section class="course-level-section">
+    <div class="container">
+        <div class="level-header">
+            <span class="level-badge intermediate">Intermediate</span>
+            <h2 class="level-title">Advancing Your Skills</h2>
+            <p class="level-description">
+                For riders with basic experience looking to enhance their abilities. Develop advanced techniques,
+                improve hazard awareness, and refine your riding style.
+            </p>
+        </div>
+        
+        <div class="row">
+            {% for course in intermediate_courses %}
+                {{ course_card(course, 'intermediate') }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Advanced Level Courses -->
+{% if advanced_courses %}
+<section class="course-level-section">
+    <div class="container">
+        <div class="level-header">
+            <span class="level-badge advanced">Advanced</span>
+            <h2 class="level-title">Mastering the Craft</h2>
+            <p class="level-description">
+                For experienced riders seeking to master advanced techniques. Push your limits, tackle challenging
+                scenarios, and achieve peak riding performance.
+            </p>
+        </div>
+        
+        <div class="row">
+            {% for course in advanced_courses %}
+                {{ course_card(course, 'advanced') }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Empty State -->
+{% if not beginner_courses and not intermediate_courses and not advanced_courses %}
+<section class="course-level-section">
+    <div class="container">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <h3 class="empty-state-title">No Courses Available</h3>
+            <p class="empty-state-text">
+                We're currently updating our course offerings. Please check back soon or contact us for more information.
+            </p>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Additional Information Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-4 mb-4 mb-md-0">
+                <div class="text-center">
+                    <i class="bi bi-award fs-1 text-primary mb-3 d-block"></i>
+                    <h4 class="h5 mb-2">Certified Instructors</h4>
+                    <p class="text-muted small mb-0">
+                        Learn from experienced, state-certified motorcycle safety instructors.
+                    </p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-4 mb-md-0">
+                <div class="text-center">
+                    <i class="bi bi-shield-check fs-1 text-primary mb-3 d-block"></i>
+                    <h4 class="h5 mb-2">Safety First</h4>
+                    <p class="text-muted small mb-0">
+                        All courses emphasize safe riding practices and risk management.
+                    </p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="text-center">
+                    <i class="bi bi-geo-alt fs-1 text-primary mb-3 d-block"></i>
+                    <h4 class="h5 mb-2">Convenient Locations</h4>
+                    <p class="text-muted small mb-0">
+                        Multiple training sites across Central Washington for your convenience.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 text-center">
+                <h2 class="mb-3">Ready to Get Started?</h2>
+                <p class="lead text-muted mb-4">
+                    Browse our available course dates and secure your spot today.
+                </p>
+                <a href="{{ url_for('main.public_courses') }}" class="btn btn-primary btn-lg px-5 py-3 me-2 mb-2">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    View Course Schedule
+                </a>
+                <a href="{{ url_for('main.public_faq') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 mb-2">
+                    <i class="bi bi-question-circle me-2"></i>
+                    Have Questions?
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

@@ -19,7 +19,7 @@ def get_all_course_templates_with_payables():
     }
 
 
-def create_course_template(name, experience_level, duration_days, max_students, tuition, color, current_user_id):
+def create_course_template(name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False):
     """
     Create a new course template with associated tuition payable.
     
@@ -31,6 +31,9 @@ def create_course_template(name, experience_level, duration_days, max_students, 
         tuition: Tuition amount
         color: Color for calendar display
         current_user_id: ID of user creating the template
+        description: Full course description (optional)
+        short_blurb: Short description for cards (optional)
+        is_featured: Whether to show on landing page (optional)
         
     Returns:
         CourseTemplate: The created template
@@ -56,6 +59,9 @@ def create_course_template(name, experience_level, duration_days, max_students, 
         max_students=max_students_int,
         color=color or '#0d6efd'
     )
+    new_template.description = description
+    new_template.short_blurb = short_blurb
+    new_template.is_featured = is_featured
     new_template.save()
     
     # Create tuition payable template
@@ -94,7 +100,7 @@ def create_course_template(name, experience_level, duration_days, max_students, 
     return new_template
 
 
-def update_course_template(template_id, name, experience_level, duration_days, max_students, tuition, color, current_user_id):
+def update_course_template(template_id, name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False):
     """
     Update an existing course template and its tuition payable.
     
@@ -107,6 +113,9 @@ def update_course_template(template_id, name, experience_level, duration_days, m
         tuition: Updated tuition amount
         color: Updated color
         current_user_id: ID of user making the update
+        description: Full course description (optional)
+        short_blurb: Short description for cards (optional)
+        is_featured: Whether to show on landing page (optional)
         
     Returns:
         CourseTemplate: The updated template
@@ -132,10 +141,13 @@ def update_course_template(template_id, name, experience_level, duration_days, m
     
     # Update template fields
     template.name = name
+    template.description = description
+    template.short_blurb = short_blurb
     template.experience_level = experience_level
     template.duration_days = duration_int
     template.max_students = max_students_int
     template.color = color or '#0d6efd'
+    template.is_featured = is_featured
     template.save()
     
     # Find and update tuition payable

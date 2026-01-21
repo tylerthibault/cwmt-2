@@ -12,6 +12,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, jsonify, make_response
 from src.models.user_folder import admins, users
 from src.models.doorman import Doorman
+from src.models.faq import FAQ
 from src.utils.custom_decorators import login_required, role_required
 from src.services import admin_service
 
@@ -201,3 +202,112 @@ def activity_logs():
                          current_user_id=user_filter,
                          **filter_options)
     return redirect(url_for('admin.view_student', student_id=student_id))
+
+
+# =============== FAQ ROUTES ===============
+
+@admin_bp.route('/faq')
+@login_required
+@role_required('admin')
+def faq():
+    """Admin FAQ management page."""
+    faqs = FAQ.query.order_by(FAQ.display_order, FAQ.id).all()
+    return render_template('private/admins/FAQ/index.html',
+                         current_user=_get_current_user(),
+                         faqs=faqs)
+
+
+@admin_bp.route('/faq/create', methods=['POST'])
+@login_required
+@role_required('admin')
+def faq_create():
+    """Create a new FAQ."""
+    try:
+        question = request.form.get('question')
+        answer = request.form.get('answer')
+        category = request.form.get('category') or None
+        display_order = int(request.form.get('display_order', 0))
+        is_active = 'is_active' in request.form
+        
+        faq = FAQ(
+            question=question,
+            answer=answer,
+            category=category,
+            display_order=display_order,
+            is_active=is_active
+        )
+        faq.save()
+        
+        flash('FAQ created successfully!', 'success')
+    except Exception as e:
+        flash(f'Error creating FAQ: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.faq'))
+
+
+@admin_bp.route('/faq/update', methods=['POST'])
+@login_required
+@role_required('admin')
+def faq_update():
+    """Update an existing FAQ."""
+    try:
+        faq_id = request.form.get('faq_id')
+        faq = FAQ.query.get(faq_id)
+        
+        if not faq:
+            flash('FAQ not found.', 'error')
+            return redirect(url_for('admin.faq'))
+        
+        faq.question = request.form.get('question')
+        faq.answer = request.form.get('answer')
+        faq.category = request.form.get('category') or None
+        faq.display_order = int(request.form.get('display_order', 0))
+        faq.is_active = 'is_active' in request.form
+        
+        faq.save()
+        flash('FAQ updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating FAQ: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.faq'))
+
+
+@admin_bp.route('/faq/delete/<int:faq_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def faq_delete(faq_id):
+    """Delete an FAQ."""
+    try:
+        faq = FAQ.query.get(faq_id)
+        
+        if not faq:
+            flash('FAQ not found.', 'error')
+            return redirect(url_for('admin.faq'))
+        
+        faq.delete()
+        flash('FAQ deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting FAQ: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.faq'))
+
+
+@admin_bp.route('/faq/get/<int:faq_id>')
+@login_required
+@role_required('admin')
+def faq_get(faq_id):
+    """Get FAQ data as JSON."""
+    faq = FAQ.query.get(faq_id)
+    
+    if not faq:
+        return jsonify({'error': 'FAQ not found'}), 404
+    
+    return jsonify({
+        'id': faq.id,
+        'question': faq.question,
+        'answer': faq.answer,
+        'category': faq.category,
+        'display_order': faq.display_order,
+        'is_active': faq.is_active
+    })
+
