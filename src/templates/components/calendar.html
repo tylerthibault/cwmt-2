@@ -1,0 +1,69 @@
+<!-- Base Calendar Component -->
+<!-- Can be included in any page, adapts based on 'role' variable -->
+
+<div class="calendar-container" data-role="{{ role }}">
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+        <button class="btn-calendar-nav" id="prevMonth" aria-label="Previous month">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <h2 class="calendar-month-year" id="monthYear"></h2>
+        <button class="btn-calendar-nav" id="nextMonth" aria-label="Next month">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Desktop Calendar View (now visible on all screen sizes) -->
+    <div class="calendar-view-desktop">
+        <!-- Day Headers -->
+        <div class="calendar-days-header">
+            <div class="calendar-day-name">Sun</div>
+            <div class="calendar-day-name">Mon</div>
+            <div class="calendar-day-name">Tue</div>
+            <div class="calendar-day-name">Wed</div>
+            <div class="calendar-day-name">Thu</div>
+            <div class="calendar-day-name">Fri</div>
+            <div class="calendar-day-name">Sat</div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <!-- Mobile/Tablet List View (hidden - we use grid everywhere) -->
+    <div class="calendar-view-mobile" style="display: none;">
+        <div class="calendar-events-list" id="mobileEventsList"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="calendar-legend mt-3">
+        <div class="legend-item">
+            <span class="legend-dot" style="background-color: var(--success-color);"></span>
+            <span class="legend-label">Available</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background-color: var(--warning-color);"></span>
+            <span class="legend-label">Limited Spots</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background-color: var(--danger-color);"></span>
+            <span class="legend-label">Full</span>
+        </div>
+    </div>
+</div>
+
+<!-- Initialize Calendar -->
+<script>
+    // Calendar will be initialized by role-specific JS modules
+    // Events data is passed from the controller
+    window.calendarEvents = {{ events_json | safe }};
+    window.calendarRole = "{{ role }}";
+    
+    {% if role == 'student' and enrolled_course_ids is defined %}
+    window.enrolledCourseIds = {{ enrolled_course_ids | safe }};
+    {% endif %}
+    
+    {% if role == 'instructor' and current_instructor_id is defined %}
+    window.currentInstructorId = {{ current_instructor_id }};
+    {% endif %}
+</script>

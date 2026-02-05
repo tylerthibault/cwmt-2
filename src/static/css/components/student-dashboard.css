@@ -3,15 +3,15 @@
 .dashboard-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 1rem;
 }
 
 /* Dashboard Header */
 .dashboard-header {
     background: var(--primary-gradient);
-    border-radius: var(--radius-xl);
-    padding: 2rem;
-    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
     color: white;
     box-shadow: var(--shadow-primary);
 }
@@ -25,28 +25,28 @@
 }
 
 .dashboard-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .dashboard-subtitle {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     margin: 0;
     opacity: 0.95;
 }
 
 .dashboard-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
 .btn-primary, .btn-secondary {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: var(--radius-full);
     font-weight: 600;
     font-size: 0.95rem;
@@ -84,15 +84,15 @@
 /* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .stat-card {
     background: white;
-    border-radius: var(--radius-xl);
-    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    padding: 1rem;
     display: flex;
     align-items: center;
     gap: 1.25rem;
@@ -123,9 +123,9 @@
 }
 
 .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-lg);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -157,10 +157,10 @@
 }
 
 .stat-value {
-    font-size: 2.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
 }
 
 .stat-card-active .stat-value {
@@ -180,33 +180,33 @@
 }
 
 .stat-label {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-color);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
 }
 
 .stat-sublabel {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--gray-600);
 }
 
 /* Section Styles */
 .section {
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--gray-200);
 }
 
 .section-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     margin: 0;
     display: flex;
@@ -241,13 +241,13 @@
 /* Guest Cards Grid */
 .guest-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
 }
 
 .guest-card {
     background: white;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-base);
@@ -261,16 +261,16 @@
 }
 
 .guest-card-header {
-    padding: 1.25rem;
+    padding: 0.875rem;
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: flex-start;
     border-bottom: 1px solid var(--gray-200);
 }
 
 .guest-avatar {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     border-radius: var(--radius-full);
     background: var(--primary-gradient);
     color: white;
@@ -278,7 +278,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
 }
 
@@ -288,14 +288,14 @@
 }
 
 .guest-name {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.15rem 0;
     color: var(--text-color);
 }
 
 .guest-relationship {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--gray-600);
     display: flex;
     align-items: center;
@@ -303,9 +303,9 @@
 }
 
 .status-badge {
-    padding: 0.35rem 0.75rem;
+    padding: 0.25rem 0.6rem;
     border-radius: var(--radius-full);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     flex-shrink: 0;
 }
@@ -321,17 +321,17 @@
 }
 
 .guest-card-body {
-    padding: 1.25rem;
+    padding: 0.875rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .guest-detail {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.9rem;
+    gap: 0.5rem;
+    font-size: 0.8rem;
     color: var(--gray-700);
 }
 
@@ -341,7 +341,7 @@
 }
 
 .guest-card-footer {
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 0.875rem;
     background: var(--gray-50);
     display: flex;
     justify-content: space-between;
@@ -351,8 +351,8 @@
 .enrollment-count {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
+    gap: 0.4rem;
+    font-size: 0.8rem;
     color: var(--gray-600);
     font-weight: 600;
 }
@@ -361,14 +361,14 @@
     background: var(--primary-color);
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     transition: all var(--transition-base);
 }
 
@@ -380,13 +380,13 @@
 /* Enrollment Cards Grid */
 .enrollment-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
 }
 
 .enrollment-card {
     background: white;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-base);
@@ -407,16 +407,16 @@
 }
 
 .enrollment-card-header {
-    padding: 1.25rem;
+    padding: 0.875rem;
     background: var(--gray-50);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .course-name {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     margin: 0;
     color: var(--text-color);
@@ -424,9 +424,9 @@
 }
 
 .enrollment-badge {
-    padding: 0.35rem 0.85rem;
+    padding: 0.25rem 0.7rem;
     border-radius: var(--radius-full);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -442,17 +442,17 @@
 }
 
 .enrollment-card-body {
-    padding: 1.25rem;
+    padding: 0.875rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .enrollment-detail {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.95rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
     color: var(--gray-700);
 }
 
@@ -581,4 +581,33 @@
     .section-title {
         font-size: 1.25rem;
     }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.empty-state svg {
+    color: var(--gray-400);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }

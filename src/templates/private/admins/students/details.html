@@ -240,7 +240,7 @@
                             </thead>
                             <tbody>
                                 {% for payment in payments %}
-                                <tr class="table-row-clickable" onclick="window.location.href='{{ url_for('admin.view_payment', payment_id=payment.id) }}'">
+                                <tr class="table-row-clickable" onclick="window.location.href='{{ url_for('payments.view_payment', payment_id=payment.id) }}'">
                                     <td>{{ payment.created_at.strftime('%b %d, %Y') }}</td>
                                     <td>
                                         {% if payment.course_instance and payment.course_instance.course_template %}

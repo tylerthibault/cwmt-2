@@ -1,0 +1,199 @@
+/* Calendar Responsive Styles - Mobile & Tablet */
+
+/* Tablet Adjustments */
+@media (max-width: 991px) {
+    .calendar-container {
+        padding: 1rem;
+    }
+
+    .calendar-header {
+        margin-bottom: 1rem;
+    }
+
+    .calendar-month-year {
+        font-size: 1.5rem;
+    }
+
+    .btn-calendar-nav {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Make desktop calendar more compact for tablets */
+    .calendar-day {
+        min-height: 80px;
+        padding: 0.25rem;
+    }
+
+    .calendar-day-number {
+        font-size: 0.75rem;
+    }
+
+    .calendar-event {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.35rem;
+    }
+
+    /* Hide mobile list view on tablet, show compact calendar */
+    .calendar-view-mobile {
+        display: none !important;
+    }
+
+    .calendar-legend {
+        gap: 1rem;
+        padding: 0.75rem;
+    }
+
+    .legend-item {
+        font-size: 0.8rem;
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 5rem;
+        border-radius: 8px;
+    }
+
+    .calendar-header {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .calendar-month-year {
+        font-size: 1.125rem;
+    }
+
+    .btn-calendar-nav {
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn-calendar-nav i {
+        font-size: 0.875rem;
+    }
+
+    /* Very compact calendar for mobile */
+    .calendar-grid {
+        min-height: 300px;
+    }
+
+    .calendar-day {
+        min-height: 60px;
+        padding: 0.15rem;
+    }
+
+    .calendar-day-number {
+        font-size: 0.7rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .calendar-day-name {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.7rem;
+    }
+
+    .calendar-events {
+        gap: 0.15rem;
+    }
+
+    .calendar-event {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.25rem;
+    }
+
+    /* Show only first 2 events on mobile, then +X more */
+    .calendar-event:nth-child(n+3) {
+        display: none;
+    }
+
+    .calendar-event-more {
+        font-size: 0.65rem;
+        padding: 0.15rem;
+    }
+
+    /* Hide mobile list view, keep compact calendar */
+    .calendar-view-mobile {
+        display: none !important;
+    }
+
+    /* Compact legend */
+    .calendar-legend {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .legend-item {
+        font-size: 0.7rem;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn-calendar-nav {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .calendar-event-card {
+        min-height: 80px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .calendar-event:hover {
+        transform: none;
+        box-shadow: none;
+        filter: none;
+    }
+
+    .calendar-event-card:hover {
+        transform: none;
+    }
+
+    /* Add active state for touch feedback */
+    .calendar-event:active {
+        opacity: 0.8;
+    }
+
+    .calendar-event-card:active {
+        opacity: 0.9;
+        transform: scale(0.98);
+    }
+
+    .btn-calendar-nav:active {
+        transform: scale(0.9);
+    }
+}
+
+/* Print styles */
+@media print {
+    .calendar-container {
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .btn-calendar-nav {
+        display: none;
+    }
+
+    .calendar-legend {
+        display: none;
+    }
+
+    .calendar-event {
+        background-color: transparent !important;
+        color: black !important;
+        border: 1px solid black;
+    }
+
+    .calendar-day {
+        page-break-inside: avoid;
+    }
+}

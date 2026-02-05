@@ -1,363 +1,569 @@
 /**
- * Calendar Admin Module
- * Handles admin-specific features: course creation wizard, event details
+ * Admin Calendar Module
+ * Extends core calendar with admin-specific features:
+ * - Click empty day to create new course instance
+ * - Click event to edit/manage course instance
  */
 
-class CalendarAdminModule {
-    constructor(courseTemplates, instructors) {
-        this.courseTemplates = courseTemplates || [];
-        this.instructors = instructors || [];
-        this.currentWizardStep = 1;
+class AdminCalendar extends Calendar {
+    constructor(options = {}) {
+        super(options);
+        
+        this.courseTemplates = options.courseTemplates || [];
+        this.instructors = options.instructors || [];
+        this.locations = options.locations || [];
     }
-
-    /**
-     * Open the schedule course wizard
-     */
-    openScheduleWizard(selectedDate) {        console.log('Opening wizard with templates:', this.courseTemplates);
-        console.log('Opening wizard with instructors:', this.instructors);
-                this.currentWizardStep = 1;
-        const dateStr = selectedDate.toLocaleDateString('en-US', { 
-            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
-        });
-
-        const wizardContent = `
-            <div class="wizard-steps">
-                <div class="wizard-step active" data-step="1">
-                    <div class="wizard-step-number">1</div>
-                    <div>Course</div>
-                </div>
-                <div class="wizard-step" data-step="2">
-                    <div class="wizard-step-number">2</div>
-                    <div>Details</div>
-                </div>
-                <div class="wizard-step" data-step="3">
-                    <div class="wizard-step-number">3</div>
-                    <div>Review</div>
-                </div>
-            </div>
+    
+    createEventElement(event, cellDate) {
+        const eventElement = super.createEventElement(event, cellDate);
+        
+        // Add instructor indicators
+        if (event.hasC1 || event.hasC2) {
+            const instructorBadge = document.createElement('div');
+            instructorBadge.classList.add('instructor-badges');
             
-            <div class="wizard-content">
-                <!-- Step 1: Select Course Template -->
-                <div class="wizard-form-section active" data-step="1">
-                    <h5>Select Course Template</h5>
-                    <p class="text-muted">Scheduled for: ${dateStr}</p>
-                    <div class="mb-3">
-                        <label class="form-label">Course Template <span class="text-danger">*</span></label>
-                        <select class="form-select" id="course_template_id" required>
-                            <option value="">Select a course...</option>
-                            ${this.courseTemplates.map(t => 
-                                `<option value="${t.id}" data-max="${t.max_students}" data-duration="${t.duration_days}">${t.name}</option>`
-                            ).join('')}
-                        </select>
+            if (event.hasC1) {
+                const c1Badge = document.createElement('span');
+                c1Badge.classList.add('instructor-badge', 'c1-badge');
+                c1Badge.textContent = 'C1';
+                c1Badge.title = 'C1 Instructor Assigned';
+                instructorBadge.appendChild(c1Badge);
+            }
+            
+            if (event.hasC2) {
+                const c2Badge = document.createElement('span');
+                c2Badge.classList.add('instructor-badge', 'c2-badge');
+                c2Badge.textContent = 'C2';
+                c2Badge.title = 'C2 Instructor Assigned';
+                instructorBadge.appendChild(c2Badge);
+            }
+            
+            eventElement.appendChild(instructorBadge);
+        }
+        
+        return eventElement;
+    }
+    
+    handleDayClick(date, events) {
+        super.handleDayClick(date, events);
+        
+        console.log('Admin day clicked:', date, 'Events:', events);
+        
+        // Admin can click any day to create a new course
+        if (events.length === 0) {
+            this.showCreateCourseModal(date);
+        } else {
+            this.showDayEventsModal(date, events);
+        }
+    }
+    
+    handleEventClick(event) {
+        super.handleEventClick(event);
+        console.log('Admin event clicked:', event);
+        this.showEventDetailsModal(event);
+    }
+    
+    showCreateCourseModal(date) {
+        const dateStr = date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        const formattedDate = this.formatDate(date);
+        
+        // Initialize wizard data
+        this.wizardData = {
+            selectedDate: formattedDate,
+            selectedTemplate: null,
+            selectedTime: '09:00',
+            duration: null,
+            maxStudents: null,
+            locationId: null,
+            c1InstructorId: null,
+            c2InstructorId: null,
+            notes: ''
+        };
+        
+        const content = this.buildWizardContent();
+        
+        const footer = `
+            <div class="wizard-footer">
+                <button type="button" class="btn btn-secondary wizard-btn-prev" style="display: none;">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <div>
+                    <button type="button" class="btn btn-secondary" onclick="window.currentModal.close()">Cancel</button>
+                    <button type="button" class="btn btn-primary wizard-btn-next">
+                        Next <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary wizard-btn-finish" style="display: none;">
+                        <i class="bi bi-check-circle"></i> Schedule Course
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const modal = new Modal({
+            size: 'lg',
+            title: `Schedule New Course - ${dateStr}`,
+            content: content,
+            footer: footer
+        });
+        
+        window.currentModal = modal;
+        modal.open();
+        
+        this.initializeWizard();
+    }
+    
+    buildWizardContent() {
+        // Build course template cards
+        const templateCards = this.courseTemplates.map(template => `
+            <div class="col">
+                <div class="course-template-card h-100" data-template-id="${template.id}" data-duration="${template.duration_days}" data-max="${template.max_students}">
+                    <div class="template-name">${template.name}</div>
+                    <div class="template-details d-flex flex-wrap">
+                        <span><i class="bi bi-calendar"></i> ${template.duration_days} day${template.duration_days > 1 ? 's' : ''}</span>
+                        <span><i class="bi bi-people"></i> Max ${template.max_students} students</span>
+                        <span class="template-badge">${template.experience_level}</span>
                     </div>
                 </div>
+            </div>
+        `).join('');
+        
+        // Build instructor options
+        const instructorOptions = this.instructors.map(instructor => 
+            `<option value="${instructor.id}">${instructor.user.first_name} ${instructor.user.last_name}</option>`
+        ).join('');
+        
+        // Build location options (tax display will be controlled by course template taxability)
+        const locationOptions = this.locations.map(location => {
+            return `<option value="${location.id}" data-tax-rate="${location.tax_rate}">${location.name}</option>`;
+        }).join('');
+        
+        return `
+            <div class="wizard-container">
+                <ul class="wizard-steps">
+                    <li class="wizard-step active" data-step="1">
+                        <div class="wizard-step-indicator">1</div>
+                        <div class="wizard-step-label">Choose Course</div>
+                    </li>
+                    <li class="wizard-step" data-step="2">
+                        <div class="wizard-step-indicator">2</div>
+                        <div class="wizard-step-label">Set Time</div>
+                    </li>
+                    <li class="wizard-step" data-step="3">
+                        <div class="wizard-step-indicator">3</div>
+                        <div class="wizard-step-label">Details</div>
+                    </li>
+                    <li class="wizard-step" data-step="4">
+                        <div class="wizard-step-indicator">4</div>
+                        <div class="wizard-step-label">Instructors</div>
+                    </li>
+                </ul>
                 
-                <!-- Step 2: Course Details -->
-                <div class="wizard-form-section" data-step="2">
-                    <h5>Course Details</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Start Time <span class="text-danger">*</span></label>
-                        <input type="time" class="form-control" id="start_time" required>
+                <div class="wizard-content">
+                    <!-- Step 1: Course Selection -->
+                    <div class="wizard-panel active" data-panel="1">
+                        <h5 class="mb-4">Select a Course Type</h5>
+                        <div class="course-templates-list row row-cols-1 row-cols-md-2 g-2">
+                            ${templateCards}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Location <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="location" placeholder="e.g., Building A, Room 101" required>
+                    
+                    <!-- Step 2: Time Selection -->
+                    <div class="wizard-panel" data-panel="2">
+                        <h5 class="mb-4">When should this course start?</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="wizardStartDate" value="${this.wizardData.selectedDate}">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="wizardStartTime" value="09:00">
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Duration (Days) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="duration_days" min="1" required>
+                    
+                    <!-- Step 3: Course Details -->
+                    <div class="wizard-panel" data-panel="3">
+                        <h5 class="mb-4">Course Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Duration (days)</label>
+                                <input type="number" class="form-control" id="wizardDuration" min="1" readonly>
+                                <small class="form-text text-muted">Set by course template</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Max Students</label>
+                                <input type="number" class="form-control" id="wizardMaxStudents" min="1" readonly>
+                                <small class="form-text text-muted">Set by course template</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location <span class="text-danger">*</span></label>
+                            <select class="form-select" id="wizardLocation" required>
+                                <option value="">Select location...</option>
+                                ${locationOptions}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" id="wizardNotes" rows="4" placeholder="Add any additional notes or instructions"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Maximum Students <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="max_students" min="1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">C1 Instructor</label>
-                        <select class="form-select" id="c1_instructor_id">
-                            <option value="">Unassigned</option>
-                            ${this.instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">C2 Instructor</label>
-                        <select class="form-select" id="c2_instructor_id">
-                            <option value="">Unassigned</option>
-                            ${this.instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" rows="3" placeholder="Optional notes about this course instance"></textarea>
-                    </div>
-                </div>
-                
-                <!-- Step 3: Review -->
-                <div class="wizard-form-section" data-step="3">
-                    <h5>Review & Confirm</h5>
-                    <div id="review-content" class="alert alert-info">
-                        <p><strong>Date:</strong> ${dateStr}</p>
-                        <p id="review-details"></p>
+                    
+                    <!-- Step 4: Instructors -->
+                    <div class="wizard-panel" data-panel="4">
+                        <h5 class="mb-4">Assign Instructors</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">C1 Instructor</label>
+                                <select class="form-select" id="wizardC1Instructor">
+                                    <option value="">None</option>
+                                    ${instructorOptions}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">C2 Instructor</label>
+                                <select class="form-select" id="wizardC2Instructor">
+                                    <option value="">None</option>
+                                    ${instructorOptions}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Summary -->
+                        <div class="mt-4 p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                            <h6>Course Summary</h6>
+                            <div id="wizardSummary"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
-
-        const footer = `
-            <button type="button" class="btn btn-secondary" id="wizard-prev" style="display: none;">Previous</button>
-            <button type="button" class="btn btn-primary" id="wizard-next">Next</button>
-            <button type="button" class="btn btn-success" id="wizard-submit" style="display: none;">Schedule Course</button>
-        `;
-
-        const modal = Modal.show({
-            title: 'Schedule New Course',
-            content: wizardContent,
-            footer: footer,
-            size: 'lg',
-            closeOnOverlay: false
-        });
-
-        modal.selectedDate = selectedDate;
-        this.setupWizardNavigation(modal);
-
-        const templateSelect = modal.container.querySelector('#course_template_id');
-        templateSelect.addEventListener('change', (e) => {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            if (selectedOption.value) {
-                modal.templateData = {
-                    maxStudents: selectedOption.dataset.max,
-                    duration: selectedOption.dataset.duration
+    }
+    
+    initializeWizard() {
+        this.currentStep = 1;
+        
+        // Template selection
+        const templateCards = document.querySelectorAll('.course-template-card');
+        templateCards.forEach(card => {
+            card.addEventListener('click', () => {
+                templateCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                
+                this.wizardData.selectedTemplate = {
+                    id: parseInt(card.dataset.templateId),
+                    duration: parseInt(card.dataset.duration),
+                    maxStudents: parseInt(card.dataset.max),
+                    name: card.querySelector('.template-name').textContent
                 };
-            }
-        });
-    }
-
-    /**
-     * Set up wizard navigation
-     */
-    setupWizardNavigation(modal) {
-        const nextBtn = modal.container.querySelector('#wizard-next');
-        const prevBtn = modal.container.querySelector('#wizard-prev');
-        const submitBtn = modal.container.querySelector('#wizard-submit');
-
-        nextBtn.addEventListener('click', () => {
-            if (this.validateStep(this.currentWizardStep, modal)) {
-                this.currentWizardStep++;
-                this.updateWizardStep(modal);
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            this.currentWizardStep--;
-            this.updateWizardStep(modal);
-        });
-
-        submitBtn.addEventListener('click', () => {
-            this.submitCourse(modal);
-        });
-    }
-
-    /**
-     * Update wizard step UI
-     */
-    updateWizardStep(modal) {
-        const container = modal.container;
-
-        container.querySelectorAll('.wizard-step').forEach(step => {
-            const stepNum = parseInt(step.dataset.step);
-            step.classList.remove('active', 'completed');
-            if (stepNum === this.currentWizardStep) {
-                step.classList.add('active');
-            } else if (stepNum < this.currentWizardStep) {
-                step.classList.add('completed');
-            }
-        });
-
-        container.querySelectorAll('.wizard-form-section').forEach(section => {
-            section.classList.remove('active');
-            if (parseInt(section.dataset.step) === this.currentWizardStep) {
-                section.classList.add('active');
-            }
-        });
-
-        const nextBtn = container.querySelector('#wizard-next');
-        const prevBtn = container.querySelector('#wizard-prev');
-        const submitBtn = container.querySelector('#wizard-submit');
-
-        prevBtn.style.display = this.currentWizardStep > 1 ? 'inline-block' : 'none';
-
-        if (this.currentWizardStep === 3) {
-            nextBtn.style.display = 'none';
-            submitBtn.style.display = 'inline-block';
-            this.updateReview(modal);
-        } else {
-            nextBtn.style.display = 'inline-block';
-            submitBtn.style.display = 'none';
-
-            if (this.currentWizardStep === 2 && modal.templateData) {
-                const maxStudentsInput = container.querySelector('#max_students');
-                const durationInput = container.querySelector('#duration_days');
-                if (!maxStudentsInput.value) {
-                    maxStudentsInput.value = modal.templateData.maxStudents;
-                }
-                if (!durationInput.value) {
-                    durationInput.value = modal.templateData.duration;
-                }
-            }
-        }
-    }
-
-    /**
-     * Validate current wizard step
-     */
-    validateStep(step, modal) {
-        const container = modal.container;
-        const currentSection = container.querySelector(`.wizard-form-section[data-step="${step}"]`);
-
-        if (step === 1) {
-            const templateField = currentSection.querySelector('#course_template_id');
-            const template = templateField ? templateField.value : '';
-            console.log('Validating step 1, template value:', template, 'field:', templateField);
-            if (!template) {
-                Modal.alert({ title: 'Required Field', message: 'Please select a course template.' });
-                return false;
-            }
-        } else if (step === 2) {
-            const time = currentSection.querySelector('#start_time').value;
-            const location = currentSection.querySelector('#location').value;
-            const durationDays = currentSection.querySelector('#duration_days').value;
-            const maxStudents = currentSection.querySelector('#max_students').value;
-            if (!time || !location || !durationDays || !maxStudents) {
-                Modal.alert({ title: 'Required Fields', message: 'Please fill in all required fields.' });
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Update review step content
-     */
-    updateReview(modal) {
-        const container = modal.container;
-        const reviewDetails = container.querySelector('#review-details');
-
-        const templateSelect = container.querySelector('#course_template_id');
-        const templateText = templateSelect.options[templateSelect.selectedIndex].text;
-        const time = container.querySelector('#start_time').value;
-        const location = container.querySelector('#location').value;
-        const durationDays = container.querySelector('#duration_days').value;
-        const maxStudents = container.querySelector('#max_students').value;
-        const notes = container.querySelector('#notes').value;
-
-        const c1InstructorSelect = container.querySelector('#c1_instructor_id');
-        const c1InstructorText = c1InstructorSelect.value ? 
-            c1InstructorSelect.options[c1InstructorSelect.selectedIndex].text : 'Unassigned';
-
-        const c2InstructorSelect = container.querySelector('#c2_instructor_id');
-        const c2InstructorText = c2InstructorSelect.value ? 
-            c2InstructorSelect.options[c2InstructorSelect.selectedIndex].text : 'Unassigned';
-
-        reviewDetails.innerHTML = `
-            <p><strong>Course:</strong> ${templateText}</p>
-            <p><strong>Time:</strong> ${time}</p>
-            <p><strong>Location:</strong> ${location}</p>
-            <p><strong>Duration:</strong> ${durationDays} day(s)</p>
-            <p><strong>Maximum Students:</strong> ${maxStudents}</p>
-            <p><strong>C1 Instructor:</strong> ${c1InstructorText}</p>
-            <p><strong>C2 Instructor:</strong> ${c2InstructorText}</p>
-            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
-        `;
-    }
-
-    /**
-     * Submit course creation
-     */
-    submitCourse(modal) {
-        const container = modal.container;
-
-        const year = modal.selectedDate.getFullYear();
-        const month = String(modal.selectedDate.getMonth() + 1).padStart(2, '0');
-        const day = String(modal.selectedDate.getDate()).padStart(2, '0');
-        const localDateString = `${year}-${month}-${day}`;
-
-        const formData = {
-            course_template_id: container.querySelector('#course_template_id').value,
-            start_date: localDateString,
-            start_time: container.querySelector('#start_time').value,
-            location: container.querySelector('#location').value,
-            duration_days: container.querySelector('#duration_days').value,
-            max_students: container.querySelector('#max_students').value,
-            c1_instructor_id: container.querySelector('#c1_instructor_id').value || null,
-            c2_instructor_id: container.querySelector('#c2_instructor_id').value || null,
-            notes: container.querySelector('#notes').value || null
-        };
-
-        modal.showLoading();
-
-        fetch('/courses/admin/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            modal.close();
-            if (data.success) {
-                Modal.alert({ 
-                    title: 'Success', 
-                    message: 'Course scheduled successfully!' 
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                Modal.alert({ 
-                    title: 'Error', 
-                    message: data.message || 'Failed to schedule course.' 
-                });
-            }
-        })
-        .catch(error => {
-            modal.close();
-            Modal.alert({ 
-                title: 'Error', 
-                message: 'An error occurred while scheduling the course.' 
             });
         });
+        
+        // Navigation buttons
+        const nextBtn = document.querySelector('.wizard-btn-next');
+        const prevBtn = document.querySelector('.wizard-btn-prev');
+        const finishBtn = document.querySelector('.wizard-btn-finish');
+        
+        nextBtn.addEventListener('click', () => this.wizardNext());
+        prevBtn.addEventListener('click', () => this.wizardPrev());
+        finishBtn.addEventListener('click', () => this.submitCreateCourse());
     }
-
-    /**
-     * Show event details for admin view
-     */
-    showEventDetails(event) {
+    
+    wizardNext() {
+        // Validate current step
+        if (this.currentStep === 1 && !this.wizardData.selectedTemplate) {
+            Modal.alert({ title: 'Required', message: 'Please select a course type' });
+            return;
+        }
+        
+        if (this.currentStep === 3) {
+            const locationId = document.getElementById('wizardLocation').value;
+            if (!locationId) {
+                Modal.alert({ title: 'Required', message: 'Please select a location' });
+                return;
+            }
+            this.wizardData.locationId = parseInt(locationId);
+            this.wizardData.notes = document.getElementById('wizardNotes').value;
+        }
+        
+        this.currentStep++;
+        this.updateWizardUI();
+        
+        // Capture time and duration on step 3
+        if (this.currentStep === 3) {
+            this.wizardData.selectedTime = document.getElementById('wizardStartTime').value;
+            this.wizardData.selectedDate = document.getElementById('wizardStartDate').value;
+            document.getElementById('wizardDuration').value = this.wizardData.selectedTemplate.duration;
+            document.getElementById('wizardMaxStudents').value = this.wizardData.selectedTemplate.maxStudents;
+            this.wizardData.duration = this.wizardData.selectedTemplate.duration;
+            this.wizardData.maxStudents = this.wizardData.selectedTemplate.maxStudents;
+            
+            // Update location dropdown to show/hide tax rates based on template taxability
+            this.updateLocationDropdown();
+        }
+        
+        // Show summary on step 4
+        if (this.currentStep === 4) {
+            this.wizardData.c1InstructorId = document.getElementById('wizardC1Instructor').value || null;
+            this.wizardData.c2InstructorId = document.getElementById('wizardC2Instructor').value || null;
+            this.updateSummary();
+        }
+    }
+    
+    wizardPrev() {
+        this.currentStep--;
+        this.updateWizardUI();
+    }
+    
+    updateWizardUI() {
+        // Update step indicators
+        document.querySelectorAll('.wizard-step').forEach((step, index) => {
+            const stepNum = index + 1;
+            step.classList.remove('active', 'completed');
+            if (stepNum < this.currentStep) {
+                step.classList.add('completed');
+            } else if (stepNum === this.currentStep) {
+                step.classList.add('active');
+            }
+        });
+        
+        // Update panels
+        document.querySelectorAll('.wizard-panel').forEach((panel, index) => {
+            panel.classList.toggle('active', index + 1 === this.currentStep);
+        });
+        
+        // Update buttons
+        const prevBtn = document.querySelector('.wizard-btn-prev');
+        const nextBtn = document.querySelector('.wizard-btn-next');
+        const finishBtn = document.querySelector('.wizard-btn-finish');
+        
+        prevBtn.style.display = this.currentStep > 1 ? 'block' : 'none';
+        nextBtn.style.display = this.currentStep < 4 ? 'inline-block' : 'none';
+        finishBtn.style.display = this.currentStep === 4 ? 'inline-block' : 'none';
+    }
+    
+    updateLocationDropdown() {
+        const template = this.courseTemplates.find(t => t.id === this.wizardData.selectedTemplate.id);
+        const isTaxable = template && template.is_taxable !== false;
+        const locationSelect = document.getElementById('wizardLocation');
+        
+        if (!locationSelect) return;
+        
+        // Update all option text to show or hide tax rates
+        this.locations.forEach(location => {
+            const option = locationSelect.querySelector(`option[value="${location.id}"]`);
+            if (option) {
+                console.log("*************************");
+                console.log("Updating location option:", location.name, "isTaxable:", isTaxable);
+                console.log(template)
+                console.log("*************************");
+                if (isTaxable) {
+                    const taxRate = location.tax_rate ? (parseFloat(location.tax_rate) * 100).toFixed(2) : '0.00';
+                    option.textContent = `${location.name} (Tax: ${taxRate}%)`;
+                } else {
+                    option.textContent = location.name;
+                }
+            }
+        });
+    }
+    
+    updateSummary() {
+        const template = this.courseTemplates.find(t => t.id === this.wizardData.selectedTemplate.id);
+        const c1Instructor = this.instructors.find(i => i.id === parseInt(this.wizardData.c1InstructorId));
+        const c2Instructor = this.instructors.find(i => i.id === parseInt(this.wizardData.c2InstructorId));
+        const location = this.locations.find(l => l.id === this.wizardData.locationId);
+        
+        const taxRate = location && location.tax_rate ? (parseFloat(location.tax_rate) * 100).toFixed(2) : '0.00';
+        const isTaxable = template && template.is_taxable !== false;
+        
+        const summary = `
+            <p><strong>Course:</strong> ${this.wizardData.selectedTemplate.name}${!isTaxable ? ' <span class="badge bg-info">Tax Exempt</span>' : ''}</p>
+            <p><strong>Start:</strong> ${new Date(this.wizardData.selectedDate).toLocaleDateString()} at ${this.wizardData.selectedTime}</p>
+            <p><strong>Duration:</strong> ${this.wizardData.duration} day${this.wizardData.duration > 1 ? 's' : ''}</p>
+            <p><strong>Location:</strong> ${location ? location.name : 'Unknown'}</p>
+            <p><strong>Tax Rate:</strong> ${!isTaxable ? '<span class="text-muted">Tax Exempt</span>' : taxRate + '%'}</p>
+            <p><strong>Max Students:</strong> ${this.wizardData.maxStudents}</p>
+            ${c1Instructor ? `<p><strong>C1 Instructor:</strong> ${c1Instructor.user.first_name} ${c1Instructor.user.last_name}</p>` : ''}
+            ${c2Instructor ? `<p><strong>C2 Instructor:</strong> ${c2Instructor.user.first_name} ${c2Instructor.user.last_name}</p>` : ''}
+            ${this.wizardData.notes ? `<p><strong>Notes:</strong> ${this.wizardData.notes}</p>` : ''}
+        `;
+        
+        document.getElementById('wizardSummary').innerHTML = summary;
+    }
+    
+    async submitCreateCourse() {
+        const data = {
+            course_template_id: this.wizardData.selectedTemplate.id,
+            start_date: this.wizardData.selectedDate,
+            start_time: this.wizardData.selectedTime,
+            duration_days: this.wizardData.duration,
+            max_students: this.wizardData.maxStudents,
+            location_id: this.wizardData.locationId,
+            c1_instructor_id: this.wizardData.c1InstructorId ? parseInt(this.wizardData.c1InstructorId) : null,
+            c2_instructor_id: this.wizardData.c2InstructorId ? parseInt(this.wizardData.c2InstructorId) : null,
+            notes: this.wizardData.notes || null
+        };
+        
+        try {
+            const response = await fetch('/courses/admin/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                await Modal.alert({
+                    title: 'Success',
+                    message: result.message || 'Course created successfully!'
+                });
+                
+                window.currentModal.close();
+                
+                // Reload page to refresh calendar
+                window.location.reload();
+            } else {
+                await Modal.alert({
+                    title: 'Error',
+                    message: result.message || 'Failed to create course'
+                });
+            }
+        } catch (error) {
+            await Modal.alert({
+                title: 'Error',
+                message: `Error creating course: ${error.message}`
+            });
+        }
+    }
+    
+    showDayEventsModal(date, events) {
+        const dateStr = date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        const eventsList = events.map(event => {
+            const spotsLeft = event.maxStudents - event.enrollmentCount;
+            return `
+                <div class="card mb-2" style="border-left: 4px solid ${event.color}; cursor: pointer;" 
+                     onclick="window.adminCalendar.showEventDetailsModal(${JSON.stringify(event).replace(/"/g, '&quot;')})">
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">${event.title}</h6>
+                        <div class="small text-muted">
+                            ${event.startTime ? `<div><i class="bi bi-clock me-2"></i>${event.startTime}</div>` : ''}
+                            ${event.location ? `<div><i class="bi bi-geo-alt me-2"></i>${event.location}</div>` : ''}
+                            <div><i class="bi bi-people me-2"></i>${event.enrollmentCount}/${event.maxStudents} enrolled (${spotsLeft} spots left)</div>
+                            ${event.instructorText ? `<div><i class="bi bi-person me-2"></i>${event.instructorText}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
         const content = `
-            <p><strong>Date:</strong> ${new Date(event.start).toLocaleDateString('en-US', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            })}</p>
-            <p><strong>Location:</strong> ${event.location}</p>
-            <p><strong>Instructor:</strong> ${event.instructor}</p>
-            <p><strong>Status:</strong> <span class="badge bg-secondary">${event.status}</span></p>
-            <p><strong>Enrollment:</strong> ${event.enrollment}</p>
+            <div class="mb-3">
+                <p class="text-muted">Click a course to manage it</p>
+                ${eventsList}
+            </div>
+            <button type="button" class="btn btn-primary w-100" onclick="window.adminCalendar.showCreateCourseModal(new Date('${date.toISOString()}')); window.currentModal.close();">
+                <i class="bi bi-plus-circle me-2"></i>Add New Course on This Day
+            </button>
         `;
-
+        
+        const modal = new Modal({
+            size: 'md',
+            title: `Courses on ${dateStr}`,
+            content: content
+        });
+        
+        window.currentModal = modal;
+        modal.open();
+    }
+    
+    showEventDetailsModal(event) {
+        const spotsLeft = event.maxStudents - event.enrollmentCount;
+        const eventDate = new Date(event.start);
+        const dateStr = eventDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        const content = `
+            <div class="mb-3">
+                <h5>${event.title}</h5>
+                <p class="text-muted mb-3">${event.shortBlurb || event.description || 'No description available'}</p>
+                
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Date:</div>
+                    <div class="col-8">${dateStr}</div>
+                </div>
+                ${event.startTime ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Time:</div>
+                        <div class="col-8">${event.startTime}</div>
+                    </div>
+                ` : ''}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Duration:</div>
+                    <div class="col-8">${event.duration} day${event.duration > 1 ? 's' : ''}</div>
+                </div>
+                ${event.location ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Location:</div>
+                        <div class="col-8">${event.location}</div>
+                    </div>
+                ` : ''}
+                ${event.instructorText ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Instructors:</div>
+                        <div class="col-8">${event.instructorText}</div>
+                    </div>
+                ` : ''}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Enrollment:</div>
+                    <div class="col-8">
+                        <span class="badge ${spotsLeft > 3 ? 'bg-success' : spotsLeft > 0 ? 'bg-warning' : 'bg-danger'}">
+                            ${event.enrollmentCount}/${event.maxStudents} enrolled
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Status:</div>
+                    <div class="col-8">
+                        <span class="badge bg-info">${event.status}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
         const footer = `
-            <button type="button" class="btn btn-secondary modal-close-btn">Close</button>
-            <a href="/courses/admin/view/${event.id}" class="btn btn-primary">View Full Details</a>
+            <a href="/courses/admin/view/${event.id}" class="btn btn-primary">Manage Course</a>
+            <button type="button" class="btn btn-secondary" onclick="window.currentModal.close()">Close</button>
         `;
-
-        const modal = Modal.show({
-            title: event.title,
+        
+        const modal = new Modal({
+            size: 'md',
+            title: 'Course Details',
             content: content,
-            footer: footer,
-            size: 'md'
+            footer: footer
         });
-
-        modal.container.querySelector('.modal-close-btn').addEventListener('click', () => {
-            modal.close();
-        });
+        
+        window.currentModal = modal;
+        modal.open();
     }
 }
 
-// Export to window
-window.CalendarAdmin = null; // Will be initialized with data
-window.CalendarAdminModule = CalendarAdminModule;
+// Export for use in templates
+window.AdminCalendar = AdminCalendar;

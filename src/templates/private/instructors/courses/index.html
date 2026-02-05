@@ -5,13 +5,111 @@
 {% endblock sidenav %}
 
 {% block inner_content %}
-<div>
-    <h1>Course Calendar</h1>
-    <p class="text-muted">View available courses and sign up as C1 or C2 instructor.</p>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Course Calendar</h1>
+            <p class="text-muted">View available courses and sign up as C1 or C2 instructor.</p>
+        </div>
+    </div>
 
-    <div>
-        {% set role = 'instructor' %}
-        {% include 'private/components/calendar.html' %}
+    <!-- Calendar View -->
+    <div class="mb-5">
+        {% include 'components/calendar.html' %}
+    </div>
+
+    <!-- Your Courses -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Your Assigned Courses</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Start Date</th>
+                            <th>Duration</th>
+                            <th>Location</th>
+                            <th>Your Role</th>
+                            <th>Co-Instructor</th>
+                            <th>Students</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignedCoursesTable">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Load Modal System -->
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+
+<!-- Load Calendar Scripts -->
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-instructor.js') }}"></script>
+
+<!-- Initialize Instructor Calendar -->
+<script>
+    console.log('Current Instructor ID from backend:', {{ current_instructor_id if current_instructor_id else 'null' }});
+    console.log('Calendar Events:', window.calendarEvents);
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        window.instructorCalendar = new InstructorCalendar({
+            events: window.calendarEvents || [],
+            role: 'instructor',
+            currentInstructorId: {{ current_instructor_id if current_instructor_id else 'null' }}
+        });
+        
+        console.log('InstructorCalendar initialized with ID:', window.instructorCalendar.currentInstructorId);
+        
+        // Populate assigned courses table
+        const assignedCoursesTable = document.getElementById('assignedCoursesTable');
+        const assignedCourses = window.calendarEvents.filter(event => 
+            event.instructorC1Id === {{ current_instructor_id if current_instructor_id else 'null' }} || 
+            event.instructorC2Id === {{ current_instructor_id if current_instructor_id else 'null' }}
+        );
+        
+        if (assignedCourses.length === 0) {
+            assignedCoursesTable.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        You are not assigned to any courses yet. Click on available courses in the calendar to sign up!
+                    </td>
+                </tr>
+            `;
+        } else {
+            assignedCourses.forEach(course => {
+                const eventDate = window.instructorCalendar.parseLocalDate(course.start);
+                const dateStr = eventDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                const yourRole = course.instructorC1Id === {{ current_instructor_id if current_instructor_id else 'null' }} ? 'C1' : 'C2';
+                const coInstructor = yourRole === 'C1' 
+                    ? (course.instructorC2Id ? (course.instructorText.split(' & ')[1] || 'None') : 'None')
+                    : (course.instructorC1Id ? (course.instructorText.split(' & ')[0] || 'None') : 'None');
+                
+                const row = `
+                    <tr onclick="window.instructorCalendar.showCourseDetailsModal(${JSON.stringify(course).replace(/"/g, '&quot;')})" style="cursor: pointer;">
+                        <td><strong>${course.title}</strong></td>
+                        <td>${dateStr}</td>
+                        <td>${course.duration} day${course.duration > 1 ? 's' : ''}</td>
+                        <td>${course.location || 'N/A'}</td>
+                        <td><span class="badge bg-success">${yourRole}</span></td>
+                        <td>${coInstructor}</td>
+                        <td><span class="badge bg-info">${course.enrollmentCount}/${course.maxStudents}</span></td>
+                    </tr>
+                `;
+                assignedCoursesTable.innerHTML += row;
+            });
+        }
+    });
+</script>
 {% endblock inner_content %}

@@ -19,7 +19,7 @@ def get_all_course_templates_with_payables():
     }
 
 
-def create_course_template(name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False):
+def create_course_template(name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False, is_taxable=True):
     """
     Create a new course template with associated tuition payable.
     
@@ -34,6 +34,7 @@ def create_course_template(name, experience_level, duration_days, max_students, 
         description: Full course description (optional)
         short_blurb: Short description for cards (optional)
         is_featured: Whether to show on landing page (optional)
+        is_test_session: Whether this is a test session (tax exempt) (optional)
         
     Returns:
         CourseTemplate: The created template
@@ -62,6 +63,7 @@ def create_course_template(name, experience_level, duration_days, max_students, 
     new_template.description = description
     new_template.short_blurb = short_blurb
     new_template.is_featured = is_featured
+    new_template.is_taxable = is_taxable
     new_template.save()
     
     # Create tuition payable template
@@ -100,7 +102,7 @@ def create_course_template(name, experience_level, duration_days, max_students, 
     return new_template
 
 
-def update_course_template(template_id, name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False):
+def update_course_template(template_id, name, experience_level, duration_days, max_students, tuition, color, current_user_id, description=None, short_blurb=None, is_featured=False, is_taxable=True):
     """
     Update an existing course template and its tuition payable.
     
@@ -116,6 +118,7 @@ def update_course_template(template_id, name, experience_level, duration_days, m
         description: Full course description (optional)
         short_blurb: Short description for cards (optional)
         is_featured: Whether to show on landing page (optional)
+        is_test_session: Whether this is a test session (tax exempt) (optional)
         
     Returns:
         CourseTemplate: The updated template
@@ -148,6 +151,7 @@ def update_course_template(template_id, name, experience_level, duration_days, m
     template.max_students = max_students_int
     template.color = color or '#0d6efd'
     template.is_featured = is_featured
+    template.is_taxable = is_taxable
     template.save()
     
     # Find and update tuition payable
@@ -237,7 +241,7 @@ def add_payable_to_course(course_template_id, payable_template_id, current_user_
             'course_template_name': course_template.name,
             'payable_template_name': payable_template.name,
             'payable_template_id': payable_template.id,
-            'payable_amount': payable_template.amount,
+            'payable_amount': float(payable_template.amount),
             'is_required': payable_template.is_required
         }
     )

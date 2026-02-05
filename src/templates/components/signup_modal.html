@@ -1,0 +1,79 @@
+<!-- Signup/Enrollment Modal for Public Access -->
+<!-- This modal allows users to create an account and enroll in a course -->
+<div class="modal-overlay" id="signupModalOverlay" onclick="closeSignupModal()">
+    <div class="modal-container modal-md" id="signupModal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Account & Enroll</h2>
+                <button class="modal-close" onclick="closeSignupModal()">&times;</button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.register') }}" id="signupEnrollForm">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Course:</strong> <span id="modalCourseName"></span>
+                    </div>
+                    
+                    <input type="hidden" name="course_id" id="modalCourseId">
+                    
+                    <div class="form-section">
+                        <label class="filter-label" for="signup_first_name">First Name <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="text" class="modern-input" id="signup_first_name" name="first_name" required>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="filter-label" for="signup_last_name">Last Name <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="text" class="modern-input" id="signup_last_name" name="last_name" required>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="filter-label" for="signup_email">Email Address <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="email" class="modern-input" id="signup_email" name="email" required>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="filter-label" for="signup_phone">Phone Number</label>
+                        <input type="tel" class="modern-input" id="signup_phone" name="phone_number" placeholder="(123) 456-7890">
+                    </div>
+
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-shield-check me-2"></i>
+                        <strong>Note:</strong> Your account will be created with a temporary password that you can change after logging in.
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-secondary" onclick="closeSignupModal()">Cancel</button>
+                    <button type="submit" class="btn-gradient-primary">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Create Account & Continue to Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showSignupModal(courseId, courseName) {
+        document.getElementById('modalCourseId').value = courseId;
+        document.getElementById('modalCourseName').textContent = courseName;
+        document.getElementById('signupModalOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSignupModal() {
+        document.getElementById('signupModalOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+        // Clear form
+        document.getElementById('signupEnrollForm').reset();
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSignupModal();
+        }
+    });
+</script>

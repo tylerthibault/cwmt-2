@@ -87,6 +87,23 @@ def remove_user_role(user_id, role_name):
     return redirect(url_for('superuser.manage_user_roles', user_id=user_id))
 
 
+@superuser_bp.route('/toggle-user-status/<int:user_id>', methods=['POST'])
+@login_required
+@role_required('superuser')
+def toggle_user_status(user_id):
+    """Toggle a user's active status (activate/deactivate)."""
+    try:
+        status_text = superuser_service.toggle_user_active_status(user_id, _get_current_user().id)
+        flash(f'User account has been {status_text} successfully.', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    except Exception as e:
+        flash(f'Error updating user status: {str(e)}', 'danger')
+    
+    focus = request.args.get('focus', 'all')
+    return redirect(url_for('superuser.manage_users', focus=focus))
+
+
 @superuser_bp.route('/add-user-to-role/<role_name>', methods=['GET', 'POST'])
 @login_required
 @role_required('superuser')

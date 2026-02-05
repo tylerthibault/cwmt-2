@@ -8,30 +8,13 @@
         <p class="lead text-muted">Browse our upcoming courses and enroll today</p>
     </div>
 
-    <!-- View Toggle -->
-    <div class="d-flex justify-content-center mb-3 mb-md-4">
-        <div class="btn-group w-100" role="group" style="max-width: 400px;">
-            <button type="button" class="btn btn-outline-primary active" id="calendarViewBtn" onclick="showView('calendar')">
-                <i class="bi bi-calendar3 d-none d-sm-inline"></i> 
-                <span class="d-none d-sm-inline">Calendar</span>
-                <span class="d-inline d-sm-none"><i class="bi bi-calendar3"></i></span>
-            </button>
-            <button type="button" class="btn btn-outline-primary" id="listViewBtn" onclick="showView('list')">
-                <i class="bi bi-list-ul d-none d-sm-inline"></i> 
-                <span class="d-none d-sm-inline">List</span>
-                <span class="d-inline d-sm-none"><i class="bi bi-list-ul"></i></span>
-            </button>
-        </div>
-    </div>
-
     <!-- Calendar View -->
-    <div id="calendarView" class="mb-4 mb-md-5">
-        {% set role = 'public' %}
-        {% include 'public/components/calendar.html' %}
+    <div class="mb-4 mb-md-5">
+        {% include 'components/calendar.html' %}
     </div>
 
     <!-- Course List -->
-    <div id="listView" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 g-md-4 mb-4 mb-md-5" style="display: none;">
+    <div id="listView" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 g-md-4 mb-4 mb-md-5">
         {% for course in courses %}
         <div class="col">
             <div class="card h-100 shadow-sm course-card">
@@ -89,97 +72,26 @@
     {% endif %}
 </div>
 
-<!-- Signup Modal -->
-<div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fs-6 fs-md-5" id="signupModalLabel">Create Account & Enroll</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="POST" action="{{ url_for('auth.register') }}">
-                <div class="modal-body p-3 p-md-4">
-                    <div class="infobox infobox-info p-2 mb-3">
-                        <strong>Course:</strong> <span id="modalCourseName"></span>
-                    </div>
-                    
-                    <input type="hidden" name="course_id" id="modalCourseId">
-                    
-                    <div class="mb-3">
-                        <label for="first_name" class="form-label small">First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" required>
-                    </div>
+<!-- Include Signup Modal Component -->
+{% include 'components/signup_modal.html' %}
 
-                    <div class="mb-3">
-                        <label for="last_name" class="form-label small">Last Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" required>
-                    </div>
+<!-- Load Modal System -->
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label small">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
+<!-- Load Calendar Scripts -->
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-public.js') }}"></script>
 
-                    <div class="mb-3">
-                        <label for="phone_number" class="form-label small">Phone Number</label>
-                        <input type="tel" class="form-control" id="phone_number" name="phone_number">
-                    </div>
-
-                    <div class="infobox infobox-secondary p-2 small">
-                        <i class="bi bi-info-circle"></i> 
-                        <strong>Note:</strong> Your account will be created with a temporary password that you can change after logging in.
-                    </div>
-                </div>
-                <div class="modal-footer flex-column flex-sm-row p-2 p-md-3">
-                    <button type="button" class="btn btn-secondary w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                        <i class="bi bi-check-circle"></i> 
-                        <span class="d-none d-sm-inline">Create Account & Continue to Payment</span>
-                        <span class="d-inline d-sm-none">Create & Continue</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+<!-- Initialize Public Calendar -->
 <script>
-    function showView(view) {
-        const calendarView = document.getElementById('calendarView');
-        const listView = document.getElementById('listView');
-        const calendarBtn = document.getElementById('calendarViewBtn');
-        const listBtn = document.getElementById('listViewBtn');
-
-        if (view === 'calendar') {
-            calendarView.style.display = 'block';
-            listView.style.display = 'none';
-            calendarBtn.classList.add('active');
-            listBtn.classList.remove('active');
-        } else {
-            calendarView.style.display = 'none';
-            listView.style.display = 'flex';
-            calendarBtn.classList.remove('active');
-            listBtn.classList.add('active');
-        }
-    }
-
-    function showSignupModal(courseId, courseName) {
-        document.getElementById('modalCourseId').value = courseId;
-        document.getElementById('modalCourseName').textContent = courseName;
-        
-        const modal = new bootstrap.Modal(document.getElementById('signupModal'));
-        modal.show();
-    }
-
-    // Calendar event click for public view
-    function signupForCourse(courseId, modal) {
-        // Get course name from the modal
-        const courseNameElement = modal.modalContent.querySelector('.modal-title');
-        const courseName = courseNameElement ? courseNameElement.textContent : 'Selected Course';
-        
-        modal.close();
-        showSignupModal(courseId, courseName);
-    }
+    window.currentUser = null; // Public page - no user logged in by default
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        window.publicCalendar = new PublicCalendar({
+            events: window.calendarEvents,
+            role: 'public'
+        });
+    });
 </script>
 
 {% endblock content %}

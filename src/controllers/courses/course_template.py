@@ -47,6 +47,7 @@ def create_course_temp():
                     tuition=request.form.get('tuition'),
                     color=request.form.get('color', '#0d6efd'),
                     is_featured=request.form.get('is_featured') == 'on',
+                    is_taxable=request.form.get('is_taxable') == 'on',
                     current_user_id=_get_current_user().id
                 )
                 flash('Course template updated successfully!', 'success')
@@ -62,6 +63,7 @@ def create_course_temp():
                     tuition=request.form.get('tuition'),
                     color=request.form.get('color', '#0d6efd'),
                     is_featured=request.form.get('is_featured') == 'on',
+                    is_taxable=request.form.get('is_taxable') == 'on',
                     current_user_id=_get_current_user().id
                 )
                 flash('Course template created successfully with tuition!', 'success')

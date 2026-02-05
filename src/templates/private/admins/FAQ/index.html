@@ -104,106 +104,112 @@
 </div>
 
 <!-- Create Modal -->
-<div class="modal-overlay" id="createModalOverlay" onclick="closeCreateModal()"></div>
-<div class="modal-container" id="createModal">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Create New FAQ</h2>
-            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+<div class="modal-overlay" id="createModalOverlay" onclick="closeCreateModal()">
+    <div class="modal-container modal-md" id="createModal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New FAQ</h2>
+                <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('admin.faq_create') }}">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="text" class="modern-input" name="question" required placeholder="What is your question?">
+                    </div>
+
+                    <div class="form-section">
+                        <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
+                        <textarea class="modern-input" name="answer" rows="6" required placeholder="Provide a detailed answer..."></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="filter-label">Category</label>
+                            <input type="text" class="modern-input" name="category" placeholder="e.g., Enrollment, Courses">
+                            <small style="color: #6c757d; font-size: 0.875rem;">Leave blank for 'General'</small>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Display Order</label>
+                            <input type="number" class="modern-input" name="display_order" value="0" min="0">
+                            <small style="color: #6c757d; font-size: 0.875rem;">Lower numbers appear first</small>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                        <input type="checkbox" id="is_active_create" name="is_active" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="is_active_create" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-secondary" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn-gradient-primary">
+                        <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        Create FAQ
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <form method="POST" action="{{ url_for('admin.faq_create') }}">
-            <div class="form-section">
-                <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
-                <input type="text" class="modern-input" name="question" required placeholder="What is your question?">
-            </div>
-
-            <div class="form-section">
-                <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
-                <textarea class="modern-input" name="answer" rows="6" required placeholder="Provide a detailed answer..."></textarea>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <div>
-                    <label class="filter-label">Category</label>
-                    <input type="text" class="modern-input" name="category" placeholder="e.g., Enrollment, Courses">
-                    <small style="color: #6c757d; font-size: 0.875rem;">Leave blank for 'General'</small>
-                </div>
-
-                <div>
-                    <label class="filter-label">Display Order</label>
-                    <input type="number" class="modern-input" name="display_order" value="0" min="0">
-                    <small style="color: #6c757d; font-size: 0.875rem;">Lower numbers appear first</small>
-                </div>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <input type="checkbox" id="is_active_create" name="is_active" checked style="width: 18px; height: 18px; cursor: pointer;">
-                <label for="is_active_create" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-                <button type="button" class="btn-outline-secondary" onclick="closeCreateModal()">Cancel</button>
-                <button type="submit" class="btn-gradient-primary">
-                    <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
-                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                    </svg>
-                    Create FAQ
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
 <!-- Edit Modal -->
-<div class="modal-overlay" id="editModalOverlay" onclick="closeEditModal()"></div>
-<div class="modal-container" id="editModal">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Edit FAQ</h2>
-            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+<div class="modal-overlay" id="editModalOverlay" onclick="closeEditModal()">
+    <div class="modal-container modal-md" id="editModal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit FAQ</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('admin.faq_update') }}">
+                <input type="hidden" name="faq_id" id="edit_faq_id">
+
+                <div class="modal-body">
+                    <div class="form-section">
+                        <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
+                        <input type="text" class="modern-input" name="question" id="edit_question" required>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
+                        <textarea class="modern-input" name="answer" id="edit_answer" rows="6" required></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="filter-label">Category</label>
+                            <input type="text" class="modern-input" name="category" id="edit_category">
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Display Order</label>
+                            <input type="number" class="modern-input" name="display_order" id="edit_display_order" min="0">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                        <input type="checkbox" id="edit_is_active" name="is_active" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="edit_is_active" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-gradient-primary">
+                        <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                        </svg>
+                        Update FAQ
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <form method="POST" action="{{ url_for('admin.faq_update') }}">
-            <input type="hidden" name="faq_id" id="edit_faq_id">
-
-            <div class="form-section">
-                <label class="filter-label">Question <span style="color: var(--brand-primary);">*</span></label>
-                <input type="text" class="modern-input" name="question" id="edit_question" required>
-            </div>
-
-            <div class="form-section">
-                <label class="filter-label">Answer <span style="color: var(--brand-primary);">*</span></label>
-                <textarea class="modern-input" name="answer" id="edit_answer" rows="6" required></textarea>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <div>
-                    <label class="filter-label">Category</label>
-                    <input type="text" class="modern-input" name="category" id="edit_category">
-                </div>
-
-                <div>
-                    <label class="filter-label">Display Order</label>
-                    <input type="number" class="modern-input" name="display_order" id="edit_display_order" min="0">
-                </div>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <input type="checkbox" id="edit_is_active" name="is_active" style="width: 18px; height: 18px; cursor: pointer;">
-                <label for="edit_is_active" style="margin: 0; cursor: pointer;">Active (visible on public site)</label>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-                <button type="button" class="btn-outline-secondary" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="btn-gradient-primary">
-                    <svg width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
-                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
-                    </svg>
-                    Update FAQ
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -211,13 +217,11 @@
 // Create Modal
 function openCreateModal() {
     document.getElementById('createModalOverlay').classList.add('active');
-    document.getElementById('createModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeCreateModal() {
     document.getElementById('createModalOverlay').classList.remove('active');
-    document.getElementById('createModal').classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -234,14 +238,12 @@ function openEditModal(faqId) {
             document.getElementById('edit_is_active').checked = data.is_active;
             
             document.getElementById('editModalOverlay').classList.add('active');
-            document.getElementById('editModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         });
 }
 
 function closeEditModal() {
     document.getElementById('editModalOverlay').classList.remove('active');
-    document.getElementById('editModal').classList.remove('active');
     document.body.style.overflow = '';
 }
 

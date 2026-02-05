@@ -20,13 +20,17 @@ def seed_superusers(amount = 1, internal=False):
     for _ in range(amount):
         person = get_person()
         print(person)
-        user = users.User.create(
-            first_name=person['first_name'],
-            last_name=person['last_name'],
-            email=person['email'],
-            password='Pass123!!'
-            )
-        superusers.Superuser.create(user_id=user.id)
+        try:
+            user = users.User.create(
+                first_name=person['first_name'],
+                last_name=person['last_name'],
+                email=person['email'],
+                password='Pass123!!'
+                )
+            superusers.Superuser.create(user_id=user.id)
+        except ValueError as e:
+            print(f'Skipping duplicate email: {person["email"]}')
+            continue
     if not internal:
         return redirect(url_for('auth.loginReg'))
     return
@@ -38,13 +42,17 @@ def seed_admins(amount = 1, internal=False):
     for _ in range(amount):
         person = get_person()
         print(person)
-        user = users.User.create(
-            first_name=person['first_name'],
-            last_name=person['last_name'],
-            email=person['email'],
-            password='Pass123!!'
-            )
-        admins.Admin.create(user_id=user.id)
+        try:
+            user = users.User.create(
+                first_name=person['first_name'],
+                last_name=person['last_name'],
+                email=person['email'],
+                password='Pass123!!'
+                )
+            admins.Admin.create(user_id=user.id)
+        except ValueError as e:
+            print(f'Skipping duplicate email: {person["email"]}')
+            continue
     if not internal:
         return redirect(url_for('auth.loginReg'))
     return  
@@ -55,13 +63,17 @@ def seed_instructors(amount = 1, internal=False):
     for _ in range(amount):
         person = get_person()
         print(person)
-        user = users.User.create(
-            first_name=person['first_name'],
-            last_name=person['last_name'],
-            email=person['email'],
-            password='Pass123!!'
-            )
-        instructors.Instructor.create(user_id=user.id)
+        try:
+            user = users.User.create(
+                first_name=person['first_name'],
+                last_name=person['last_name'],
+                email=person['email'],
+                password='Pass123!!'
+                )
+            instructors.Instructor.create(user_id=user.id)
+        except ValueError as e:
+            print(f'Skipping duplicate email: {person["email"]}')
+            continue
     if not internal:
         return redirect(url_for('auth.loginReg'))
     return
@@ -72,17 +84,21 @@ def seed_students(amount = 1, internal=False):
     for _ in range(amount):
         person = get_person()
         print(person)
-        user = users.User.create(
-            first_name=person['first_name'],
-            last_name=person['last_name'],
-            email=person['email'],
-            password='Pass123!!'
+        try:
+            user = users.User.create(
+                first_name=person['first_name'],
+                last_name=person['last_name'],
+                email=person['email'],
+                password='Pass123!!'
+                )
+            students.Student.create(
+                user_id=user.id,
+                first_name=person['first_name'],
+                last_name=person['last_name']
             )
-        students.Student.create(
-            user_id=user.id,
-            first_name=person['first_name'],
-            last_name=person['last_name']
-            )
+        except ValueError as e:
+            print(f'Skipping duplicate email: {person["email"]}')
+            continue
     if not internal:
         return redirect(url_for('auth.loginReg'))
     return

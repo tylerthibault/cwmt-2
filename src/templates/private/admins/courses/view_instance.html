@@ -15,8 +15,11 @@
 
     <!-- Course Information -->
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">{{ course_instance.course_template.name }}</h4>
+            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#editCourseModal">
+                <i class="bi bi-pencil"></i> Edit Course Details
+            </button>
         </div>
         <div class="card-body">
             <div class="row">
@@ -26,7 +29,7 @@
                     <p class="mb-2"><strong>Duration:</strong> {{ course_instance.duration_days }} days</p>
                 </div>
                 <div class="col-md-6">
-                    <p class="mb-2"><strong>Location:</strong> {{ course_instance.location }}</p>
+                    <p class="mb-2"><strong>Location:</strong> {{ course_instance.location.name if course_instance.location else 'Unknown' }}</p>
                     <p class="mb-2"><strong>Max Students:</strong> {{ course_instance.max_students }}</p>
                     {% set active_enrollments = course_instance.enrollments.filter_by(status='enrolled').count() %}
                     <p class="mb-2"><strong>Enrolled:</strong> {{ active_enrollments }} / {{ course_instance.max_students }}</p>
@@ -271,6 +274,49 @@
     </div>
 </div>
 
+<!-- Edit Course Modal -->
+<div class="modal fade" id="editCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Course Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseForm">
+                    <div class="mb-3">
+                        <label for="editStartDate" class="form-label">Start Date *</label>
+                        <input type="date" class="form-control" id="editStartDate" value="{{ course_instance.start_date.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStartTime" class="form-label">Start Time *</label>
+                        <input type="time" class="form-control" id="editStartTime" value="{{ course_instance.start_time.strftime('%H:%M') if course_instance.start_time else '09:00' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDuration" class="form-label">Duration (days) *</label>
+                        <input type="number" class="form-control" id="editDuration" value="{{ course_instance.duration_days }}" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMaxStudents" class="form-label">Max Students *</label>
+                        <input type="number" class="form-control" id="editMaxStudents" value="{{ course_instance.max_students }}" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="editNotes" rows="3">{{ course_instance.notes or '' }}</textarea>
+                    </div>
+                    <div id="editCourseAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCourseBtn" onclick="saveCourseDetails()">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Alert Container -->
 <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
@@ -372,7 +418,7 @@
         }
         
         try {
-            const response = await fetch(`/admin/api/enrollments/${currentEnrollmentId}/approve-unenrollment`, {
+            const response = await fetch(`/admin/enrollments/${currentEnrollmentId}/approve-unenrollment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -382,6 +428,12 @@
                     admin_notes: adminNotes || ''
                 })
             });
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned an invalid response. Please check your permissions and try again.');
+            }
             
             const data = await response.json();
             
@@ -393,6 +445,7 @@
                 showAlert(`Error: ${data.error || 'Failed to approve'}`, 'danger');
             }
         } catch (error) {
+            console.error('Approval error:', error);
             showAlert(`Error: ${error.message}`, 'danger');
         }
     }
@@ -405,7 +458,7 @@
         }
         
         try {
-            const response = await fetch(`/admin/api/enrollments/${currentEnrollmentId}/deny-unenrollment`, {
+            const response = await fetch(`/admin/enrollments/${currentEnrollmentId}/deny-unenrollment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -414,6 +467,12 @@
                     admin_notes: adminNotes || ''
                 })
             });
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned an invalid response. Please check your permissions and try again.');
+            }
             
             const data = await response.json();
             
@@ -425,6 +484,7 @@
                 showAlert(`Error: ${data.error || 'Failed to deny'}`, 'danger');
             }
         } catch (error) {
+            console.error('Denial error:', error);
             showAlert(`Error: ${error.message}`, 'danger');
         }
     }
@@ -659,7 +719,7 @@ async function submitEnrollment() {
     alertDiv.innerHTML = '';
     
     try {
-        const response = await fetch('{{ url_for("admin.enroll_student") }}', {
+        const response = await fetch('{{ url_for("enrollments.enroll_student") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -698,6 +758,55 @@ async function submitEnrollment() {
         alertDiv.innerHTML = '<div class="alert alert-danger">An error occurred: ' + error.message + '</div>';
         enrollBtn.disabled = false;
         enrollBtn.innerHTML = '<i class="bi bi-person-plus"></i> Enroll Student';
+    }
+}
+
+// Save course details
+async function saveCourseDetails() {
+    const startDate = document.getElementById('editStartDate').value;
+    const startTime = document.getElementById('editStartTime').value;
+    const duration = document.getElementById('editDuration').value;
+    const maxStudents = document.getElementById('editMaxStudents').value;
+    const notes = document.getElementById('editNotes').value;
+    const alertDiv = document.getElementById('editCourseAlert');
+    const saveBtn = document.getElementById('saveCourseBtn');
+    
+    if (!startDate || !startTime || !duration || !maxStudents) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">All required fields must be filled</div>';
+        return;
+    }
+    
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    alertDiv.innerHTML = '';
+    
+    try {
+        const response = await fetch('/courses/admin/update/{{ course_instance.id }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                start_date: startDate,
+                start_time: startTime,
+                duration_days: parseInt(duration),
+                max_students: parseInt(maxStudents),
+                notes: notes
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alertDiv.innerHTML = '<div class="alert alert-success">Course updated successfully! Refreshing...</div>';
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            alertDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Failed to update course') + '</div>';
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Changes';
+        }
+    } catch (error) {
+        alertDiv.innerHTML = '<div class="alert alert-danger">An error occurred: ' + error.message + '</div>';
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Changes';
     }
 }
 </script>

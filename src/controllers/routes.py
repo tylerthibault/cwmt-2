@@ -3,10 +3,48 @@ import json
 from src.models.announcements import Announcement
 from src.models.course_folder.course_instances import CourseInstance
 from src.models.course_folder.course_templates import CourseTemplate
-from src.services.calendar import format_course_instances_for_calendar
 from src.services.database_manipulation import reset_database as reset_db_service
 
 main_bp = Blueprint('main', __name__)
+
+
+def _format_events_for_calendar(instances):
+    """Format course instances into calendar event objects."""
+    events = []
+    for instance in instances:
+        template = instance.course_template
+        if not template:
+            continue
+        
+        c1_name = instance.c1_instructor.user.full_name if instance.c1_instructor else None
+        c2_name = instance.c2_instructor.user.full_name if instance.c2_instructor else None
+        instructor_text = None
+        if c1_name and c2_name:
+            instructor_text = f"{c1_name} & {c2_name}"
+        elif c1_name:
+            instructor_text = c1_name
+        elif c2_name:
+            instructor_text = c2_name
+        
+        enrollment_count = len([e for e in instance.enrollments if e.status == 'enrolled'])
+        
+        events.append({
+            'id': instance.id,
+            'title': template.name,
+            'start': instance.start_date.isoformat(),
+            'startTime': instance.start_time.strftime('%H:%M') if instance.start_time else None,
+            'duration': instance.duration_days,
+            'location': instance.location.name if instance.location else 'Unknown',
+            'color': template.color or '#0d6efd',
+            'maxStudents': instance.max_students,
+            'enrollmentCount': enrollment_count,
+            'status': instance.status,
+            'instructorText': instructor_text,
+            'experienceLevel': template.experience_level,
+            'description': template.description or '',
+            'shortBlurb': template.short_blurb or ''
+        })
+    return events
 
 
 @main_bp.route('/')
@@ -32,11 +70,12 @@ def index():
 def public_courses():
     """Public courses page."""
     courses = CourseInstance.query.filter_by(status='scheduled').all()
-    events = format_course_instances_for_calendar(courses)
+    events = _format_events_for_calendar(courses)
     
     return render_template('public/courses/index.html', 
+                         courses=courses,
                          events_json=json.dumps(events),
-                         courses=courses)
+                         role='public')
 
 
 @main_bp.route('/signup')

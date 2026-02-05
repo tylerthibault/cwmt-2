@@ -74,6 +74,16 @@
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
+                                    <tr>
+                                        <td colspan="3">Subtotal</td>
+                                        <td class="text-end" id="subtotal-amount">${{ "%.2f"|format(subtotal_dollars) }}</td>
+                                    </tr>
+                                    {% if tax_amount_dollars > 0 %}
+                                    <tr>
+                                        <td colspan="3">Tax ({{ "%.2f"|format(tax_rate * 100) }}%)</td>
+                                        <td class="text-end" id="tax-amount">${{ "%.2f"|format(tax_amount_dollars) }}</td>
+                                    </tr>
+                                    {% endif %}
                                     <tr class="table-active fw-bold">
                                         <td colspan="3">Total</td>
                                         <td class="text-end" id="total-amount">${{ "%.2f"|format(total_amount_dollars) }}</td>
@@ -135,22 +145,35 @@
     const COURSE_INSTANCE_ID = {{ course.id }};
     const GUEST_STUDENT_ID = {{ guest_student_id if guest_student_id else 'null' }};
     const STRIPE_PUBLISHABLE_KEY = "{{ stripe_publishable_key or '' }}";
+    const TAX_RATE = {{ tax_rate if tax_rate else 0 }};
     
     // Calculate total based on selected items
     function updateTotal() {
-        let total = 0;
+        let subtotal = 0;
         document.querySelectorAll('.payable-checkbox:checked').forEach(checkbox => {
             const row = checkbox.closest('tr');
             const amount = parseFloat(row.dataset.amount);
-            total += amount;
+            subtotal += amount;
         });
+        
+        // Calculate tax and total
+        const taxAmount = subtotal * TAX_RATE;
+        const total = subtotal + taxAmount;
+        
+        // Update display
+        document.getElementById('subtotal-amount').textContent = `$${subtotal.toFixed(2)}`;
+        
+        const taxElement = document.getElementById('tax-amount');
+        if (taxElement) {
+            taxElement.textContent = `$${taxAmount.toFixed(2)}`;
+        }
         
         document.getElementById('total-amount').textContent = `$${total.toFixed(2)}`;
         document.getElementById('total-amount-display').textContent = `$${total.toFixed(2)}`;
         
         // Disable submit if no items selected
         const submitButton = document.getElementById('submit-payment');
-        if (total === 0) {
+        if (subtotal === 0) {
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="bi bi-lock-fill"></i> Select at least one item';
         } else {
@@ -236,6 +259,9 @@
         messagesDiv.innerHTML = '';
         
         try {
+            // Get selected payable IDs
+            const selectedPayableIds = getSelectedPayableIds();
+            
             // Step 1: Create payment intent on the server
             const response = await fetch('/api/payments/create-intent', {
                 method: 'POST',
@@ -244,7 +270,8 @@
                 },
                 body: JSON.stringify({
                     course_instance_id: COURSE_INSTANCE_ID,
-                    guest_student_id: GUEST_STUDENT_ID
+                    guest_student_id: GUEST_STUDENT_ID,
+                    payable_template_ids: selectedPayableIds
                 })
             });
             

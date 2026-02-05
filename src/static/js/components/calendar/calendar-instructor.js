@@ -1,266 +1,243 @@
 /**
- * Calendar Instructor Module
- * Handles instructor-specific features: signup, withdrawal, slot display
+ * Instructor Calendar Module
+ * Extends core calendar with instructor-specific features:
+ * - Click event to sign up as C1 or C2 instructor
+ * - Highlight courses they're already teaching
  */
 
-class CalendarInstructorModule {
-    constructor(instructors, currentInstructorId) {
-        this.instructors = instructors || [];
-        this.currentInstructorId = currentInstructorId;
+class InstructorCalendar extends Calendar {
+    constructor(options = {}) {
+        // Store instructor ID before super() is called
+        const instructorId = options.currentInstructorId || window.currentInstructorId;
+        
+        super(options);
+        
+        // Set it as instance property (super() already called init())
+        this.currentInstructorId = instructorId;
+        
+        // Re-render now that currentInstructorId is set
+        console.log('Re-rendering with instructor ID:', this.currentInstructorId);
+        this.render();
     }
-
-    /**
-     * Show event details for instructor view
-     */
-    showEventDetails(event) {
-        const content = `
-            <p><strong>Date:</strong> ${new Date(event.start).toLocaleDateString('en-US', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            })}</p>
-            <p><strong>Location:</strong> ${event.location}</p>
-            <p><strong>Instructor:</strong> ${event.instructor}</p>
-            <p><strong>Status:</strong> <span class="badge bg-secondary">${event.status}</span></p>
-            <p><strong>Enrollment:</strong> ${event.enrollment}</p>
-            <div class="mt-3">
-                <h6>Instructor Slots:</h6>
-                ${this.renderInstructorSlots(event)}
-            </div>
-        `;
-
-        const footer = `
-            <button type="button" class="btn btn-secondary modal-close-btn">Close</button>
-            ${this.getInstructorActionButton(event)}
-        `;
-
-        const modal = Modal.show({
-            title: event.title,
-            content: content,
-            footer: footer,
-            size: 'md'
-        });
-
-        modal.container.querySelector('.modal-close-btn').addEventListener('click', () => {
-            modal.close();
-        });
-
-        this.setupInstructorActions(modal, event);
+    
+    handleEventClick(event) {
+        super.handleEventClick(event);
+        this.showCourseDetailsModal(event);
     }
-
-    /**
-     * Render instructor slot availability
-     */
-    renderInstructorSlots(event) {
-        const c1Available = !event.c1_instructor || event.c1_instructor === 'Unassigned';
-        const c2Available = !event.c2_instructor || event.c2_instructor === 'Unassigned';
-
-        return `
-            <div class="instructor-slot ${c1Available ? 'available' : 'taken'}">
-                <strong>C1 Instructor:</strong> ${event.c1_instructor || 'Available'}
-                ${c1Available ? '<span class="badge bg-success ms-2">Available</span>' : ''}
-            </div>
-            <div class="instructor-slot ${c2Available ? 'available' : 'taken'}">
-                <strong>C2 Instructor:</strong> ${event.c2_instructor || 'Available'}
-                ${c2Available ? '<span class="badge bg-success ms-2">Available</span>' : ''}
-            </div>
-        `;
+    
+    isTeachingCourse(event) {
+        return event.instructorC1Id === this.currentInstructorId || 
+               event.instructorC2Id === this.currentInstructorId;
     }
-
-    /**
-     * Get appropriate action button for instructor
-     */
-    getInstructorActionButton(event) {
-        // Check if course is in the past
-        const courseStart = new Date(event.start);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        courseStart.setHours(0, 0, 0, 0);
-        const isPast = courseStart < today;
-
-        if (isPast) {
-            return '<button type="button" class="btn btn-secondary" disabled>Past Course</button>';
+    
+    createEventElement(event, cellDate) {
+        const eventElement = super.createEventElement(event, cellDate);
+        
+        console.log('Creating event element for:', event.title);
+        console.log('  Current Instructor ID:', this.currentInstructorId);
+        console.log('  Event C1 ID:', event.instructorC1Id);
+        console.log('  Event C2 ID:', event.instructorC2Id);
+        console.log('  isTeachingCourse result:', this.isTeachingCourse(event));
+        
+        // Add highlight class if instructor is teaching this course
+        if (this.isTeachingCourse(event)) {
+            console.log('  -> Adding teaching class!');
+            eventElement.classList.add('teaching');
         }
-
-        // Check if user is already signed up for this course
-        const isC1 = event.c1_instructor_id === this.currentInstructorId;
-        const isC2 = event.c2_instructor_id === this.currentInstructorId;
-
-        if (isC1 || isC2) {
-            const role = isC1 ? 'C1' : 'C2';
-            return `<button type="button" class="btn btn-danger" id="instructor-withdraw-btn" data-role="${role}">Drop ${role} Position</button>`;
+        
+        return eventElement;
+    }
+    
+    createMobileEventCard(event) {
+        const card = super.createMobileEventCard(event);
+        
+        // Add highlight class if instructor is teaching this course
+        if (this.isTeachingCourse(event)) {
+            card.classList.add('teaching');
+        }
+        
+        return card;
+    }
+    
+    showCourseDetailsModal(event) {
+        const eventDate = this.parseLocalDate(event.start);
+        const dateStr = eventDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        const isTeaching = this.isTeachingCourse(event);
+        const hasC1 = event.instructorC1Id !== null && event.instructorC1Id !== undefined && event.instructorC1Id !== 0;
+        const hasC2 = event.instructorC2Id !== null && event.instructorC2Id !== undefined && event.instructorC2Id !== 0;
+        const canSignUpC1 = !hasC1 && !isTeaching;
+        const canSignUpC2 = !hasC2 && !isTeaching;
+        
+        console.log('Event:', event);
+        console.log('Current Instructor ID:', this.currentInstructorId);
+        console.log('instructorC1Id:', event.instructorC1Id, 'instructorC2Id:', event.instructorC2Id);
+        console.log('isTeaching:', isTeaching);
+        console.log('hasC1:', hasC1, 'hasC2:', hasC2);
+        console.log('canSignUpC1:', canSignUpC1, 'canSignUpC2:', canSignUpC2);
+        
+        const content = `
+            <div class="mb-3">
+                <h5>${event.title}</h5>
+                ${event.shortBlurb ? `<p class="lead">${event.shortBlurb}</p>` : ''}
+                ${event.description ? `<p class="text-muted">${event.description}</p>` : ''}
+                
+                <hr>
+                
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Date:</div>
+                    <div class="col-8">${dateStr}</div>
+                </div>
+                ${event.startTime ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Time:</div>
+                        <div class="col-8">${event.startTime}</div>
+                    </div>
+                ` : ''}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Duration:</div>
+                    <div class="col-8">${event.duration} day${event.duration > 1 ? 's' : ''}</div>
+                </div>
+                ${event.location ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Location:</div>
+                        <div class="col-8">${event.location}</div>
+                    </div>
+                ` : ''}
+                ${event.experienceLevel ? `
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Level:</div>
+                        <div class="col-8">
+                            <span class="badge bg-secondary">${event.experienceLevel}</span>
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="row mb-3">
+                    <div class="col-4 fw-bold">Instructors:</div>
+                    <div class="col-8">
+                        <div class="mb-2">
+                            <strong>C1:</strong> 
+                            ${hasC1 && event.instructorText ? event.instructorText.split(' & ')[0] : '<span class="text-muted">Available</span>'}
+                            ${event.instructorC1Id === this.currentInstructorId ? '<span class="badge bg-success ms-2">You</span>' : ''}
+                        </div>
+                        <div>
+                            <strong>C2:</strong> 
+                            ${hasC2 && event.instructorText ? (event.instructorText.includes(' & ') ? event.instructorText.split(' & ')[1] : '<span class="text-muted">Available</span>') : '<span class="text-muted">Available</span>'}
+                            ${event.instructorC2Id === this.currentInstructorId ? '<span class="badge bg-success ms-2">You</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 fw-bold">Enrollment:</div>
+                    <div class="col-8">
+                        <span class="badge bg-info">
+                            ${event.enrollmentCount}/${event.maxStudents} students
+                        </span>
+                    </div>
+                </div>
+                
+                ${isTeaching ? `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong>You are teaching this course!</strong>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        let footer = '';
+        
+        if (isTeaching) {
+            footer = `
+                <button type="button" class="btn btn-secondary" onclick="window.currentModal.close()">Close</button>
+            `;
+        } else if (!canSignUpC1 && !canSignUpC2) {
+            footer = `
+                <button type="button" class="btn btn-secondary" onclick="window.currentModal.close()">Close</button>
+            `;
         } else {
-            const c1Available = !event.c1_instructor_id;
-            const c2Available = !event.c2_instructor_id;
-
-            if (!c1Available && !c2Available) {
-                return '<button type="button" class="btn btn-secondary" disabled>Fully Staffed</button>';
-            } else {
-                return `<button type="button" class="btn btn-primary" id="instructor-signup-btn">Sign Up</button>`;
-            }
+            footer = `
+                <button type="button" class="btn btn-secondary" onclick="window.currentModal.close()">Close</button>
+                <div class="d-flex gap-2">
+                    ${canSignUpC1 ? `
+                        <button type="button" class="btn btn-primary" onclick="window.instructorCalendar.signUpForCourse(${event.id}, 'c1')">
+                            <i class="bi bi-person-plus me-2"></i>Sign Up as C1
+                        </button>
+                    ` : ''}
+                    ${canSignUpC2 ? `
+                        <button type="button" class="btn btn-outline-primary" onclick="window.instructorCalendar.signUpForCourse(${event.id}, 'c2')">
+                            <i class="bi bi-person-plus me-2"></i>Sign Up as C2
+                        </button>
+                    ` : ''}
+                </div>
+            `;
         }
-    }
-
-    /**
-     * Set up instructor action buttons
-     */
-    setupInstructorActions(modal, event) {
-        const signupBtn = modal.container.querySelector('#instructor-signup-btn');
-        const withdrawBtn = modal.container.querySelector('#instructor-withdraw-btn');
-
-        if (signupBtn) {
-            signupBtn.addEventListener('click', () => {
-                this.showInstructorSignupOptions(event, modal);
-            });
-        }
-
-        if (withdrawBtn) {
-            withdrawBtn.addEventListener('click', () => {
-                this.withdrawFromCourse(event.id, modal);
-            });
-        }
-    }
-
-    /**
-     * Show instructor role selection modal
-     */
-    showInstructorSignupOptions(event, parentModal) {
-        const c1Available = !event.c1_instructor_id;
-        const c2Available = !event.c2_instructor_id;
-
-        let options = '';
-        if (c1Available) {
-            options += '<div class="form-check mb-2"><input class="form-check-input" type="radio" name="instructor_role" id="c1_role" value="c1" checked><label class="form-check-label" for="c1_role">C1 Instructor (Primary)</label></div>';
-        }
-        if (c2Available) {
-            options += '<div class="form-check mb-2"><input class="form-check-input" type="radio" name="instructor_role" id="c2_role" value="c2" ' + (c1Available ? '' : 'checked') + '><label class="form-check-label" for="c2_role">C2 Instructor (Assistant)</label></div>';
-        }
-
-        const content = `
-            <p>Select your instructor role for this course:</p>
-            ${options}
-        `;
-
-        const footer = `
-            <button type="button" class="btn btn-secondary" id="cancel-signup-btn">Cancel</button>
-            <button type="button" class="btn btn-primary" id="confirm-signup-btn">Confirm Sign Up</button>
-        `;
-
-        const signupModal = Modal.show({
-            title: 'Choose Instructor Role',
+        
+        const modal = new Modal({
+            size: 'md',
+            title: 'Course Details',
             content: content,
-            footer: footer,
-            size: 'md'
+            footer: footer
         });
-
-        signupModal.container.querySelector('#cancel-signup-btn').addEventListener('click', () => {
-            signupModal.close();
-        });
-
-        signupModal.container.querySelector('#confirm-signup-btn').addEventListener('click', () => {
-            const selectedRole = signupModal.container.querySelector('input[name="instructor_role"]:checked').value;
-            this.signupForInstructorRole(event.id, selectedRole, signupModal, parentModal);
-        });
+        
+        window.currentModal = modal;
+        modal.open();
     }
-
-    /**
-     * Sign up for instructor role
-     */
-    signupForInstructorRole(courseId, role, signupModal, parentModal) {
-        signupModal.showLoading();
-
+    
+    signUpForCourse(courseId, position) {
+        // Close the modal
+        if (window.currentModal) {
+            window.currentModal.close();
+        }
+        
+        console.log('Signing up for course:', courseId, 'as', position);
+        
+        // Send request to sign up
         fetch('/courses/instructor/signup', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ course_instance_id: courseId, role: role })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                course_instance_id: courseId,
+                role: position
+            })
         })
-        .then(response => response.json())
-        .then(data => {
-            signupModal.close();
-            parentModal.close();
-            if (data.success) {
-                Modal.alert({ 
-                    title: 'Success', 
-                    message: 'Successfully signed up as ' + role.toUpperCase() + ' instructor!' 
-                }).then(() => {
-                    location.reload();
-                });
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
             } else {
-                Modal.alert({ 
-                    title: 'Error', 
-                    message: data.message || 'Failed to sign up for course.' 
+                // Return the HTML as text to see what the error is
+                return response.text().then(text => {
+                    console.error('Received HTML instead of JSON:', text);
+                    throw new Error('Server returned an error page. Check console for details.');
                 });
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully signed up as ${position.toUpperCase()}!`);
+                location.reload(); // Reload to show updated calendar
+            } else {
+                alert(`Error: ${data.message}`);
             }
         })
         .catch(error => {
-            signupModal.close();
-            Modal.alert({ 
-                title: 'Error', 
-                message: 'An error occurred while signing up.' 
-            });
-        });
-    }
-
-    /**
-     * Withdraw from course
-     */
-    withdrawFromCourse(courseId, modal) {
-        const confirmModal = Modal.show({
-            title: 'Drop Course Position',
-            content: '<p>Are you sure you want to drop your instructor position for this course?</p>',
-            footer: `
-                <button type="button" class="btn btn-secondary" id="cancel-drop-btn">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirm-drop-btn">Drop Position</button>
-            `,
-            size: 'md'
-        });
-
-        confirmModal.container.querySelector('#cancel-drop-btn').addEventListener('click', () => {
-            confirmModal.close();
-        });
-
-        confirmModal.container.querySelector('#confirm-drop-btn').addEventListener('click', () => {
-            confirmModal.close();
-            modal.showLoading();
-
-            fetch('/courses/instructor/withdraw', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ course_instance_id: courseId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                modal.close();
-                if (data.success) {
-                    Modal.show({
-                        title: 'Success',
-                        content: '<p>Successfully dropped your position from the course.</p>',
-                        footer: '<button type="button" class="btn btn-primary modal-ok-btn">OK</button>',
-                        size: 'md'
-                    }).container.querySelector('.modal-ok-btn').addEventListener('click', () => {
-                        location.reload();
-                    });
-                } else {
-                    Modal.show({
-                        title: 'Error',
-                        content: `<p>${data.message || 'Failed to drop course position.'}</p>`,
-                        footer: '<button type="button" class="btn btn-primary modal-ok-btn">OK</button>',
-                        size: 'md'
-                    });
-                }
-            })
-            .catch(error => {
-                modal.close();
-                Modal.show({
-                    title: 'Error',
-                    content: '<p>An error occurred while dropping your position.</p>',
-                    footer: '<button type="button" class="btn btn-primary modal-ok-btn">OK</button>',
-                    size: 'md'
-                });
-                console.error(error);
-            });
+            console.error('Error:', error);
+            alert('An error occurred while signing up for the course. Check console for details.');
         });
     }
 }
 
-// Export to window
-window.CalendarInstructor = null; // Will be initialized with data
-window.CalendarInstructorModule = CalendarInstructorModule;
+// Export for use in templates
+window.InstructorCalendar = InstructorCalendar;

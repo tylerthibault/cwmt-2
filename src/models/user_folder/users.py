@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask_bcrypt import generate_password_hash, check_password_hash
 from ..main import db, CRUDMixin
-from flask import flash
 from src.models.user_folder import students, instructors, admins, superusers
 
 class User(db.Model, CRUDMixin):
@@ -40,12 +39,15 @@ class User(db.Model, CRUDMixin):
 
     @classmethod
     def create(cls, **data):
-        """Create a new user instance and save to the database."""
+        """Create a new user instance and save to the database.
+        
+        Raises:
+            ValueError: If a user with the email already exists
+        """
         # check to see if user with email already exists
         existing_user = cls.query.filter_by(email=data.get('email')).first()
         if existing_user:
-            flash('User with this email already exists.', 'warning')
-            return existing_user
+            raise ValueError('User with this email already exists.')
         user = cls(**data)
         user.save()
         return user

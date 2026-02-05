@@ -152,25 +152,7 @@
    Students Specific Layout (8 columns)
    ================================= */
 
-@meSpecific Layout Adjustments
-   ================================= */
-
-/* Remove old grid-based layouts - using flexbox now */   border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-right: 0.25rem;
-}
-
-.badge-info {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.2));
-    color: var(--brand-accent-blue);
-}
-
-.badge-secondary {
-    background: rgba(0, 0, 0, 0.1);
-    color: rgba(0, 0, 0, 0.7);
-}
-
+/* Account Type Text Styling */
 .account-type {
     font-weight: 600;
     font-size: 0.8125rem;
@@ -184,16 +166,7 @@
     color: #27ae60;
 }
 
-.enrollment-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: var(--brand-gradient-primary);
-    color: white;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.8125rem;
-}
-
+/* Footer Text Styling */
 .footer-text {
     font-size: 0.8125rem;
     color: rgba(0, 0, 0, 0.6);
@@ -202,15 +175,4 @@
 .footer-text strong {
     color: var(--brand-dark);
     font-weight: 600;
-}
-
-.filtered-badge {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    background: var(--brand-gradient-primary);
-    color: white;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.75rem;
-    margin-left: 0.25rem;
 }

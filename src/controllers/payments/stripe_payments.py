@@ -61,7 +61,7 @@ def create_payment_intent():
             return jsonify({'error - ba680fe4': 'Already enrolled in this course'}), 400
         
         # Calculate total amount based on selected payables
-        total_amount = 0
+        subtotal = 0
         line_items = []
         
         if course_instance.course_template:
@@ -78,7 +78,7 @@ def create_payment_intent():
                 if should_include:
                     # Amount is already in cents in the database
                     amount_in_cents = int(payable_template.amount * 100)
-                    total_amount += amount_in_cents
+                    subtotal += amount_in_cents
                     line_items.append({
                         'payable_template_id': payable_template.id,
                         'name': payable_template.name,
@@ -86,7 +86,7 @@ def create_payment_intent():
                         'description': payable_template.description
                     })
         
-        if total_amount == 0:
+        if subtotal == 0:
             return jsonify({'error - c93a5378': 'No payment items selected'}), 400
         
         # Verify at least one required item is included
@@ -96,6 +96,12 @@ def create_payment_intent():
         )
         if not has_required and course_instance.course_template.payable_templates.filter_by(is_required=True).first():
             return jsonify({'error - missing_required': 'Required payment items must be included'}), 400
+        
+        # Calculate tax based on selected items subtotal
+        subtotal_dollars = subtotal / 100
+        tax_rate = float(course_instance.tax_rate) if course_instance.tax_rate else 0.0
+        tax_amount = subtotal * tax_rate  # Already in cents
+        total_amount = subtotal + int(tax_amount)
         
         # Generate idempotency key
         idempotency_key = str(uuid.uuid4())
@@ -121,6 +127,7 @@ def create_payment_intent():
             stripe_payment_intent_id=intent.id,
             idempotency_key=idempotency_key,
             total_cost=total_amount,
+            tax_amount=int(tax_amount),
             customer_email=doorman.user.email,
             status='pending'
         )

@@ -29,6 +29,7 @@ class CourseTemplate(db.Model, CRUDMixin):
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     is_featured = db.Column(db.Boolean, default=False, nullable=False)  # Show on landing page
+    is_taxable = db.Column(db.Boolean, default=True, nullable=False)  # Whether this course is subject to tax
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

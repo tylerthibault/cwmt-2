@@ -353,3 +353,50 @@ def revoke_superuser(user_id, current_user_id):
             'target_user_id': user.id
         }
     )
+
+
+def toggle_user_active_status(user_id, toggled_by_user_id):
+    """
+    Toggle a user's active status (activate/deactivate).
+    
+    Args:
+        user_id: ID of the user to toggle
+        toggled_by_user_id: ID of the user performing the action
+        
+    Returns:
+        str: 'activated' or 'deactivated'
+        
+    Raises:
+        ValueError: If user not found or trying to deactivate self
+    """
+    user = User.query.get(user_id)
+    if not user:
+        raise ValueError('User not found')
+    
+    # Prevent superusers from deactivating themselves
+    if user_id == toggled_by_user_id:
+        raise ValueError('You cannot deactivate your own account')
+    
+    # Toggle the status
+    user.is_active = not user.is_active
+    user.save()
+    
+    status_text = 'activated' if user.is_active else 'deactivated'
+    
+    # Log the action
+    Log.create_log(
+        log_type=Log.TYPE_USER_ACTION,
+        action='toggle_account_status',
+        description=f'User account {status_text}: {user.email}',
+        user_id=toggled_by_user_id,
+        target_type='user',
+        target_id=user.id,
+        status='success',
+        extra_data={
+            'user_email': user.email,
+            'new_status': 'active' if user.is_active else 'inactive',
+            'action_type': status_text
+        }
+    )
+    
+    return status_text

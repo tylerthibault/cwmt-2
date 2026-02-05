@@ -92,6 +92,16 @@
                     </div>
                 </div>
                 <div class="data-cell">
+                    <div class="data-label">Tax Rate</div>
+                    <div class="data-value">
+                        {% if location.tax_rate %}
+                        {{ (location.tax_rate * 100)|round(2) }}%
+                        {% else %}
+                        <span class="text-muted">0%</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="data-cell">
                     <div class="data-label">Additional Notes</div>
                     <div class="data-value">
                         {% if location.additional_notes %}
@@ -124,7 +134,7 @@
                     <div class="action-buttons">
                                 {% if not location.deleted_at %}
                                 <button type="button" class="action-btn view-btn"
-                                    onclick="viewLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}')"
+                                    onclick="viewLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}', {{ location.tax_rate or 0 }})"
                                     title="View">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -132,7 +142,7 @@
                                     </svg>
                                 </button>
                                 <button type="button" class="action-btn edit-btn"
-                                    onclick="editLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}')"
+                                    onclick="editLocation({{ location.id }}, '{{ location.name|replace("'", "\\'") }}', '{{ location.location|replace("'", "\\'") }}', '{{ (location.additional_notes or '')|replace("'", "\\'") }}', {{ location.tax_rate or 0 }})"
                                     title="Edit">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -213,6 +223,13 @@
                         <small class="text-muted">Enter the address or physical location details</small>
                     </div>
                     <div class="mb-3">
+                        <label for="createTaxRate" class="form-label">Tax Rate (%) *</label>
+                        <input type="number" class="form-control" id="createTaxRate" 
+                               step="0.01" min="0" max="100" value="0" required
+                               placeholder="e.g., 8.25">
+                        <small class="text-muted">Enter the tax percentage for this location (e.g., 8.25 for 8.25%)</small>
+                    </div>
+                    <div class="mb-3">
                         <label for="createNotes" class="form-label">Additional Notes</label>
                         <textarea class="form-control" id="createNotes" rows="3"
                             placeholder="Optional notes about parking, directions, accessibility, etc."></textarea>
@@ -250,6 +267,12 @@
                         <textarea class="form-control" id="editLocation" rows="2" required></textarea>
                     </div>
                     <div class="mb-3">
+                        <label for="editTaxRate" class="form-label">Tax Rate (%) *</label>
+                        <input type="number" class="form-control" id="editTaxRate" 
+                               step="0.01" min="0" max="100" required>
+                        <small class="text-muted">Enter the tax percentage for this location</small>
+                    </div>
+                    <div class="mb-3">
                         <label for="editNotes" class="form-label">Additional Notes</label>
                         <textarea class="form-control" id="editNotes" rows="3"></textarea>
                     </div>
@@ -284,6 +307,10 @@
                     <p id="viewLocation"></p>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label fw-bold">Tax Rate</label>
+                    <p id="viewTaxRate"></p>
+                </div>
+                <div class="mb-3">
                     <label class="form-label fw-bold">Additional Notes</label>
                     <p id="viewNotes" class="text-muted"></p>
                 </div>
@@ -300,6 +327,7 @@
     async function createLocation() {
         const name = document.getElementById('createName').value.trim();
         const location = document.getElementById('createLocation').value.trim();
+        const taxRate = parseFloat(document.getElementById('createTaxRate').value);
         const notes = document.getElementById('createNotes').value.trim();
         const alertDiv = document.getElementById('createAlert');
         const createBtn = document.getElementById('createBtn');
@@ -314,6 +342,11 @@
             return;
         }
 
+        if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+            alertDiv.innerHTML = '<div class="alert alert-danger">Tax rate must be between 0 and 100</div>';
+            return;
+        }
+
         createBtn.disabled = true;
         createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
         alertDiv.innerHTML = '';
@@ -325,6 +358,7 @@
                 body: JSON.stringify({
                     name: name,
                     location: location,
+                    tax_rate: taxRate / 100,
                     additional_notes: notes
                 })
             });
@@ -346,9 +380,10 @@
     }
 
     // View Location
-    function viewLocation(id, name, location, notes) {
+    function viewLocation(id, name, location, notes, taxRate) {
         document.getElementById('viewName').textContent = name;
         document.getElementById('viewLocation').textContent = location;
+        document.getElementById('viewTaxRate').textContent = (taxRate * 100).toFixed(2) + '%';
         document.getElementById('viewNotes').textContent = notes || 'No additional notes';
 
         const modal = new bootstrap.Modal(document.getElementById('viewLocationModal'));
@@ -356,10 +391,11 @@
     }
 
     // Edit Location
-    function editLocation(id, name, location, notes) {
+    function editLocation(id, name, location, notes, taxRate) {
         document.getElementById('editLocationId').value = id;
         document.getElementById('editName').value = name;
         document.getElementById('editLocation').value = location;
+        document.getElementById('editTaxRate').value = (taxRate * 100).toFixed(2);
         document.getElementById('editNotes').value = notes;
         document.getElementById('editAlert').innerHTML = '';
 
@@ -371,6 +407,7 @@
         const id = document.getElementById('editLocationId').value;
         const name = document.getElementById('editName').value.trim();
         const location = document.getElementById('editLocation').value.trim();
+        const taxRate = parseFloat(document.getElementById('editTaxRate').value);
         const notes = document.getElementById('editNotes').value.trim();
         const alertDiv = document.getElementById('editAlert');
         const editBtn = document.getElementById('editBtn');
@@ -385,6 +422,11 @@
             return;
         }
 
+        if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+            alertDiv.innerHTML = '<div class="alert alert-danger">Tax rate must be between 0 and 100</div>';
+            return;
+        }
+
         editBtn.disabled = true;
         editBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
         alertDiv.innerHTML = '';
@@ -396,6 +438,7 @@
                 body: JSON.stringify({
                     name: name,
                     location: location,
+                    tax_rate: taxRate / 100,
                     additional_notes: notes
                 })
             });

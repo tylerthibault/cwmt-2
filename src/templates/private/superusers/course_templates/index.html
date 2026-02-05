@@ -74,7 +74,7 @@
             <div class="table-card-header">
                 <h2 style="font-size: 1.25rem; margin: 0;">All Templates</h2>
             </div>
-            <div class="course-list p-3" id="courseTemplateList">
+            <div class="course-list p-3 d-flex flex-column" id="courseTemplateList">
                 {% for template in course_templates %}
                 <a href="#" class="course-template-item"
                    data-template-id="{{ template.id }}"
@@ -85,6 +85,7 @@
                    data-max-students="{{ template.max_students }}"
                    data-is-active="{{ template.is_active }}"
                    data-is-featured="{{ template.is_featured }}"
+                   data-is-taxable="{{ template.is_taxable if template.is_taxable is not none else True }}"
                    data-short-blurb="{{ template.short_blurb or '' }}"
                    data-color="{{ template.color }}"
                    data-payables="{{ template.payable_templates.all()|map(attribute='id')|list|tojson }}"
@@ -174,9 +175,9 @@
                         </div>
 
                         <div style="margin-bottom: 1.5rem;">
-                            <label class="filter-label">Calendar Color <span style="color: var(--brand-primary);">*</span></label>
+                            <label class="filter-label">Color <span style="color: var(--brand-primary);">*</span></label>
                             <input type="color" class="modern-input" id="edit_color" name="color" required style="height: 50px;">
-                            <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course on the calendar</small>
+                            <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course</small>
                         </div>
 
                         <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
@@ -187,6 +188,10 @@
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 <input type="checkbox" id="edit_is_featured" name="is_featured" style="width: 18px; height: 18px; cursor: pointer;">
                                 <label for="edit_is_featured" style="margin: 0; cursor: pointer;">Featured on Landing Page</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="edit_is_taxable" name="is_taxable" style="width: 18px; height: 18px; cursor: pointer;" checked>
+                                <label for="edit_is_taxable" style="margin: 0; cursor: pointer;">Taxable Course</label>
                             </div>
                         </div>
 
@@ -253,9 +258,9 @@
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <label class="filter-label">Calendar Color <span style="color: var(--brand-primary);">*</span></label>
+                        <label class="filter-label">Color <span style="color: var(--brand-primary);">*</span></label>
                         <input type="color" class="modern-input" id="color" name="color" value="#a93226" required style="height: 50px;">
-                        <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course on the calendar</small>
+                        <small style="color: #6c757d; font-size: 0.875rem;">Choose a color for this course</small>
                     </div>
 
                     <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
@@ -266,6 +271,10 @@
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" id="is_featured" name="is_featured" style="width: 18px; height: 18px; cursor: pointer;">
                             <label for="is_featured" style="margin: 0; cursor: pointer;">Featured on Landing Page</label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="is_taxable" name="is_taxable" style="width: 18px; height: 18px; cursor: pointer;" checked>
+                            <label for="is_taxable" style="margin: 0; cursor: pointer;">Taxable Course</label>
                         </div>
                     </div>
 
@@ -333,6 +342,7 @@
                 maxStudents: this.dataset.maxStudents,
                 isActive: this.dataset.isActive === 'True',
                 isFeatured: this.dataset.isFeatured === 'True',
+                isTaxable: this.dataset.isTaxable !== 'False',
                 color: this.dataset.color,
                 tuition: this.dataset.tuition,
                 payables: JSON.parse(this.dataset.payables || '[]')
@@ -395,8 +405,11 @@
                     </div>`;
             }
             
+
             // Update details view
-            const detailsContainer = document.querySelector('#detailsView p').parentElement;
+
+
+            const detailsContainer = document.querySelector('#detailsView');
             detailsContainer.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h3 style="margin: 0;">Course Template Details</h3>
@@ -417,6 +430,7 @@
                         <p style="margin-bottom: 0.5rem;"><strong>Max Students:</strong> ${data.maxStudents}</p>
                         <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="modern-badge ${data.isActive ? 'badge-success' : 'badge-secondary'}">${data.isActive ? 'Active' : 'Inactive'}</span></p>
                         <p style="margin-bottom: 0.5rem;"><strong>Featured:</strong> <span class="modern-badge ${data.isFeatured ? 'badge-warning' : 'badge-secondary'}">${data.isFeatured ? 'Yes' : 'No'}</span></p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Taxable:</strong> <span class="modern-badge ${data.isTaxable ? 'badge-success' : 'badge-secondary'}">${data.isTaxable ? 'Yes' : 'No'}</span></p>
                     </div>
                 </div>
                 ${data.shortBlurb ? `<div style="margin-bottom: 1rem;"><strong>Short Blurb:</strong><p style="color: #6c757d; margin-top: 0.25rem;">${data.shortBlurb}</p></div>` : ''}
@@ -440,6 +454,7 @@
                 document.getElementById('edit_color').value = data.color;
                 document.getElementById('edit_is_active').checked = data.isActive;
                 document.getElementById('edit_is_featured').checked = data.isFeatured;
+                document.getElementById('edit_is_taxable').checked = data.isTaxable !== false;
                 
                 // Show edit view, hide details view
                 document.getElementById('detailsView').style.display = 'none';

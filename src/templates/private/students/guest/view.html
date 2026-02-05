@@ -1,0 +1,129 @@
+{% extends 'bases/private.html' %}
+
+{% block content %}
+
+<div>
+    {% include 'private/students/components/navbar.html' %}
+</div>
+
+<div class="container-fluid mt-3 px-4">
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Guest Header -->
+            <div class="card shadow-sm mb-2">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person"></i> 
+                        {{ guest.first_name }} {{ guest.last_name }}
+                    </h5>
+                    <span class="badge bg-light text-dark">
+                        <i class="bi bi-people"></i> {{ guest.relationship|title if guest.relationship else 'Guest' }}
+                    </span>
+                </div>
+
+                <div class="card-body py-3">
+                    <div class="row">
+                        <!-- Left Column - Guest Information -->
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <h6 class="border-bottom pb-1 mb-2 fw-semibold">Contact Information</h6>
+                                <p class="mb-1 small">
+                                    <strong>Name:</strong> 
+                                    <span class="text-muted">{{ guest.first_name }} {{ guest.last_name }}</span>
+                                </p>
+                                <p class="mb-1 small">
+                                    <strong>Email:</strong> 
+                                    <span class="text-muted">{{ guest_user.email if guest_user else 'N/A' }}</span>
+                                </p>
+                                <p class="mb-1 small">
+                                    <strong>Phone:</strong> 
+                                    <span class="text-muted">{{ guest_user.phone_number if guest_user and guest_user.phone_number else 'N/A' }}</span>
+                                </p>
+                                <p class="mb-0 small">
+                                    <strong>Relationship:</strong> 
+                                    <span class="badge bg-info">{{ guest.relationship if guest.relationship else 'N/A' }}</span>
+                                </p>
+                            </div>
+
+                            <div class="mb-0">
+                                <h6 class="border-bottom pb-1 mb-2 fw-semibold">Account Information</h6>
+                                <p class="mb-1 small">
+                                    <strong>Account Created:</strong> 
+                                    <span class="text-muted">{{ guest.created_at.strftime('%b %d, %Y') if guest.created_at else 'N/A' }}</span>
+                                </p>
+                                <p class="mb-0 small">
+                                    <strong>Status:</strong> 
+                                    <span class="badge bg-success">Active</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Enrollments -->
+                        <div class="col-lg-6">
+                            <div class="mb-0">
+                                <h6 class="border-bottom pb-1 mb-2 fw-semibold">Enrollments</h6>
+                                
+                                {% if enrollments %}
+                                    <div class="list-group list-group-flush">
+                                        {% for enrollment in enrollments %}
+                                        <a href="{{ url_for('student.enrollment_details', enrollment_id=enrollment.id) }}" 
+                                           class="list-group-item list-group-item-action py-2 px-2">
+                                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="mb-0 fw-semibold small">
+                                                        {{ enrollment.course_instance.course_template.name if enrollment.course_instance.course_template else 'Course' }}
+                                                    </div>
+                                                    <p class="mb-0 small text-muted">
+                                                        <i class="bi bi-calendar"></i> 
+                                                        {{ enrollment.course_instance.start_date.strftime('%b %d, %Y') }}
+                                                        {% if enrollment.course_instance.location %}
+                                                        <span class="ms-2">
+                                                            <i class="bi bi-geo-alt"></i> 
+                                                            {{ enrollment.course_instance.location }}
+                                                        </span>
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="ms-2">
+                                                    {% if enrollment.status == 'enrolled' %}
+                                                    <span class="badge bg-success">Enrolled</span>
+                                                    {% elif enrollment.status == 'completed' %}
+                                                    <span class="badge bg-primary">Completed</span>
+                                                    {% elif enrollment.status == 'dropped' %}
+                                                    <span class="badge bg-warning">Dropped</span>
+                                                    {% elif enrollment.status == 'canceled' %}
+                                                    <span class="badge bg-danger">Canceled</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info py-2 mb-0">
+                                        <i class="bi bi-info-circle"></i> 
+                                        <small>This guest has no enrollments yet.</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="card shadow-sm">
+                <div class="card-body py-2">
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-house"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

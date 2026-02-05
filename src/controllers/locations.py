@@ -56,6 +56,7 @@ def admin_create():
         
         name = data.get('name', '').strip()
         location = data.get('location', '').strip()
+        tax_rate = data.get('tax_rate', 0)
         additional_notes = data.get('additional_notes', '').strip() or None
         
         # Validation
@@ -64,6 +65,14 @@ def admin_create():
         
         if not location:
             return _error_response('Location address/details are required', 400)
+        
+        # Validate tax_rate
+        try:
+            tax_rate = float(tax_rate)
+            if tax_rate < 0 or tax_rate > 1:
+                return _error_response('Tax rate must be between 0 and 1 (0% to 100%)', 400)
+        except (ValueError, TypeError):
+            return _error_response('Invalid tax rate', 400)
         
         # Check for duplicate name
         existing = Location.get_by_name(name)
@@ -74,6 +83,7 @@ def admin_create():
         new_location = Location.create(
             name=name,
             location=location,
+            tax_rate=tax_rate,
             additional_notes=additional_notes
         )
         
@@ -98,6 +108,7 @@ def admin_update(location_id):
         
         name = data.get('name', '').strip()
         location_address = data.get('location', '').strip()
+        tax_rate = data.get('tax_rate', 0)
         additional_notes = data.get('additional_notes', '').strip() or None
         
         # Validation
@@ -106,6 +117,14 @@ def admin_update(location_id):
         
         if not location_address:
             return _error_response('Location address/details are required', 400)
+        
+        # Validate tax_rate
+        try:
+            tax_rate = float(tax_rate)
+            if tax_rate < 0 or tax_rate > 1:
+                return _error_response('Tax rate must be between 0 and 1 (0% to 100%)', 400)
+        except (ValueError, TypeError):
+            return _error_response('Invalid tax rate', 400)
         
         # Check for duplicate name (excluding current location)
         existing = Location.get_by_name(name)
@@ -116,6 +135,7 @@ def admin_update(location_id):
         location.update(
             name=name,
             location=location_address,
+            tax_rate=tax_rate,
             additional_notes=additional_notes
         )
         

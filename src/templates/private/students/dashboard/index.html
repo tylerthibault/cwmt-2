@@ -21,15 +21,15 @@
                 <p class="dashboard-subtitle">Welcome back, {{ current_user.first_name }}! 👋</p>
             </div>
             <div class="dashboard-actions">
-                <button class="btn-secondary" onclick="showCreateGuestModal()">
+                <a href="{{ url_for('student.family_friends') }}" class="btn-secondary">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="8.5" cy="7" r="4"/>
-                        <line x1="20" y1="8" x2="20" y2="14"/>
-                        <line x1="23" y1="11" x2="17" y2="11"/>
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
-                    Add Family/Friend
-                </button>
+                    Family & Friends
+                </a>
                 <a href="{{ url_for('student.my_enrollments') }}" class="btn-primary">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="8" y1="6" x2="21" y2="6"/>
@@ -44,144 +44,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card stat-card-active">
-            <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ active_count }}</div>
-                <div class="stat-label">Active Courses</div>
-                <div class="stat-sublabel">Currently enrolled</div>
-            </div>
-        </div>
-        
-        <div class="stat-card stat-card-completed">
-            <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ completed_count }}</div>
-                <div class="stat-label">Completed</div>
-                <div class="stat-sublabel">Finished courses</div>
-            </div>
-        </div>
-        
-        <div class="stat-card stat-card-upcoming">
-            <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ upcoming_count }}</div>
-                <div class="stat-label">Upcoming</div>
-                <div class="stat-sublabel">Starting soon</div>
-            </div>
-        </div>
-        
-        <div class="stat-card stat-card-total">
-            <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ total_enrollments }}</div>
-                <div class="stat-label">Total</div>
-                <div class="stat-sublabel">All time enrollments</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Guest Students Section -->
-    {% if guest_students %}
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Family & Friends
-            </h2>
-            <span class="badge-count">{{ guest_students|length }}</span>
-        </div>
-        
-        <div class="guest-grid">
-            {% for guest in guest_students %}
-            <div class="guest-card">
-                <div class="guest-card-header">
-                    <div class="guest-avatar">
-                        {{ guest.first_name[0] }}{{ guest.last_name[0] }}
-                    </div>
-                    <div class="guest-info">
-                        <h3 class="guest-name">{{ guest.full_name }}</h3>
-                        <span class="guest-relationship">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                            {{ guest.relationship|capitalize }}
-                        </span>
-                    </div>
-                    <span class="status-badge {% if guest.is_active %}status-active{% else %}status-inactive{% endif %}">
-                        {{ 'Active' if guest.is_active else 'Inactive' }}
-                    </span>
-                </div>
-                
-                <div class="guest-card-body">
-                    <div class="guest-detail">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                            <polyline points="22,6 12,13 2,6"/>
-                        </svg>
-                        {{ guest.email }}
-                    </div>
-                    {% if guest.phone_number %}
-                    <div class="guest-detail">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                        </svg>
-                        {{ guest.phone_number }}
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div class="guest-card-footer">
-                    <div class="enrollment-count">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                        </svg>
-                        {{ guest.enrollments.count() }} enrollment(s)
-                    </div>
-                    <button class="btn-view" onclick="viewGuestDetails({{ guest.id }})">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        View
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
     
     <!-- Current Enrollments Section -->
     {% if enrollments %}
@@ -238,7 +100,23 @@
     </div>
     {% endif %}
     
-    <!-- Available Courses Calendar -->
+    <!-- Calendar Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                My Course Calendar
+            </h2>
+        </div>
+        {% include 'components/calendar.html' %}
+    </div>
+    
+    <!-- Available Courses -->
     <div class="section">
         <div class="section-header">
             <h2 class="section-title">
@@ -251,144 +129,33 @@
                 Available Courses
             </h2>
         </div>
-        {% include 'private/students/components/calendar.html' %}
+        <p>Course listing will be displayed here.</p>
     </div>
 </div>
 
+<!-- Load Modal System -->
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+
+<!-- Load Calendar Scripts -->
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-public.js') }}"></script>
+
+<!-- Initialize Student Calendar -->
 <script>
-    function showCreateGuestModal() {
-        const content = `
-            <div class="infobox">
-                <i class="bi bi-info-circle"></i> <strong>Create Guest Account</strong>
-                <p class="mb-0 small">Add a family member or friend so you can enroll and pay for their courses.</p>
-            </div>
-            
-            <form id="createGuestForm">
-                <div class="mb-3">
-                    <label for="guest_first_name" class="form-label">First Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="guest_first_name" name="first_name" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="guest_last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="guest_last_name" name="last_name" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="guest_email" class="form-label">Email Address <span class="text-danger">*</span></label>
-                    <input type="email" class="form-control" id="guest_email" name="email" required>
-                    <small class="form-text text-muted">They'll receive course notifications at this email.</small>
-                </div>
-
-                <div class="mb-3">
-                    <label for="guest_phone" class="form-label">Phone Number</label>
-                    <input type="tel" class="form-control" id="guest_phone" name="phone_number" placeholder="(555) 123-4567">
-                </div>
-
-                <div class="mb-3">
-                    <label for="relationship" class="form-label">Relationship <span class="text-danger">*</span></label>
-                    <select class="form-select" id="relationship" name="relationship" required>
-                        <option value="">Select relationship...</option>
-                        <option value="child">Child</option>
-                        <option value="spouse">Spouse</option>
-                        <option value="parent">Parent</option>
-                        <option value="sibling">Sibling</option>
-                        <option value="friend">Friend</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div class="infobox infobox-warning small">
-                    <i class="bi bi-exclamation-triangle"></i> 
-                    A temporary password will be generated and sent to their email. They can change it after logging in.
-                </div>
-            </form>
-        `;
-
-        const footer = `
-            <button type="button" class="btn btn-secondary" id="cancel-guest-btn">Cancel</button>
-            <button type="button" class="btn btn-primary" id="create-guest-btn">
-                <i class="bi bi-check-circle"></i> Create Account
-            </button>
-        `;
-
-        const modal = Modal.show({
-            title: 'Add Family Member or Friend',
-            content: content,
-            footer: footer,
-            size: 'lg',
-            closeOnOverlay: false
+    // Set current user for calendar (calendar only needs to know if logged in)
+    window.currentUser = {{ 'true' if current_user else 'null' }};
+    
+    // Parse events from backend
+    window.calendarEvents = {{ events_json | safe }};
+    window.guestStudents = {{ guest_students_json | safe }};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        window.publicCalendar = new PublicCalendar({
+            events: window.calendarEvents,
+            guestStudents: window.guestStudents,
+            role: 'student'
         });
-
-        modal.container.querySelector('#cancel-guest-btn').addEventListener('click', () => {
-            modal.close();
-        });
-
-        modal.container.querySelector('#create-guest-btn').addEventListener('click', () => {
-            submitCreateGuest(modal);
-        });
-    }
-
-    function submitCreateGuest(modal) {
-        const form = modal.container.querySelector('#createGuestForm');
-        
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const formData = {
-            first_name: modal.container.querySelector('#guest_first_name').value,
-            last_name: modal.container.querySelector('#guest_last_name').value,
-            email: modal.container.querySelector('#guest_email').value,
-            phone_number: modal.container.querySelector('#guest_phone').value,
-            relationship: modal.container.querySelector('#relationship').value
-        };
-
-        // Disable submit button and show loading state
-        const submitBtn = modal.container.querySelector('#create-guest-btn');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
-
-        fetch('/student/create-guest-account', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                modal.close();
-                Modal.alert({ 
-                    title: 'Success', 
-                    message: 'Guest account created successfully! A temporary password has been sent to their email.' 
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-                Modal.alert({ 
-                    title: 'Error', 
-                    message: data.message || 'Failed to create guest account.' 
-                });
-            }
-        })
-        .catch(error => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
-            Modal.alert({ 
-                title: 'Error', 
-                message: 'An error occurred while creating the guest account.' 
-            });
-            console.error(error);
-        });
-    }
-
-    function viewGuestDetails(guestId) {
-        window.location.href = `/student/guest/${guestId}`;
-    }
+    });
 </script>
 
 {% endblock content %}

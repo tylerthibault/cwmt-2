@@ -23,6 +23,7 @@ class Payment(db.Model, CRUDMixin):
     # Payment Details
     status = db.Column(db.String(50), nullable=False, default='pending', index=True)
     total_cost = db.Column(db.Integer, nullable=False)  # Amount in cents
+    tax_amount = db.Column(db.Integer, nullable=False, default=0)  # Tax amount in cents
     amount_refunded = db.Column(db.Integer, nullable=False, default=0)  # Amount in cents
     currency = db.Column(db.String(3), nullable=False, default='usd')
     

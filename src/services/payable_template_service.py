@@ -22,7 +22,7 @@ def get_payable_template_by_id(template_id):
     return PayableTemplate.get_by_id(template_id)
 
 
-def create_payable_template(name, amount, description=None):
+def create_payable_template(name, amount, description=None, is_required=False):
     """
     Create a new payable template.
     
@@ -48,7 +48,8 @@ def create_payable_template(name, amount, description=None):
     new_template = PayableTemplate(
         name=name,
         amount=amount_float,
-        description=description
+        description=description,
+        is_required=1 if is_required else 0
     )
     new_template.save()
     
@@ -101,10 +102,17 @@ def delete_payable_template(template_id):
         template_id: ID of the template to delete
         
     Raises:
-        ValueError: If template not found
+        ValueError: If template not found or has associated payments
     """
+    from src.models.stripe.payment_line_items import PaymentLineItem
+    
     template = PayableTemplate.get_by_id(template_id)
     if not template:
         raise ValueError("Payable template not found")
+    
+    # Check if there are any payment line items associated with this template
+    line_items = PaymentLineItem.query.filter_by(payable_template_id=template_id).first()
+    if line_items:
+        raise ValueError("Cannot delete payable template because it has associated payment records. Consider making it inactive instead.")
     
     template.delete()

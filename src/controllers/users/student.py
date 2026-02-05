@@ -10,7 +10,6 @@ from src.models.doorman import Doorman
 from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.utils.password_management import generate_simple_password, hash_string
-from src.services.calendar import format_course_instances_for_calendar
 
 # Create blueprint
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -23,15 +22,12 @@ def dashboard():
     user = Doorman.get_by_token(session['doorman_token']).user
     student = students.Student.query.filter_by(user_id=user.id).first()
     
-    # Get all course instances for the calendar
-    all_courses = course_instances.CourseInstance.query.filter_by(status='scheduled').all()
-    events = format_course_instances_for_calendar(all_courses)
-    
     # Get student's enrollments
     enrollments = []
     active_count = 0
     completed_count = 0
     upcoming_count = 0
+    events = []  # Calendar events for student's enrolled courses
     
     if student:
         enrollments = Enrollment.get_by_student(student.id)
@@ -44,21 +40,41 @@ def dashboard():
                     upcoming_count += 1
                 else:
                     active_count += 1
+                    
+                # Add to calendar events
+                instance = enrollment.course_instance
+                template = instance.course_template
+                if template:
+                    events.append({
+                        'id': instance.id,
+                        'title': template.name,
+                        'start': instance.start_date.isoformat(),
+                        'duration': instance.duration_days,
+                        'color': template.color or '#0d6efd',
+                    })
             elif enrollment.status == 'completed':
                 completed_count += 1
     
     # Get guest students created by this student
     guest_students = []
+    guest_students_data = []
     if student:
         guest_students = students.Student.query.filter_by(created_by_student_id=student.id).all()
         # Add enrollment count for each guest
         for guest in guest_students:
             guest.enrollment_count = len(Enrollment.get_by_student(guest.id))
+            guest_students_data.append({
+                'id': guest.id,
+                'first_name': guest.first_name,
+                'last_name': guest.last_name,
+                'relationship': guest.relationship
+            })
     
     context = {
         'current_user': user,
         'current_student_id': student.id if student else None,
         'events_json': json.dumps(events),
+        'guest_students_json': json.dumps(guest_students_data),
         'enrollments': enrollments,
         'active_count': active_count,
         'completed_count': completed_count,
@@ -67,6 +83,42 @@ def dashboard():
         'guest_students': guest_students
     }
     return render_template('private/students/dashboard/index.html', **context)
+
+
+@student_bp.route('/family-friends')
+@login_required
+@role_required('student')
+def family_friends():
+    """Family and friends management page."""
+    user = Doorman.get_by_token(session['doorman_token']).user
+    student = students.Student.query.filter_by(user_id=user.id).first()
+    
+    if not student:
+        return render_template('errors/404.html'), 404
+    
+    # Get all guest students created by this student
+    guest_students_query = students.Student.query.filter_by(created_by_student_id=student.id).all()
+    
+    # Build guest data with enrollment count and user details
+    guest_students = []
+    for guest in guest_students_query:
+        guest_user = users.User.query.get(guest.user_id)
+        guest_data = {
+            'id': guest.id,
+            'first_name': guest.first_name,
+            'last_name': guest.last_name,
+            'relationship': guest.relationship,
+            'email': guest_user.email if guest_user else '',
+            'phone_number': guest_user.phone_number if guest_user else '',
+            'enrollment_count': len(Enrollment.get_by_student(guest.id)),
+            'is_active': True
+        }
+        guest_students.append(guest_data)
+    
+    return render_template('private/students/family_friends/index.html', 
+                         guest_students=guest_students,
+                         current_user=user)
+
 
 
 @student_bp.route('/set-student/<int:user_id>/<status>', methods=['GET', 'POST'])
@@ -147,25 +199,40 @@ def checkout(course_instance_id):
     
     # Get payable items for this course
     payable_items = []
-    total_amount = 0
+    subtotal = 0
     
     if course.course_template:
         for payable_template in course.course_template.payable_templates.all():
             amount = int(payable_template.amount * 100)  # Convert to cents
             payable_items.append({
+                'id': payable_template.id,
                 'name': payable_template.name,
                 'description': payable_template.description,
                 'amount': amount,
-                'amount_dollars': amount / 100
+                'amount_dollars': amount / 100,
+                'is_required': payable_template.is_required
             })
-            total_amount += amount
+            subtotal += amount
+    
+    # Calculate pricing with tax
+    subtotal_dollars = subtotal / 100
+    subtotal_amount, tax_amount, total_amount = course.calculate_pricing()
+    
+    # Convert to cents for Stripe
+    total_amount_cents = int(total_amount * 100)
+    tax_amount_cents = int(tax_amount * 100)
     
     context = {
         'current_user': user,
         'course': course,
         'payable_items': payable_items,
-        'total_amount': total_amount,
-        'total_amount_dollars': total_amount / 100,
+        'subtotal': subtotal,
+        'subtotal_dollars': subtotal_dollars,
+        'tax_amount': tax_amount_cents,
+        'tax_amount_dollars': tax_amount,
+        'tax_rate': float(course.tax_rate),
+        'total_amount': total_amount_cents,
+        'total_amount_dollars': total_amount,
         'stripe_publishable_key': os.getenv('STRIPE_PUBLISHABLE_KEY'),
         'enrolling_student': enrolling_student,
         'is_guest_enrollment': is_guest_enrollment,
@@ -322,13 +389,16 @@ def create_guest_account():
         temp_password = generate_simple_password(10)
         
         # Create User account
-        new_user = users.User.create(
-            email=data['email'],
-            password=hash_string(temp_password),
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            phone_number=data.get('phone_number', '')
-        )
+        try:
+            new_user = users.User.create(
+                email=data['email'],
+                password=hash_string(temp_password),
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                phone_number=data.get('phone_number', '')
+            )
+        except ValueError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
         
         # Create Student profile linked to the current student
         new_student = students.Student.create(
@@ -406,6 +476,39 @@ def get_guest_students():
     except Exception as e:
         print(f"Error fetching guest students: {str(e)}")
         return jsonify({'success': False, 'message': 'An error occurred while fetching guest students'}), 500
+
+@student_bp.route('/guest/<int:guest_id>')
+@login_required
+@role_required('student')
+def view_guest(guest_id):
+    """View details of a guest student account."""
+    user = Doorman.get_by_token(session['doorman_token']).user
+    current_student = students.Student.query.filter_by(user_id=user.id).first()
+    
+    if not current_student:
+        return render_template('errors/404.html'), 404
+    
+    # Get the guest student
+    guest = students.Student.query.get_or_404(guest_id)
+    
+    # Verify that this guest was created by the current student
+    if guest.created_by_student_id != current_student.id:
+        return render_template('errors/403.html'), 403
+    
+    # Get the guest's user account
+    guest_user = users.User.query.get(guest.user_id)
+    
+    # Get guest's enrollments
+    guest_enrollments = Enrollment.get_by_student(guest.id)
+
+    # current user
+    current_user = Doorman.get_by_token(session['doorman_token']).user
+    
+    return render_template('private/students/guest/view.html', 
+                         guest=guest, 
+                         guest_user=guest_user,
+                         enrollments=guest_enrollments,
+                         current_user=current_user)
 
 @student_bp.route('/enrollment-details/<int:enrollment_id>')
 @login_required

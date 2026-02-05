@@ -34,7 +34,8 @@ def create_payable_temp():
         payable_template_service.create_payable_template(
             name=request.form.get('name'),
             amount=request.form.get('amount'),
-            description=request.form.get('description')
+            description=request.form.get('description'),
+            is_required=bool(request.form.get('edit_is_required'))
         )
         flash('Payable template created successfully!', 'success')
     except ValueError as e:

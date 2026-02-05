@@ -156,6 +156,12 @@ def register():
 
     data = {**request.form}
     course_id = data.get('course_id')  # Get course ID if provided
+    
+    # Check if email already exists
+    existing_user = User.query.filter_by(email=data.get('email')).first()
+    if existing_user:
+        flash('An account with this email address already exists. Please login instead.', 'warning')
+        return redirect(url_for('auth.loginReg'))
 
     password_generation = generate_random_password()
     # password_generation = 'Pass123!!'
@@ -206,7 +212,7 @@ def register():
     except RuntimeError as e:
         # Log the email failure but don't block registration
         Log.create_log(
-            log_type=Log.TYPE_SYSTEM_ERROR,
+            log_type=Log.TYPE_SYSTEM,
             action='email_failed',
             description=f'Failed to send welcome email to {new_user.email}',
             user_id=new_user.id,

@@ -189,6 +189,10 @@ def init_blueprints(app):
     from src.controllers.enrollment_management import enrollments_bp
     app.register_blueprint(enrollments_bp)
     
+    # Calendar
+    from src.controllers.calendar_routes import calendar_bp
+    app.register_blueprint(calendar_bp)
+    
     # Stripe payments
     from src.controllers.payments.stripe_payments import stripe_payments_bp
     app.register_blueprint(stripe_payments_bp)

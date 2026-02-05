@@ -133,9 +133,18 @@
                         {% endfor %}
                     </td>
                     <td>
-                        <a href="{{ url_for('superuser.manage_user_roles', user_id=user.id) }}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-shield-lock"></i> <span class="d-none d-sm-inline">Manage</span>
-                        </a>
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('superuser.manage_user_roles', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-shield-lock"></i> <span class="d-none d-sm-inline">Manage</span>
+                            </a>
+                            {% if user.id != current_user.id %}
+                            <button class="btn btn-sm {% if user.is_active %}btn-warning{% else %}btn-success{% endif %}" 
+                                    onclick="toggleUserStatus({{ user.id }}, '{{ user.first_name }} {{ user.last_name }}', {{ user.is_active|tojson }})">
+                                <i class="bi {% if user.is_active %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+                                <span class="d-none d-sm-inline">{% if user.is_active %}Deactivate{% else %}Activate{% endif %}</span>
+                            </button>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endif %}
@@ -145,4 +154,22 @@
         </table>
     </div>
 </div>
+
+<script>
+function toggleUserStatus(userId, userName, isActive) {
+    const action = isActive ? 'deactivate' : 'activate';
+    const actionTitle = isActive ? 'Deactivate' : 'Activate';
+    const actionDescription = isActive 
+        ? 'This will prevent the user from logging in. You can reactivate them later.'
+        : 'This will allow the user to log in again.';
+    
+    if (confirm(`${actionTitle} ${userName}?\n\n${actionDescription}`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/superuser/toggle-user-status/${userId}?focus={{ focus }}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 {% endblock inner_content %}

@@ -1,0 +1,38 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+    {% include 'private/instructors/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Course Calendar</h1>
+            <p class="text-muted mb-0">View your teaching schedule</p>
+        </div>
+    </div>
+
+    {% include 'components/calendar.html' %}
+</div>
+
+<!-- Load Modal System -->
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+
+<!-- Load Calendar Scripts -->
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-public.js') }}"></script>
+
+<!-- Initialize Instructor Calendar -->
+<script>
+    // Make current user available to calendar (calendar only needs to know if logged in)
+    window.currentUser = {{ 'true' if current_user else 'null' }};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        window.publicCalendar = new PublicCalendar({
+            events: window.calendarEvents,
+            role: 'instructor'
+        });
+    });
+</script>
+{% endblock inner_content %}

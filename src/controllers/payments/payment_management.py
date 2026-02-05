@@ -70,6 +70,10 @@ def refund_payment(payment_id):
     """Issue a refund for a payment or specific line item."""
     try:
         data = request.get_json()
+        
+        if not data:
+            return _error_response('No data provided', 400)
+        
         payment = Payment.query.get(payment_id)
         
         if not payment:
@@ -110,4 +114,7 @@ def refund_payment(payment_id):
     except stripe.error.StripeError as e:
         return _error_response(f'Stripe error: {str(e)}', 400)
     except Exception as e:
-        return _error_response(f'An error occurred: {str(e)}')
+        print(f"Unexpected error in refund_payment: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return _error_response(f'An error occurred: {str(e)}', 500)
