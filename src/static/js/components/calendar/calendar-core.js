@@ -212,44 +212,21 @@ class Calendar {
         eventElement.classList.add('calendar-event');
         eventElement.style.backgroundColor = event.color || '#0d6efd';
         
-        // Check if this is a multi-day event
+        // Set title attribute for tooltip on hover
         const eventStart = this.parseLocalDate(event.start);
         const duration = event.duration || 1;
-        
-        if (duration > 1) {
-            eventElement.classList.add('multi-day');
-            
-            // Calculate how many days this event spans in the visible calendar
-            const cellDateNormalized = new Date(cellDate);
-            cellDateNormalized.setHours(0, 0, 0, 0);
-            
-            const eventEnd = new Date(eventStart);
-            eventEnd.setDate(eventEnd.getDate() + duration - 1);
-            
-            // Calculate which day of the event this cell represents
-            const daysFromStart = Math.floor((cellDateNormalized - eventStart) / (1000 * 60 * 60 * 24));
-            const remainingDays = duration - daysFromStart;
-            
-            // Determine if this is first, middle, or last day
-            const isFirstDay = daysFromStart === 0;
-            const isLastDay = daysFromStart === duration - 1;
-            
-            if (isFirstDay) {
-                eventElement.textContent = event.title;
-                eventElement.classList.add('multi-day-start');
-            } else if (isLastDay) {
-                eventElement.classList.add('multi-day-end');
-                eventElement.textContent = event.title;
-            } else {
-                eventElement.classList.add('multi-day-continue');
-                eventElement.textContent = event.title;
-            }
-        } else {
-            eventElement.textContent = event.title;
-        }
-        
-        // Add status classes
         const spotsLeft = event.maxStudents - event.enrollmentCount;
+        const spotsText = spotsLeft > 0 ? `${spotsLeft} spots left` : 'Full';
+        
+        eventElement.title = `${event.title} - ${spotsText}`;
+        
+        // Add text content for desktop/tablet view
+        const eventText = document.createElement('span');
+        eventText.classList.add('calendar-event-text');
+        eventText.textContent = event.title;
+        eventElement.appendChild(eventText);
+        
+        // Add status classes for styling
         if (spotsLeft === 0) {
             eventElement.classList.add('full');
         } else if (spotsLeft <= 3) {

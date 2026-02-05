@@ -136,112 +136,104 @@
 /* Calendar Events */
 .calendar-events {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 0.25rem;
+    margin-top: 0.25rem;
 }
 
 .calendar-event {
     background-color: var(--info-color);
     color: var(--white);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 500;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    border-left: 3px solid transparent;
     position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Event text - hidden on mobile, shown on tablet+ */
+.calendar-event-text {
+    display: none;
+}
+
+/* Show text on tablet and larger */
+@media (min-width: 768px) {
+    .calendar-event {
+        height: auto;
+        min-height: 20px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    
+    .calendar-event-text {
+        display: inline;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+    
+    .calendar-event:hover {
+        height: auto;
+        min-height: 22px;
+    }
 }
 
 /* Multi-day events */
-.calendar-event.multi-day {
-    font-weight: 600;
-    position: relat1px;
-    padding-right: calc(0.5rem + 1px);
-}
-
-.calendar-event.multi-day-continue {
-    border-radius: 0;
-    margin-left: -1px;
-    margin-right: -1px;
-    padding-left: calc(0.5rem + 1px);
-    padding-right: calc(0.5rem + 1px);
-}
-
+.calendar-event.multi-day,
+.calendar-event.multi-day-continue,
 .calendar-event.multi-day-end {
-    border-radius: 0 4px 4px 0;
-    margin-left: -1px;
-    padding-left: calc(0.5rem + 12px);
+    width: 100%;
 }
 
-.calendar-event.multi-day-end {
-    border-radius: 0 4px 4px 0;
-    margin-left: -2px;
-    padding-left: calc(0.5rem + 2px);
+@media (max-width: 767px) {
+    .calendar-event.multi-day,
+    .calendar-event.multi-day-continue,
+    .calendar-event.multi-day-end {
+        height: 4px;
+        border-radius: 2px;
+    }
 }
 
-.calendar-event:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    filter: brightness(1.1);
+/* Mobile hover - just thicken the line */
+@media (max-width: 767px) {
+    .calendar-event:hover {
+        height: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+    }
 }
 
 .calendar-event.enrolled {
-    border-left-color: var(--success-color);
-    font-weight: 700;
-    box-shadow: 0 0 0 2px var(--success-color);
+    border: 2px solid var(--success-color);
+    box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.3);
 }
 
 .calendar-event.teaching {
-    border: 3px solid #ffd700 !important;
-    font-weight: 700 !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8) !important;
-    outline: 2px solid #ffd700 !important;
-    outline-offset: -2px !important;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
 }
 
-/* Instructor badges on admin calendar events */
+/* Instructor badges - hide since we're using dots now */
 .instructor-badges {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    display: flex;
-    gap: 2px;
-    z-index: 10;
+    display: none;
 }
 
 .instructor-badge {
-    display: inline-block;
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 1px 4px;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #333;
-    line-height: 1;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.instructor-badge.c1-badge {
-    border: 1px solid #198754;
-    color: #198754;
-}
-
-.instructor-badge.c2-badge {
-    border: 1px solid #0d6efd;
-    color: #0d6efd;
+    display: none;
 }
 
 .calendar-event.full {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 .calendar-event.limited {
-    border-left-color: var(--warning-color);
+    border: 2px solid var(--warning-color);
 }
 
 .calendar-event-more {
