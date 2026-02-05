@@ -179,6 +179,36 @@ def settings():
                 flash(f'Error updating settings: {str(e)}', 'danger')
             
             return redirect(url_for('superuser.settings', tab='email'))
+        
+        elif tab == 'payment':
+            try:
+                # Parse tax rate from percentage to decimal
+                tax_rate_percent = request.form.get('tax_rate', '0')
+                tax_rate = float(tax_rate_percent) / 100.0 if tax_rate_percent else 0.0
+                
+                update_data = {
+                    'currency': request.form.get('currency', 'USD'),
+                    'tax_rate': tax_rate,
+                    'stripe_enabled': request.form.get('stripe_enabled') == '1',
+                    'stripe_publishable_key': request.form.get('stripe_publishable_key'),
+                }
+                
+                # Only update secrets if provided (not empty)
+                stripe_secret_key = request.form.get('stripe_secret_key')
+                if stripe_secret_key:
+                    update_data['stripe_secret_key'] = stripe_secret_key
+                
+                stripe_webhook_secret = request.form.get('stripe_webhook_secret')
+                if stripe_webhook_secret:
+                    update_data['stripe_webhook_secret'] = stripe_webhook_secret
+                
+                superuser_service.update_payment_settings(update_data, _get_current_user().id)
+                
+                flash('Payment settings updated successfully!', 'success')
+            except Exception as e:
+                flash(f'Error updating payment settings: {str(e)}', 'danger')
+            
+            return redirect(url_for('superuser.settings', tab='payment'))
     
     active_tab = request.args.get('tab', 'email')
     return render_template('private/superusers/settings/index.html',

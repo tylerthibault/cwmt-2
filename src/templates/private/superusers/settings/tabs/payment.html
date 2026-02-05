@@ -1,0 +1,185 @@
+<h4 class="mb-3">Payment Settings</h4>
+<p class="text-muted">Configure Stripe payment processing and general payment settings</p>
+
+<form method="POST" action="{{ url_for('superuser.settings') }}">
+    <input type="hidden" name="tab" value="payment">
+    
+    <!-- General Payment Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> General Payment Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="currency" class="form-label">Currency</label>
+                    <select class="form-select" id="currency" name="currency" required>
+                        <option value="USD" {% if settings.currency == 'USD' %}selected{% endif %}>USD - US Dollar</option>
+                        <option value="CAD" {% if settings.currency == 'CAD' %}selected{% endif %}>CAD - Canadian Dollar</option>
+                        <option value="EUR" {% if settings.currency == 'EUR' %}selected{% endif %}>EUR - Euro</option>
+                        <option value="GBP" {% if settings.currency == 'GBP' %}selected{% endif %}>GBP - British Pound</option>
+                    </select>
+                    <small class="form-text text-muted">Default currency for payments</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                    <input type="number" 
+                           class="form-control" 
+                           id="tax_rate" 
+                           name="tax_rate" 
+                           value="{{ (settings.tax_rate * 100) if settings.tax_rate else 0 }}"
+                           step="0.01"
+                           min="0"
+                           max="100"
+                           placeholder="0.00">
+                    <small class="form-text text-muted">e.g., 8.25 for 8.25% tax</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stripe Configuration -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-credit-card"></i> Stripe Configuration</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           id="stripe_enabled" 
+                           name="stripe_enabled" 
+                           value="1"
+                           {% if settings.stripe_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="stripe_enabled">
+                        <strong>Enable Stripe Payments</strong>
+                    </label>
+                </div>
+                <small class="form-text text-muted">Toggle to enable or disable Stripe payment processing</small>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="stripe_publishable_key" class="form-label">
+                        Publishable Key <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" 
+                           class="form-control font-monospace" 
+                           id="stripe_publishable_key" 
+                           name="stripe_publishable_key" 
+                           value="{{ settings.stripe_publishable_key or '' }}"
+                           placeholder="pk_test_...">
+                    <small class="form-text text-muted">Public key for client-side Stripe integration (starts with pk_)</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="stripe_secret_key" class="form-label">
+                        Secret Key <span class="text-danger">*</span>
+                    </label>
+                    <input type="password" 
+                           class="form-control font-monospace" 
+                           id="stripe_secret_key" 
+                           name="stripe_secret_key" 
+                           placeholder="{% if settings.stripe_secret_key_configured %}••••••••••••••••{% else %}sk_test_...{% endif %}">
+                    <small class="form-text text-muted">
+                        {% if settings.stripe_secret_key_configured %}
+                            ✓ Configured - Leave blank to keep current key
+                        {% else %}
+                            Private key for server-side Stripe API calls (starts with sk_)
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label for="stripe_webhook_secret" class="form-label">
+                        Webhook Signing Secret <span class="text-danger">*</span>
+                    </label>
+                    <input type="password" 
+                           class="form-control font-monospace" 
+                           id="stripe_webhook_secret" 
+                           name="stripe_webhook_secret" 
+                           placeholder="{% if settings.stripe_webhook_secret_configured %}••••••••••••••••{% else %}whsec_...{% endif %}">
+                    <small class="form-text text-muted">
+                        {% if settings.stripe_webhook_secret_configured %}
+                            ✓ Configured - Leave blank to keep current secret
+                        {% else %}
+                            Secret for verifying webhook signatures (starts with whsec_)
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            <div class="infobox infobox-info mt-3">
+                <strong><i class="bi bi-info-circle"></i> Setting up Stripe:</strong>
+                <ol class="mb-0 mt-2">
+                    <li>Create a Stripe account at <a href="https://stripe.com" target="_blank">stripe.com</a></li>
+                    <li>Get your API keys from the Stripe Dashboard → Developers → API keys</li>
+                    <li>For webhooks:
+                        <ul>
+                            <li>Go to Stripe Dashboard → Developers → Webhooks</li>
+                            <li>Add endpoint: <code>{{ request.url_root }}webhooks/stripe</code></li>
+                            <li>Select events: <code>payment_intent.succeeded</code>, <code>payment_intent.payment_failed</code></li>
+                            <li>Copy the signing secret</li>
+                        </ul>
+                    </li>
+                    <li>Use <strong>test mode keys</strong> (pk_test_, sk_test_) for development</li>
+                    <li>Switch to <strong>live mode keys</strong> (pk_live_, sk_live_) for production</li>
+                </ol>
+            </div>
+            
+            {% if settings.stripe_enabled %}
+            <div class="infobox infobox-warning mt-3">
+                <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
+                Stripe payments are currently <strong>enabled</strong>. Ensure all keys are properly configured before accepting real payments.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save Payment Settings
+        </button>
+    </div>
+</form>
+
+<style>
+    .infobox {
+        padding: 1rem;
+        border-radius: 0.375rem;
+        border-left: 4px solid;
+    }
+    
+    .infobox-info {
+        background-color: #e7f3ff;
+        border-left-color: #0d6efd;
+    }
+    
+    .infobox-warning {
+        background-color: #fff3cd;
+        border-left-color: #ffc107;
+    }
+    
+    .infobox code {
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.875em;
+    }
+    
+    .infobox a {
+        color: inherit;
+        text-decoration: underline;
+    }
+    
+    .font-monospace {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9em;
+    }
+</style>

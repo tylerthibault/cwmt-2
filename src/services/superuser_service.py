@@ -235,6 +235,35 @@ def update_email_settings(settings_data, current_user_id):
     return AppSettings.get_settings()
 
 
+def update_payment_settings(settings_data, current_user_id):
+    """
+    Update payment settings in database.
+    
+    Args:
+        settings_data: Dict of payment settings to update
+        current_user_id: ID of user making changes
+        
+    Returns:
+        AppSettings: Updated settings object
+    """
+    AppSettings.update_settings(
+        updated_by_user_id=current_user_id,
+        **settings_data
+    )
+    
+    # Log the settings change
+    Log.create_log(
+        log_type=Log.TYPE_USER_ACTION,
+        action='update_payment_settings',
+        description='Payment settings updated',
+        user_id=current_user_id,
+        status='success',
+        extra_data={'updated_fields': list(settings_data.keys())}
+    )
+    
+    return AppSettings.get_settings()
+
+
 def get_email_config_status():
     """
     Get comprehensive email configuration status.

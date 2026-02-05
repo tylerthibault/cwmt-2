@@ -5,18 +5,34 @@ import json
 from src.models.stripe.payments import Payment
 from src.models.stripe.stripe_webhook_events import StripeWebhookEvent
 from src.models.course_folder.enrollments import Enrollment
-
-# Initialize Stripe
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+from src.models.app_settings import AppSettings
 
 # Create blueprint
 stripe_webhooks_bp = Blueprint('stripe_webhooks', __name__, url_prefix='/webhooks')
 
 
+def _get_stripe_credentials():
+    """Get Stripe credentials from AppSettings."""
+    settings = AppSettings.get_settings()
+    secret_key = settings.get_stripe_secret_key()
+    webhook_secret = settings.get_stripe_webhook_secret()
+    
+    # Fallback to environment variables for backward compatibility
+    if not secret_key:
+        secret_key = os.getenv('STRIPE_SECRET_KEY')
+    if not webhook_secret:
+        webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+    
+    return secret_key, webhook_secret
+
+
 @stripe_webhooks_bp.route('/stripe', methods=['POST'])
 def stripe_webhook():
     """Handle Stripe webhook events."""
+    # Get Stripe credentials from settings
+    secret_key, webhook_secret = _get_stripe_credentials()
+    stripe.api_key = secret_key
+    
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
     

@@ -41,6 +41,12 @@ class AppSettings(db.Model, CRUDMixin):
     currency = db.Column(db.String(3), default='USD')
     tax_rate = db.Column(db.Numeric(5, 4), default=0.0)  # e.g., 0.0825 for 8.25%
     
+    # ===== Stripe Settings =====
+    stripe_secret_key_encrypted = db.Column(db.Text, nullable=True)  # Encrypted with Fernet
+    stripe_publishable_key = db.Column(db.String(255), nullable=True)  # Not sensitive
+    stripe_webhook_secret_encrypted = db.Column(db.Text, nullable=True)  # Encrypted with Fernet
+    stripe_enabled = db.Column(db.Boolean, default=False)  # Enable/disable Stripe payments
+    
     # ===== Audit Fields =====
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -94,7 +100,8 @@ class AppSettings(db.Model, CRUDMixin):
         new_settings_data = current_settings.to_dict(include_sensitive=True)
         
         # Remove fields that shouldn't be copied
-        for field in ['id', 'created_at', 'created_by', 'deleted_at', 'deleted_by', 'is_current', 'mail_password_configured']:
+        for field in ['id', 'created_at', 'created_by', 'deleted_at', 'deleted_by', 'is_current', 
+                      'mail_password_configured', 'stripe_secret_key_configured', 'stripe_webhook_secret_configured']:
             new_settings_data.pop(field, None)
         
         # Apply updates
@@ -103,6 +110,8 @@ class AppSettings(db.Model, CRUDMixin):
                 new_settings_data[key] = value
         
         mail_password = new_settings_data.pop('mail_password', None)
+        stripe_secret_key = new_settings_data.pop('stripe_secret_key', None)
+        stripe_webhook_secret = new_settings_data.pop('stripe_webhook_secret', None)
         
         # Create new settings instance
         new_settings = cls(**new_settings_data)
@@ -111,6 +120,12 @@ class AppSettings(db.Model, CRUDMixin):
         
         if mail_password:
             new_settings.set_mail_password(mail_password)
+        
+        if stripe_secret_key:
+            new_settings.set_stripe_secret_key(stripe_secret_key)
+        
+        if stripe_webhook_secret:
+            new_settings.set_stripe_webhook_secret(stripe_webhook_secret)
         
         new_settings.save()
         
@@ -141,6 +156,48 @@ class AppSettings(db.Model, CRUDMixin):
             # Clean password to ensure ASCII compatibility
             cleaned = self.mail_password_encrypted.replace('\xa0', ' ').strip()
             return cleaned
+        return None
+    
+    def set_stripe_secret_key(self, key):
+        """Store Stripe secret key as plain text (no encryption for now).
+        
+        Args:
+            key: Plain text Stripe secret key
+        """
+        if key:
+            self.stripe_secret_key_encrypted = key.strip()
+        else:
+            self.stripe_secret_key_encrypted = None
+    
+    def get_stripe_secret_key(self):
+        """Get Stripe secret key as plain text (no decryption for now).
+        
+        Returns:
+            str: Stripe secret key or None
+        """
+        if self.stripe_secret_key_encrypted:
+            return self.stripe_secret_key_encrypted.strip()
+        return None
+    
+    def set_stripe_webhook_secret(self, secret):
+        """Store Stripe webhook secret as plain text (no encryption for now).
+        
+        Args:
+            secret: Plain text Stripe webhook secret
+        """
+        if secret:
+            self.stripe_webhook_secret_encrypted = secret.strip()
+        else:
+            self.stripe_webhook_secret_encrypted = None
+    
+    def get_stripe_webhook_secret(self):
+        """Get Stripe webhook secret as plain text (no decryption for now).
+        
+        Returns:
+            str: Stripe webhook secret or None
+        """
+        if self.stripe_webhook_secret_encrypted:
+            return self.stripe_webhook_secret_encrypted.strip()
         return None
     
     def get_mail_config(self):
@@ -177,6 +234,38 @@ class AppSettings(db.Model, CRUDMixin):
             'mail_port': self.mail_port,
             'mail_username': self.mail_username,
             'mail_password_encrypted': self.mail_password_encrypted
+        }
+        
+        missing = [field for field, value in required_fields.items() if not value]
+        
+        return (len(missing) == 0, missing)
+    
+    def get_stripe_config(self):
+        """Get Stripe configuration dictionary.
+        
+        Returns:
+            Dictionary with Stripe config keys
+        """
+        return {
+            'STRIPE_SECRET_KEY': self.get_stripe_secret_key(),
+            'STRIPE_PUBLISHABLE_KEY': self.stripe_publishable_key,
+            'STRIPE_WEBHOOK_SECRET': self.get_stripe_webhook_secret(),
+            'STRIPE_ENABLED': self.stripe_enabled
+        }
+    
+    def test_stripe_config(self):
+        """Test if Stripe configuration is complete.
+        
+        Returns:
+            Tuple (is_valid, missing_fields)
+        """
+        if not self.stripe_enabled:
+            return (False, ['stripe_disabled'])
+        
+        required_fields = {
+            'stripe_secret_key': self.get_stripe_secret_key(),
+            'stripe_publishable_key': self.stripe_publishable_key,
+            'stripe_webhook_secret': self.get_stripe_webhook_secret()
         }
         
         missing = [field for field, value in required_fields.items() if not value]
@@ -225,6 +314,9 @@ class AppSettings(db.Model, CRUDMixin):
             # Payment settings
             'currency': self.currency,
             'tax_rate': float(self.tax_rate) if self.tax_rate else 0.0,
+            # Stripe settings
+            'stripe_publishable_key': self.stripe_publishable_key,
+            'stripe_enabled': self.stripe_enabled,
             # Audit
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'created_by': self.created_by,
@@ -236,6 +328,10 @@ class AppSettings(db.Model, CRUDMixin):
         if include_sensitive:
             data['mail_password_configured'] = bool(self.mail_password_encrypted)
             data['mail_password'] = None  # Placeholder for updates
+            data['stripe_secret_key_configured'] = bool(self.stripe_secret_key_encrypted)
+            data['stripe_webhook_secret_configured'] = bool(self.stripe_webhook_secret_encrypted)
+            data['stripe_secret_key'] = None  # Placeholder for updates
+            data['stripe_webhook_secret'] = None  # Placeholder for updates
         
         return data
     

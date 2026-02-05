@@ -7,13 +7,21 @@ from src.models.user_folder.students import Student
 from src.models.logs import Log
 from src.utils.custom_decorators import login_required, role_required
 from src.models.doorman import Doorman
+from src.models.app_settings import AppSettings
 import uuid
-
-# Initialize Stripe
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # Create blueprint
 stripe_payments_bp = Blueprint('stripe_payments', __name__, url_prefix='/api/payments')
+
+
+def _get_stripe_key():
+    """Get Stripe secret key from AppSettings."""
+    settings = AppSettings.get_settings()
+    key = settings.get_stripe_secret_key()
+    if not key:
+        # Fallback to environment variable for backward compatibility
+        key = os.getenv('STRIPE_SECRET_KEY')
+    return key
 
 
 @stripe_payments_bp.route('/create-intent', methods=['POST'])
@@ -21,6 +29,9 @@ stripe_payments_bp = Blueprint('stripe_payments', __name__, url_prefix='/api/pay
 @role_required('student')
 def create_payment_intent():
     """Create a Stripe PaymentIntent for course enrollment."""
+    # Set Stripe API key from settings
+    stripe.api_key = _get_stripe_key()
+    
     try:
         data = request.get_json()
         course_instance_id = data.get('course_instance_id')

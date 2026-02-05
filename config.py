@@ -21,7 +21,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Stripe configuration
+    # Stripe configuration (DEPRECATED - now stored in AppSettings database)
+    # These are kept as fallback for backward compatibility
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
     STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')

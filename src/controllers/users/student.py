@@ -8,6 +8,7 @@ from src.models.course_folder.enrollments import Enrollment
 from src.models.stripe.payments import Payment
 from src.models.doorman import Doorman
 from src.models.logs import Log
+from src.models.app_settings import AppSettings
 from src.utils.custom_decorators import login_required, role_required
 from src.utils.password_management import generate_simple_password, hash_string
 
@@ -222,6 +223,10 @@ def checkout(course_instance_id):
     total_amount_cents = int(total_amount * 100)
     tax_amount_cents = int(tax_amount * 100)
     
+    # Get Stripe publishable key from AppSettings
+    settings = AppSettings.get_settings()
+    stripe_pub_key = settings.stripe_publishable_key or os.getenv('STRIPE_PUBLISHABLE_KEY')
+    
     context = {
         'current_user': user,
         'course': course,
@@ -233,7 +238,7 @@ def checkout(course_instance_id):
         'tax_rate': float(course.tax_rate),
         'total_amount': total_amount_cents,
         'total_amount_dollars': total_amount,
-        'stripe_publishable_key': os.getenv('STRIPE_PUBLISHABLE_KEY'),
+        'stripe_publishable_key': stripe_pub_key,
         'enrolling_student': enrolling_student,
         'is_guest_enrollment': is_guest_enrollment,
         'guest_student_id': guest_student_id
