@@ -3,42 +3,7 @@
 
 <form method="POST" action="{{ url_for('superuser.settings') }}">
     <input type="hidden" name="tab" value="payment">
-    
-    <!-- General Payment Settings -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> General Payment Settings</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="currency" class="form-label">Currency</label>
-                    <select class="form-select" id="currency" name="currency" required>
-                        <option value="USD" {% if settings.currency == 'USD' %}selected{% endif %}>USD - US Dollar</option>
-                        <option value="CAD" {% if settings.currency == 'CAD' %}selected{% endif %}>CAD - Canadian Dollar</option>
-                        <option value="EUR" {% if settings.currency == 'EUR' %}selected{% endif %}>EUR - Euro</option>
-                        <option value="GBP" {% if settings.currency == 'GBP' %}selected{% endif %}>GBP - British Pound</option>
-                    </select>
-                    <small class="form-text text-muted">Default currency for payments</small>
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="tax_rate" class="form-label">Tax Rate (%)</label>
-                    <input type="number" 
-                           class="form-control" 
-                           id="tax_rate" 
-                           name="tax_rate" 
-                           value="{{ (settings.tax_rate * 100) if settings.tax_rate else 0 }}"
-                           step="0.01"
-                           min="0"
-                           max="100"
-                           placeholder="0.00">
-                    <small class="form-text text-muted">e.g., 8.25 for 8.25% tax</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+        
     <!-- Stripe Configuration -->
     <div class="card mb-4">
         <div class="card-header">
