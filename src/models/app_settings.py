@@ -123,7 +123,11 @@ class AppSettings(db.Model, CRUDMixin):
             password: Plain text password
         """
         if password:
-            self.mail_password_encrypted = password
+            # Clean password to remove non-breaking spaces and other problematic characters
+            cleaned_password = password.replace('\xa0', ' ').replace('\u2018', "'").replace('\u2019', "'")
+            cleaned_password = cleaned_password.replace('\u201c', '"').replace('\u201d', '"')
+            cleaned_password = cleaned_password.replace('\u2013', '-').replace('\u2014', '-')
+            self.mail_password_encrypted = cleaned_password.strip()
         else:
             self.mail_password_encrypted = None
     
@@ -133,7 +137,11 @@ class AppSettings(db.Model, CRUDMixin):
         Returns:
             str: Password or None
         """
-        return self.mail_password_encrypted
+        if self.mail_password_encrypted:
+            # Clean password to ensure ASCII compatibility
+            cleaned = self.mail_password_encrypted.replace('\xa0', ' ').strip()
+            return cleaned
+        return None
     
     def get_mail_config(self):
         """Get Flask-Mail configuration dictionary.
@@ -141,14 +149,20 @@ class AppSettings(db.Model, CRUDMixin):
         Returns:
             Dictionary with Flask-Mail config keys
         """
+        # Helper to clean strings for ASCII compatibility
+        def clean_str(s):
+            if not s:
+                return s
+            return s.replace('\xa0', ' ').strip()
+        
         return {
-            'MAIL_SERVER': self.mail_server,
+            'MAIL_SERVER': clean_str(self.mail_server),
             'MAIL_PORT': self.mail_port,
             'MAIL_USE_TLS': self.mail_use_tls,
             'MAIL_USE_SSL': self.mail_use_ssl,
-            'MAIL_USERNAME': self.mail_username,
-            'MAIL_PASSWORD': self.get_mail_password(),  # Get decrypted password
-            'MAIL_DEFAULT_SENDER': self.mail_default_sender or f'{self.app_name} <{self.mail_username}>',
+            'MAIL_USERNAME': clean_str(self.mail_username),
+            'MAIL_PASSWORD': self.get_mail_password(),  # Already cleaned in getter
+            'MAIL_DEFAULT_SENDER': clean_str(self.mail_default_sender) or f'{self.app_name} <{self.mail_username}>',
             'MAIL_MAX_EMAILS': self.mail_max_emails
         }
     

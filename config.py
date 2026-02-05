@@ -56,9 +56,8 @@ class ProductionConfig(Config):
     # Production-specific settings
     LOG_LEVEL = 'INFO'
     
-    # Override with production database - also in instance folder
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
+    # Production uses MySQL database via DATABASE_URL environment variable
+    # Fallback removed - DATABASE_URL must be set in production
 
 class TestingConfig(Config):
     """Testing environment configuration"""
@@ -66,8 +65,7 @@ class TestingConfig(Config):
     TESTING = True
     
     # Use in-memory database for testing
-    # SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{INSTANCE_DIR}/cwmt_prod.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     LOG_LEVEL = 'WARNING'
 
 # Configuration mapping
