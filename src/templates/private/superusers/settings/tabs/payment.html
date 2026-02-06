@@ -49,10 +49,10 @@
                            class="form-control font-monospace" 
                            id="stripe_secret_key" 
                            name="stripe_secret_key" 
-                           placeholder="{% if settings.stripe_secret_key_configured %}••••••••••••••••{% else %}sk_test_...{% endif %}">
+                           placeholder="{% if settings.stripe_secret_key_configured %}Leave blank to keep current{% else %}sk_test_...{% endif %}">
                     <small class="form-text text-muted">
                         {% if settings.stripe_secret_key_configured %}
-                            ✓ Configured - Leave blank to keep current key
+                            <span class="text-success">✓ Configured</span> - Leave blank to keep current key
                         {% else %}
                             Private key for server-side Stripe API calls (starts with sk_)
                         {% endif %}
@@ -69,10 +69,10 @@
                            class="form-control font-monospace" 
                            id="stripe_webhook_secret" 
                            name="stripe_webhook_secret" 
-                           placeholder="{% if settings.stripe_webhook_secret_configured %}••••••••••••••••{% else %}whsec_...{% endif %}">
+                           placeholder="{% if settings.stripe_webhook_secret_configured %}Leave blank to keep current{% else %}whsec_...{% endif %}">
                     <small class="form-text text-muted">
                         {% if settings.stripe_webhook_secret_configured %}
-                            ✓ Configured - Leave blank to keep current secret
+                            <span class="text-success">✓ Configured</span> - Leave blank to keep current secret
                         {% else %}
                             Secret for verifying webhook signatures (starts with whsec_)
                         {% endif %}

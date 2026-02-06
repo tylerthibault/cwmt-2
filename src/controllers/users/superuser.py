@@ -223,3 +223,26 @@ def settings():
 def check_email_config():
     """Diagnostic endpoint to check email configuration status."""
     return jsonify(superuser_service.get_email_config_status())
+
+
+@superuser_bp.route('/check-stripe-config', methods=['GET'])
+@login_required
+@role_required('superuser')
+def check_stripe_config():
+    """Diagnostic endpoint to check Stripe configuration status."""
+    try:
+        settings = AppSettings.get_settings()
+        
+        return jsonify({
+            'stripe_enabled': settings.stripe_enabled,
+            'stripe_publishable_key': settings.stripe_publishable_key[:20] + '...' if settings.stripe_publishable_key else None,
+            'stripe_secret_key_configured': bool(settings.stripe_secret_key_encrypted),
+            'stripe_secret_key_length': len(settings.stripe_secret_key_encrypted) if settings.stripe_secret_key_encrypted else 0,
+            'stripe_webhook_secret_configured': bool(settings.stripe_webhook_secret_encrypted),
+            'retrieved_secret_key': settings.get_stripe_secret_key()[:20] + '...' if settings.get_stripe_secret_key() else None,
+            'retrieved_webhook_secret': settings.get_stripe_webhook_secret()[:20] + '...' if settings.get_stripe_webhook_secret() else None,
+            'settings_id': settings.id,
+            'settings_created_at': settings.created_at.isoformat() if settings.created_at else None
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

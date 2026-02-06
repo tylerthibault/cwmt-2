@@ -18,9 +18,33 @@ def _get_stripe_key():
     """Get Stripe secret key from AppSettings."""
     settings = AppSettings.get_settings()
     key = settings.get_stripe_secret_key()
+    
+    # Debug logging
+    from src.models.logs import Log
+    Log.create_log(
+        log_type=Log.TYPE_SYSTEM,
+        action='stripe_key_retrieval',
+        description='Retrieving Stripe secret key',
+        status='info',
+        extra_data={
+            'db_key_exists': bool(key),
+            'db_key_length': len(key) if key else 0,
+            'stripe_enabled': settings.stripe_enabled,
+            'settings_id': settings.id
+        }
+    )
+    
     if not key:
         # Fallback to environment variable for backward compatibility
         key = os.getenv('STRIPE_SECRET_KEY')
+        if key:
+            Log.create_log(
+                log_type=Log.TYPE_SYSTEM,
+                action='stripe_key_fallback',
+                description='Using environment variable for Stripe key',
+                status='info'
+            )
+    
     return key
 
 
@@ -29,8 +53,20 @@ def _get_stripe_key():
 @role_required('student')
 def create_payment_intent():
     """Create a Stripe PaymentIntent for course enrollment."""
+    # Get settings and check if Stripe is enabled
+    settings = AppSettings.get_settings()
+    
+    if not settings.stripe_enabled:
+        return jsonify({'error': 'Online payments are currently disabled. Please contact support.'}), 503
+    
     # Set Stripe API key from settings
-    stripe.api_key = _get_stripe_key()
+    stripe_key = _get_stripe_key()
+    
+    # Check if Stripe is configured
+    if not stripe_key:
+        return jsonify({'error': 'Payment system is not configured. Please contact support.'}), 500
+    
+    stripe.api_key = stripe_key
     
     try:
         data = request.get_json()
@@ -186,9 +222,25 @@ def create_payment_intent():
         }), 200
         
     except stripe.error.StripeError as e:
-        return jsonify({'error - 46b191e1': str(e)}), 400
+        # Log Stripe-specific errors
+        Log.create_log(
+            log_type=Log.TYPE_ERROR,
+            action='stripe_error',
+            description=f'Stripe error during payment intent creation: {str(e)}',
+            status='failure',
+            extra_data={'error_type': type(e).__name__, 'error_message': str(e)}
+        )
+        return jsonify({'error': f'Payment processing error: {str(e)}'}), 400
     except Exception as e:
-        return jsonify({'error - 29171b38': f'An error occurred: {str(e)}'}), 500
+        # Log general errors
+        Log.create_log(
+            log_type=Log.TYPE_ERROR,
+            action='payment_intent_error',
+            description=f'Error creating payment intent: {str(e)}',
+            status='failure',
+            extra_data={'error_type': type(e).__name__, 'error_message': str(e)}
+        )
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
 @stripe_payments_bp.route('/status/<int:payment_id>', methods=['GET'])
@@ -230,3 +282,42 @@ def get_payment_status(payment_id):
         
     except Exception as e:
         return jsonify({'error - 69c54b37': f'An error occurred: {str(e)}'}), 500
+
+
+@stripe_payments_bp.route('/stripe-config-check', methods=['GET'])
+@login_required
+def check_stripe_config():
+    """Diagnostic endpoint to check Stripe configuration status."""
+    try:
+        settings = AppSettings.get_settings()
+        
+        stripe_secret_key = settings.get_stripe_secret_key()
+        stripe_pub_key = settings.stripe_publishable_key
+        stripe_webhook_secret = settings.get_stripe_webhook_secret()
+        
+        # Check fallback to environment variables
+        env_secret_key = os.getenv('STRIPE_SECRET_KEY')
+        env_pub_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
+        env_webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+        
+        return jsonify({
+            'database_config': {
+                'stripe_enabled': settings.stripe_enabled,
+                'secret_key_configured': bool(stripe_secret_key),
+                'publishable_key_configured': bool(stripe_pub_key),
+                'webhook_secret_configured': bool(stripe_webhook_secret),
+                'publishable_key_preview': stripe_pub_key[:10] + '...' if stripe_pub_key else None
+            },
+            'environment_config': {
+                'secret_key_configured': bool(env_secret_key),
+                'publishable_key_configured': bool(env_pub_key),
+                'webhook_secret_configured': bool(env_webhook_secret)
+            },
+            'active_config': {
+                'using_secret_key': 'database' if stripe_secret_key else ('environment' if env_secret_key else 'none'),
+                'using_publishable_key': 'database' if stripe_pub_key else ('environment' if env_pub_key else 'none'),
+                'using_webhook_secret': 'database' if stripe_webhook_secret else ('environment' if env_webhook_secret else 'none')
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
