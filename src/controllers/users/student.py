@@ -663,11 +663,11 @@ def request_unenrollment(enrollment_id):
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@student_bp.route('/settings')
+@student_bp.route('/profile')
 @login_required
 @role_required('student')
-def settings():
-    """Student settings page."""
+def profile():
+    """Student profile page."""
     user = Doorman.get_by_token(session['doorman_token']).user
     student = students.Student.query.filter_by(user_id=user.id).first()
     
@@ -675,10 +675,10 @@ def settings():
         'current_user': user,
         'student': student
     }
-    return render_template('private/students/settings/index.html', **context)
+    return render_template('private/students/profile/index.html', **context)
 
 
-@student_bp.route('/settings/update-profile', methods=['POST'])
+@student_bp.route('/profile/update-profile', methods=['POST'])
 @login_required
 @role_required('student')
 def update_profile():
@@ -698,13 +698,13 @@ def update_profile():
         # Validate required fields
         if not all([first_name, last_name, email]):
             flash('First name, last name, and email are required.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Check if email is already taken by another user
         existing_user = users.User.query.filter_by(email=email).first()
         if existing_user and existing_user.id != user.id:
             flash('This email address is already in use.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Update user information
         user.first_name = first_name
@@ -736,10 +736,10 @@ def update_profile():
     except Exception as e:
         flash(f'Error updating profile: {str(e)}', 'danger')
     
-    return redirect(url_for('student.settings'))
+    return redirect(url_for('student.profile'))
 
 
-@student_bp.route('/settings/update-password', methods=['POST'])
+@student_bp.route('/profile/update-password', methods=['POST'])
 @login_required
 @role_required('student')
 def update_password():
@@ -758,22 +758,22 @@ def update_password():
         # Validate required fields
         if not all([current_password, new_password, confirm_password]):
             flash('All password fields are required.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Verify current password
         if not verify_hash(user.password_hash, current_password):
             flash('Current password is incorrect.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Validate new password
         if len(new_password) < 8:
             flash('New password must be at least 8 characters long.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Check if passwords match
         if new_password != confirm_password:
             flash('New passwords do not match.', 'danger')
-            return redirect(url_for('student.settings'))
+            return redirect(url_for('student.profile'))
         
         # Update password
         user.set_password(new_password)
@@ -796,9 +796,9 @@ def update_password():
     except Exception as e:
         flash(f'Error updating password: {str(e)}', 'danger')
     
-    return redirect(url_for('student.settings'))
+    return redirect(url_for('student.profile'))
 
-@student_bp.route('/settings/delete-account', methods=['POST'])
+@student_bp.route('/profile/delete-account', methods=['POST'])
 @login_required
 @role_required('student')
 def delete_account():
@@ -840,4 +840,4 @@ def delete_account():
         
     except Exception as e:
         flash(f'Error deactivating account: {str(e)}', 'danger')
-        return redirect(url_for('student.settings'))
+        return redirect(url_for('student.profile'))

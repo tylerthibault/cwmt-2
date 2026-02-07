@@ -29,14 +29,12 @@ EMAIL_PURPOSES = {
         name='New User Welcome',
         description='Sent when new user account is created',
         variables={
-            'first_name': "User's first name",
-            'last_name': "User's last name",
+            'user_name': "User's full name (or first_name + last_name)",
             'temp_password': 'Temporary password',
             'login_link': 'URL to login page',
         },
         example_data={
-            'first_name': 'John',
-            'last_name': 'Smith',
+            'user_name': 'John Smith',
             'temp_password': 'TempPass123!',
             'login_link': 'https://cwmt.example.com/login'
         }

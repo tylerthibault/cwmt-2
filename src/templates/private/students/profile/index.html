@@ -1,0 +1,62 @@
+{% extends 'bases/private.html' %}
+
+{% block title %}Settings - Student Portal{% endblock %}
+
+{% block content %}
+{% include 'private/students/components/navbar.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Account Settings</h1>
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" 
+                            data-bs-target="#profile" type="button" role="tab" 
+                            aria-controls="profile" aria-selected="true">
+                        Profile Information
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="password-tab" data-bs-toggle="tab" 
+                            data-bs-target="#password" type="button" role="tab" 
+                            aria-controls="password" aria-selected="false">
+                        Change Password
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="account-tab" data-bs-toggle="tab" 
+                            data-bs-target="#account" type="button" role="tab" 
+                            aria-controls="account" aria-selected="false">
+                        Account Information
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content" id="settingsTabsContent">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    {% include 'private/components/profile/tabs/profile.html' %}
+                </div>
+
+                <!-- Password Tab -->
+                <div class="tab-pane fade" id="password" role="tabpanel" aria-labelledby="password-tab">
+                    {% include 'private/components/profile/tabs/password.html' %}
+                </div>
+
+                <!-- Account Tab -->
+                <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
+                    {% include 'private/components/profile/tabs/account.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

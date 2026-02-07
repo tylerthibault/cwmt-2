@@ -55,6 +55,47 @@ def get_management_dashboard_data():
     }
 
 
+def get_all_templates():
+    """
+    Get all email templates.
+    
+    Returns:
+        list: All EmailTemplate objects ordered by active status and update time
+    """
+    return EmailTemplate.query.order_by(
+        EmailTemplate.is_active.desc(),
+        EmailTemplate.updated_at.desc()
+    ).all()
+
+
+def get_paginated_logs(page=1, per_page=50):
+    """
+    Get paginated email logs.
+    
+    Args:
+        page: Page number (1-indexed)
+        per_page: Number of logs per page
+        
+    Returns:
+        dict: logs, total_pages, total_count
+    """
+    from sqlalchemy import desc
+    
+    # Query email logs with pagination
+    query = EmailLog.query.filter_by(log_type=EmailLog.TYPE_EMAIL).order_by(desc(EmailLog.sent_at))
+    
+    total_count = query.count()
+    total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
+    
+    logs = query.offset((page - 1) * per_page).limit(per_page).all()
+    
+    return {
+        'logs': logs,
+        'total_pages': total_pages,
+        'total_count': total_count
+    }
+
+
 def get_email_template_by_id(template_id):
     """
     Get an email template by ID.

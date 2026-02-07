@@ -1,0 +1,113 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons-badges.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-management.css') }}">
+{% endblock styles %}
+
+{% block inner_content %}
+<div>
+    <!-- Header with Back Button -->
+    <div class="page-header">
+        <a href="{{ url_for('mail.management') }}" class="btn btn-link">
+            ← Back to Dashboard
+        </a>
+        <div class="header-content">
+            <h1>Email Activity Log</h1>
+            <p>Complete history of all sent emails</p>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    {% if logs %}
+    <div class="logs-container">
+        <div class="logs-info">
+            <span>Showing {{ logs|length }} of {{ total_count }} emails</span>
+        </div>
+        
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Recipient</th>
+                    <th>Purpose</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>
+                        <div class="recipient-cell">
+                            <strong>{{ log.recipient_email if log.recipient_email else 'Unknown' }}</strong>
+                            {% if log.recipient_name %}
+                            <small>{{ log.recipient_name }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="purpose-badge">{{ log.purpose if log.purpose else 'N/A' }}</span>
+                    </td>
+                    <td class="subject-cell">
+                        {% if log.subject %}
+                            {{ log.subject[:70] }}{% if log.subject|length > 70 %}...{% endif %}
+                        {% else %}
+                            <em>No subject</em>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ log.status }}">
+                            {{ log.status|capitalize }}
+                        </span>
+                    </td>
+                    <td class="time-cell">
+                        {{ log.sent_at.strftime('%b %d, %Y') if log.sent_at else 'N/A' }}
+                        <br>
+                        <small>{{ log.sent_at.strftime('%I:%M %p') if log.sent_at else '' }}</small>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="viewLogDetails({{ log.id }})">Details</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('mail.logs_list', page=page-1) }}" class="btn btn-secondary">← Previous</a>
+            {% endif %}
+            
+            <span class="pagination-info">Page {{ page }} of {{ total_pages }}</span>
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('mail.logs_list', page=page+1) }}" class="btn btn-secondary">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📬</div>
+        <h2>No Emails Sent Yet</h2>
+        <p>Email logs will appear here once you start sending emails</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function viewLogDetails(logId) {
+    // TODO: Implement log details modal
+    alert('Log details feature coming soon for log ID: ' + logId);
+}
+</script>
+{% endblock inner_content %}

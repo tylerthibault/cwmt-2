@@ -1,0 +1,135 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons-badges.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-management.css') }}">
+{% endblock styles %}
+
+{% block inner_content %}
+<div>
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Email Management Dashboard</h1>
+        <p>Overview of your email system status and activity</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card success">
+            <div class="stat-icon">✓</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.sent or 0 }}</div>
+                <div class="stat-label">Emails Sent (30 days)</div>
+            </div>
+        </div>
+        
+        <div class="stat-card danger">
+            <div class="stat-icon">✗</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.failed or 0 }}</div>
+                <div class="stat-label">Failed Emails (30 days)</div>
+            </div>
+        </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.pending or 0 }}</div>
+                <div class="stat-label">Pending Emails</div>
+            </div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="stat-icon">📧</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.active_templates or 0 }}</div>
+                <div class="stat-label">Active Templates</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Action Cards -->
+    <div class="action-cards-grid">
+        <!-- Templates Card -->
+        <div class="action-card">
+            <div class="action-card-header">
+                <div class="action-card-icon">📝</div>
+                <div>
+                    <h3>Email Templates</h3>
+                    <p>Manage your email templates</p>
+                </div>
+            </div>
+            <div class="action-card-stats">
+                <div class="mini-stat">
+                    <span class="mini-stat-value">{{ stats.active_templates or 0 }}</span>
+                    <span class="mini-stat-label">Active</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-value">{{ templates|length if templates else 0 }}</span>
+                    <span class="mini-stat-label">Total</span>
+                </div>
+            </div>
+            <div class="action-card-actions">
+                <a href="{{ url_for('mail.templates_list') }}" class="btn btn-secondary btn-block">View All Templates</a>
+                <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary btn-block">+ Create Template</a>
+            </div>
+        </div>
+
+        <!-- Email Logs Card -->
+        <div class="action-card">
+            <div class="action-card-header">
+                <div class="action-card-icon">📊</div>
+                <div>
+                    <h3>Email Activity</h3>
+                    <p>View sent emails and logs</p>
+                </div>
+            </div>
+            <div class="action-card-stats">
+                <div class="mini-stat">
+                    <span class="mini-stat-value">{{ stats.sent or 0 }}</span>
+                    <span class="mini-stat-label">Sent</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-value">{{ stats.failed or 0 }}</span>
+                    <span class="mini-stat-label">Failed</span>
+                </div>
+            </div>
+            <div class="action-card-actions">
+                <a href="{{ url_for('mail.logs_list') }}" class="btn btn-secondary btn-block">View Email Logs</a>
+                <a href="#" class="btn btn-outline btn-block" onclick="alert('Test email feature coming soon'); return false;">Send Test Email</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Activity Preview -->
+    {% if recent_logs %}
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Recent Email Activity</h2>
+            <a href="{{ url_for('mail.logs_list') }}" class="text-link">View All →</a>
+        </div>
+        
+        <div class="recent-logs-preview">
+            {% for log in recent_logs[:5] %}
+            <div class="log-preview-item">
+                <div class="log-preview-info">
+                    <span class="log-recipient">{{ log.recipient_email if log.recipient_email else 'Unknown' }}</span>
+                    <span class="log-subject">{{ log.subject[:60] if log.subject else 'No subject' }}{% if log.subject and log.subject|length > 60 %}...{% endif %}</span>
+                </div>
+                <div class="log-preview-meta">
+                    <span class="status-badge status-{{ log.status }}">{{ log.status|capitalize }}</span>
+                    <span class="log-time">{{ log.sent_at.strftime('%b %d, %I:%M %p') if log.sent_at else 'N/A' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock inner_content %}

@@ -29,6 +29,10 @@ class User(db.Model, CRUDMixin):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     last_login = db.Column(db.DateTime)
     
+    # Password Reset
+    password_reset_token = db.Column(db.String(255), nullable=True, index=True)
+    password_reset_token_expires = db.Column(db.DateTime, nullable=True)
+    
     def __init__(self, email, password, first_name, last_name, **kwargs):
         """Initialize user with hashed password."""
         super(User, self).__init__(**kwargs)
@@ -65,6 +69,43 @@ class User(db.Model, CRUDMixin):
         self.last_login = datetime.utcnow()
         self.save()
     
+    def generate_password_reset_token(self):
+        """Generate a password reset token that expires in 1 hour."""
+        import secrets
+        from datetime import timedelta
+        
+        self.password_reset_token = secrets.token_urlsafe(32)
+        self.password_reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+        self.save()
+        return self.password_reset_token
+    
+    def verify_password_reset_token(self, token):
+        """Verify if the provided token is valid and not expired."""
+        if not self.password_reset_token or not self.password_reset_token_expires:
+            return False
+        
+        if self.password_reset_token != token:
+            return False
+        
+        if datetime.utcnow() > self.password_reset_token_expires:
+            return False
+        
+        return True
+    
+    def reset_password(self, new_password):
+        """Reset the password and clear reset token."""
+        self.set_password(new_password)
+        self.password_reset_token = None
+        self.password_reset_token_expires = None
+        self.save()
+    
+    @classmethod
+    def get_by_reset_token(cls, token):
+        """Get user by valid reset token."""
+        user = cls.query.filter_by(password_reset_token=token).first()
+        if user and user.verify_password_reset_token(token):
+            return user
+        return None
     @property
     def full_name(self):
         """Return the user's full name."""

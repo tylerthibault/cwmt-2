@@ -1,0 +1,74 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons-badges.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-management.css') }}">
+{% endblock styles %}
+
+{% block inner_content %}
+<div>
+    <!-- Header with Back Button -->
+    <div class="page-header">
+        <a href="{{ url_for('mail.management') }}" class="btn btn-link">
+            ← Back to Dashboard
+        </a>
+        <div class="header-content">
+            <h1>Email Templates</h1>
+            <p>Manage all email templates for your system</p>
+        </div>
+        <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">+ Create Template</a>
+    </div>
+
+    <!-- Templates Grid -->
+    {% if templates %}
+    <div class="templates-full-list">
+        {% for template in templates %}
+        <div class="template-list-item">
+            <div class="template-main-info">
+                <div class="template-header">
+                    <h3 class="template-name">{{ template.name }}</h3>
+                    <div class="template-badges">
+                        {% if template.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                        {% endif %}
+                        {% if template.is_default %}
+                        <span class="badge badge-info">Default</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="template-meta">
+                    <span class="meta-item">
+                        <strong>Purpose:</strong> {{ template.purpose }}
+                    </span>
+                    <span class="meta-item">
+                        <strong>Subject:</strong> {{ template.subject_template[:60] }}{% if template.subject_template|length > 60 %}...{% endif %}
+                    </span>
+                    <span class="meta-item">
+                        <strong>Last Updated:</strong> {{ template.updated_at.strftime('%b %d, %Y at %I:%M %p') if template.updated_at else 'N/A' }}
+                    </span>
+                </div>
+            </div>
+            <div class="template-actions">
+                <a href="{{ url_for('mail.edit_template_form', template_id=template.id) }}" class="btn btn-primary btn-sm">Edit</a>
+                <a href="{{ url_for('mail.preview_template', template_id=template.id) }}" class="btn btn-secondary btn-sm">Preview</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📧</div>
+        <h2>No Email Templates Yet</h2>
+        <p>Create your first email template to get started</p>
+        <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">Create Template</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock inner_content %}

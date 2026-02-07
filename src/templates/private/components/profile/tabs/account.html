@@ -1,0 +1,77 @@
+<div class="row">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Account Information</h5>
+            </div>
+            <div class="card-body">
+                {% if student %}
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Student ID:</strong></div>
+                    <div class="col-sm-8">{{ student.student_id or 'Not assigned' }}</div>
+                </div>
+                {% elif admin %}
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Role:</strong></div>
+                    <div class="col-sm-8"><span class="badge bg-primary">Administrator</span></div>
+                </div>
+                {% elif instructor %}
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Role:</strong></div>
+                    <div class="col-sm-8"><span class="badge bg-info">Instructor</span></div>
+                </div>
+                {% endif %}
+                
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Account Created:</strong></div>
+                    <div class="col-sm-8">{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Account Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if current_user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Email Verified:</strong></div>
+                    <div class="col-sm-8">
+                        {% if current_user.is_verified %}
+                        <span class="badge bg-success">Verified</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Not Verified</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Section -->
+<div class="row mt-4">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Delete Account</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    <strong>Warning:</strong> This action will deactivate your account. You will no longer be able to log in or access your account.
+                </p>
+                <p class="text-muted mb-3">
+                    Your account data will be preserved but marked as inactive. Contact an administrator if you need to reactivate your account.
+                </p>
+                <form action="{{ url_for(session.get('active_role') ~ '.delete_account') }}" method="POST" 
+                      onsubmit="return confirm('Are you sure you want to delete your account? This action will deactivate your account and log you out immediately.');">
+                    <button type="submit" class="btn btn-danger">
+                        Delete My Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

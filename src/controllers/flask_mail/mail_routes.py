@@ -23,7 +23,7 @@ def management():
     """Render the email management dashboard for admins."""
     dashboard_data = email_template_service.get_management_dashboard_data()
     
-    return render_template('private/flask_mail/management.html',
+    return render_template('private/admins/email/management.html',
                          current_user=_get_current_user(),
                          stats=dashboard_data['stats'],
                          templates=dashboard_data['templates'],
@@ -33,12 +33,42 @@ def management():
                          mail_port=dashboard_data['mail_port'])
 
 
+@mail_bp.route('/templates')
+@login_required
+@role_required('admin')
+def templates_list():
+    """Render the full email templates list page."""
+    templates = email_template_service.get_all_templates()
+    
+    return render_template('private/admins/email/templates_list.html',
+                         current_user=_get_current_user(),
+                         templates=templates)
+
+
+@mail_bp.route('/logs')
+@login_required
+@role_required('admin')
+def logs_list():
+    """Render the full email logs list page."""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    logs_data = email_template_service.get_paginated_logs(page=page, per_page=per_page)
+    
+    return render_template('private/admins/email/logs_list.html',
+                         current_user=_get_current_user(),
+                         logs=logs_data['logs'],
+                         page=page,
+                         total_pages=logs_data['total_pages'],
+                         total_count=logs_data['total_count'])
+
+
 @mail_bp.route('/create', methods=['GET'])
 @login_required
 @role_required('admin')
 def create_template_form():
     """Render the create email template form."""
-    return render_template('private/flask_mail/form.html',
+    return render_template('private/admins/email/form.html',
                          current_user=_get_current_user(),
                          purposes=EMAIL_PURPOSES)
 
@@ -55,7 +85,7 @@ def edit_template_form(template_id):
     
     purpose_config = get_purpose(template.purpose)
     
-    return render_template('private/flask_mail/form.html',
+    return render_template('private/admins/email/form.html',
                          current_user=_get_current_user(),
                          template=template,
                          purposes=EMAIL_PURPOSES,
@@ -182,7 +212,7 @@ def preview_template(template_id):
     try:
         preview_data = email_template_service.generate_template_preview(template_id)
         
-        return render_template('private/flask_mail/preview.html',
+        return render_template('private/admins/email/preview.html',
                              current_user=_get_current_user(),
                              template=preview_data['template'],
                              email_content=preview_data['email_content'],

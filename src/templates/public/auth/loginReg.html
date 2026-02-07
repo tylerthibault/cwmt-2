@@ -71,7 +71,7 @@
                                             <input type="checkbox" class="checkbox-input" id="remember_me" name="remember_me">
                                             <span class="checkbox-text">Remember me</span>
                                         </label>
-                                        <a href="#" class="forgot-link">Forgot password?</a>
+                                        <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Forgot password?</a>
                                     </div>
                                     
                                     <button type="submit" class="auth-btn auth-btn-primary">

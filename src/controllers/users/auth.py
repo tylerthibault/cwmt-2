@@ -59,6 +59,40 @@ def dashboard():
         session['active_role'] = 'student'
         return redirect(url_for('student.dashboard'))
 
+@auth_bp.route('/profile')
+@login_required
+def profile():
+    """Profile redirect route based on user's active role."""
+    if 'doorman_token' not in session:
+        return redirect(url_for('auth.loginReg'))
+
+    doorman = Doorman.get_by_token(session['doorman_token'])
+    if not doorman:
+        return redirect(url_for('auth.loginReg'))
+
+    user = doorman.user
+    active_role = session.get('active_role')
+    
+    # Redirect to appropriate profile based on active role
+    if active_role == 'superuser' and user.is_superuser:
+        return redirect(url_for('superuser.profile'))
+    elif active_role == 'admin' and user.is_admin:
+        return redirect(url_for('admin.profile'))
+    elif active_role == 'instructor' and user.is_instructor:
+        return redirect(url_for('instructor.profile'))
+    elif active_role == 'student' and user.is_student:
+        return redirect(url_for('student.profile'))
+    
+    # Fallback to default role priority
+    if user.is_superuser:
+        return redirect(url_for('superuser.profile'))
+    elif user.is_admin:
+        return redirect(url_for('admin.profile'))
+    elif user.is_instructor:
+        return redirect(url_for('instructor.profile'))
+    else:
+        return redirect(url_for('student.profile'))
+
 @auth_bp.route('/switch-role/<role_name>', methods=['POST'])
 @login_required
 def switch_role(role_name):
@@ -296,4 +330,115 @@ def delete_user(user_id):
     except Exception as e:
         flash(f'Error deleting user: {str(e)}', 'danger')
     
+    return redirect(url_for('auth.loginReg'))
+
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Forgot password page - request password reset."""
+    if request.method == 'GET':
+        return render_template('public/auth/forgot_password.html')
+    
+    email = request.form.get('email', '').strip()
+    
+    if not email:
+        flash('Email address is required.', 'error')
+        return render_template('public/auth/forgot_password.html')
+    
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
+    
+    # Always show success message (don't reveal if email exists)
+    flash('If an account exists with that email, you will receive a password reset link shortly.', 'success')
+    
+    if user:
+        try:
+            # Generate reset token
+            reset_token = user.generate_password_reset_token()
+            
+            # Build reset link
+            reset_link = url_for('auth.reset_password', token=reset_token, _external=True)
+            
+            # Send reset email
+            from src.services.flask_mail.email_service import send_email
+            send_email(
+                purpose='password_reset',
+                to_address=user.email,
+                user_name=user.full_name,
+                reset_link=reset_link,
+                expiry_hours=1
+            )
+            
+            # Log the password reset request
+            Log.create_log(
+                log_type=Log.TYPE_AUTH,
+                action='password_reset_requested',
+                description=f'Password reset requested for {user.email}',
+                user_id=user.id,
+                status='success',
+                extra_data={'ip_address': request.remote_addr}
+            )
+        except Exception as e:
+            # Log the error but don't show it to user
+            Log.create_log(
+                log_type=Log.TYPE_SYSTEM,
+                action='password_reset_email_failed',
+                description=f'Failed to send password reset email to {user.email}',
+                user_id=user.id if user else None,
+                status='error',
+                extra_data={'error': str(e), 'ip_address': request.remote_addr}
+            )
+    
+    return redirect(url_for('auth.loginReg'))
+
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Reset password page - actually reset the password with token."""
+    if request.method == 'GET':
+        # Verify token is valid
+        user = User.get_by_reset_token(token)
+        if not user:
+            flash('Invalid or expired password reset link.', 'error')
+            return redirect(url_for('auth.forgot_password'))
+        
+        return render_template('public/auth/reset_password.html', token=token)
+    
+    # POST - process password reset
+    password = request.form.get('password', '').strip()
+    confirm_password = request.form.get('confirm_password', '').strip()
+    
+    # Validation
+    if not password or not confirm_password:
+        flash('Please fill in all fields.', 'error')
+        return render_template('public/auth/reset_password.html', token=token)
+    
+    if len(password) < 6:
+        flash('Password must be at least 6 characters long.', 'error')
+        return render_template('public/auth/reset_password.html', token=token)
+    
+    if password != confirm_password:
+        flash('Passwords do not match.', 'error')
+        return render_template('public/auth/reset_password.html', token=token)
+    
+    # Verify token and get user
+    user = User.get_by_reset_token(token)
+    if not user:
+        flash('Invalid or expired password reset link.', 'error')
+        return redirect(url_for('auth.forgot_password'))
+    
+    # Reset the password
+    user.reset_password(password)
+    
+    # Log the successful password reset
+    Log.create_log(
+        log_type=Log.TYPE_AUTH,
+        action='password_reset_completed',
+        description=f'Password successfully reset for {user.email}',
+        user_id=user.id,
+        status='success',
+        extra_data={'ip_address': request.remote_addr}
+    )
+    
+    flash('Your password has been reset successfully! Please log in with your new password.', 'success')
     return redirect(url_for('auth.loginReg'))

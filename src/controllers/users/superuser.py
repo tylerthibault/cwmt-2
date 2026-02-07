@@ -246,3 +246,168 @@ def check_stripe_config():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# =============== PROFILE ROUTES ===============
+
+@superuser_bp.route('/profile')
+@login_required
+@role_required('superuser')
+def profile():
+    """Superuser profile page."""
+    user = _get_current_user()
+    
+    context = {
+        'current_user': user
+    }
+    return render_template('private/superusers/profile/index.html', **context)
+
+
+@superuser_bp.route('/profile/update-profile', methods=['POST'])
+@login_required
+@role_required('superuser')
+def update_profile():
+    """Update superuser profile information."""
+    from src.models.logs import Log
+    from src.models.user_folder.users import User
+    
+    user = _get_current_user()
+    
+    try:
+        # Get form data
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
+        email = request.form.get('email', '').strip()
+        phone_number = request.form.get('phone_number', '').strip()
+        
+        # Validate required fields
+        if not all([first_name, last_name, email]):
+            flash('First name, last name, and email are required.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Check if email is already taken by another user
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != user.id:
+            flash('Email address is already in use.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Update user information
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.phone_number = phone_number
+        user.save()
+        
+        # Log profile update
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='profile_update',
+            description=f'{user.first_name} {user.last_name} updated their profile',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'ip_address': request.remote_addr}
+        )
+        
+        flash('Profile updated successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error updating profile: {str(e)}', 'danger')
+    
+    return redirect(url_for('superuser.profile'))
+
+
+@superuser_bp.route('/profile/update-password', methods=['POST'])
+@login_required
+@role_required('superuser')
+def update_password():
+    """Update superuser password."""
+    from src.models.logs import Log
+    from src.utils.password_management import verify_hash
+    
+    user = _get_current_user()
+    
+    try:
+        # Get form data
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate required fields
+        if not all([current_password, new_password, confirm_password]):
+            flash('All password fields are required.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Verify current password
+        if not verify_hash(user.password_hash, current_password):
+            flash('Current password is incorrect.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Check if new passwords match
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Check password length
+        if len(new_password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
+            return redirect(url_for('superuser.profile'))
+        
+        # Update password
+        user.update_password(new_password)
+        
+        # Log password change
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='password_change',
+            description=f'{user.first_name} {user.last_name} changed their password',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'ip_address': request.remote_addr}
+        )
+        
+        flash('Password updated successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error updating password: {str(e)}', 'danger')
+    
+    return redirect(url_for('superuser.profile'))
+
+
+@superuser_bp.route('/profile/delete-account', methods=['POST'])
+@login_required
+@role_required('superuser')
+def delete_account():
+    """Deactivate superuser account."""
+    from src.models.logs import Log
+    
+    user = _get_current_user()
+    
+    try:
+        # Log account deletion
+        Log.create_log(
+            log_type=Log.TYPE_USER_ACTION,
+            action='account_deletion',
+            description=f'{user.first_name} {user.last_name} deleted their account',
+            user_id=user.id,
+            target_type='user',
+            target_id=user.id,
+            status='success',
+            extra_data={'ip_address': request.remote_addr}
+        )
+        
+        # Deactivate account
+        user.is_active = False
+        user.save()
+        
+        # Log out user
+        session.clear()
+        flash('Your account has been deactivated. Contact an administrator to reactivate.', 'info')
+        return redirect(url_for('auth.loginReg'))
+        
+    except Exception as e:
+        flash(f'Error deleting account: {str(e)}', 'danger')
+        return redirect(url_for('superuser.profile'))

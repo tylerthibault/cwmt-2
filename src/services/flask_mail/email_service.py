@@ -26,6 +26,12 @@ def generate_email(purpose, **kwargs):
     except ValueError as e:
         raise ValueError(f"Unknown email purpose: {purpose}") from e
 
+    # Auto-generate user_name from first_name and last_name if not provided
+    if 'user_name' not in kwargs and ('first_name' in kwargs or 'last_name' in kwargs):
+        first_name = kwargs.get('first_name', '').strip()
+        last_name = kwargs.get('last_name', '').strip()
+        kwargs['user_name'] = f"{first_name} {last_name}".strip() or 'User'
+
     # Get the active template for this purpose
     email_template = EmailTemplate.get_active_template(purpose)
     if not email_template:
