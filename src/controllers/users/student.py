@@ -28,7 +28,7 @@ def dashboard():
     active_count = 0
     completed_count = 0
     upcoming_count = 0
-    events = []  # Calendar events for student's enrolled courses
+    enrolled_course_ids = []  # Track which courses student is enrolled in
     
     if student:
         enrollments = Enrollment.get_by_student(student.id)
@@ -36,25 +36,68 @@ def dashboard():
         
         for enrollment in enrollments:
             if enrollment.status == 'enrolled':
+                # Track enrolled course IDs
+                enrolled_course_ids.append(enrollment.course_instance_id)
+                
                 # Check if course is upcoming or active
                 if enrollment.course_instance.start_date > today:
                     upcoming_count += 1
                 else:
                     active_count += 1
-                    
-                # Add to calendar events
-                instance = enrollment.course_instance
-                template = instance.course_template
-                if template:
-                    events.append({
-                        'id': instance.id,
-                        'title': template.name,
-                        'start': instance.start_date.isoformat(),
-                        'duration': instance.duration_days,
-                        'color': template.color or '#0d6efd',
-                    })
             elif enrollment.status == 'completed':
                 completed_count += 1
+    
+    # Get ALL scheduled courses for calendar (not just enrolled ones)
+    all_instances = course_instances.CourseInstance.query.filter_by(status='scheduled').all()
+    events = []
+    
+    for instance in all_instances:
+        template = instance.course_template
+        if template:
+            # Get instructor names
+            c1_name = instance.c1_instructor.user.get_full_name() if instance.c1_instructor else None
+            c2_name = instance.c2_instructor.user.get_full_name() if instance.c2_instructor else None
+            
+            instructor_text = None
+            if c1_name and c2_name:
+                instructor_text = f"{c1_name} & {c2_name}"
+            elif c1_name:
+                instructor_text = c1_name
+            elif c2_name:
+                instructor_text = c2_name
+            
+            # Get enrollment count
+            enrollment_count = len([e for e in instance.enrollments if e.status == 'enrolled'])
+            
+            # Get location name (instance.location might be a Location object or string)
+            location_name = instance.location
+            if hasattr(instance.location, 'name'):
+                location_name = instance.location.name
+            elif hasattr(instance.location, 'location'):
+                location_name = instance.location.location
+            
+            events.append({
+                'id': instance.id,
+                'title': template.name,
+                'start': instance.start_date.isoformat(),
+                'startTime': instance.start_time.strftime('%H:%M') if instance.start_time else None,
+                'duration': instance.duration_days,
+                'durationDays': instance.duration_days,
+                'location': location_name,
+                'color': template.color or '#0d6efd',
+                'maxStudents': instance.max_students,
+                'capacity': instance.max_students,
+                'enrolled': enrollment_count,
+                'enrollmentCount': enrollment_count,
+                'status': instance.status,
+                'instructorC1Id': instance.c1_instructor_id,
+                'instructorC2Id': instance.c2_instructor_id,
+                'instructorText': instructor_text,
+                'experienceLevel': template.experience_level,
+                'templateId': template.id,
+                'description': template.description or '',
+                'shortBlurb': template.short_blurb or ''
+            })
     
     # Get guest students created by this student
     guest_students = []
@@ -75,6 +118,7 @@ def dashboard():
         'current_user': user,
         'current_student_id': student.id if student else None,
         'events_json': json.dumps(events),
+        'enrolled_course_ids': json.dumps(enrolled_course_ids),
         'guest_students_json': json.dumps(guest_students_data),
         'enrollments': enrollments,
         'active_count': active_count,

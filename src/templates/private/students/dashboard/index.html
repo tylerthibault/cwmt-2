@@ -138,23 +138,27 @@
 
 <!-- Load Calendar Scripts -->
 <script src="{{ url_for('static', filename='js/components/calendar/calendar-core.js') }}"></script>
-<script src="{{ url_for('static', filename='js/components/calendar/calendar-public.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/calendar/calendar-student.js') }}"></script>
 
 <!-- Initialize Student Calendar -->
 <script>
-    // Set current user for calendar (calendar only needs to know if logged in)
-    window.currentUser = {{ 'true' if current_user else 'null' }};
-    
-    // Parse events from backend
+    // Parse events and enrolled course IDs from backend
     window.calendarEvents = {{ events_json | safe }};
+    window.enrolledCourseIds = {{ enrolled_course_ids | safe }};
     window.guestStudents = {{ guest_students_json | safe }};
     
+    console.log('Dashboard - Total courses:', window.calendarEvents.length);
+    console.log('Dashboard - Enrolled in:', window.enrolledCourseIds.length);
+    
     document.addEventListener('DOMContentLoaded', function() {
-        window.publicCalendar = new PublicCalendar({
+        window.studentCalendar = new StudentCalendar({
             events: window.calendarEvents,
-            guestStudents: window.guestStudents,
-            role: 'student'
+            currentStudentId: {{ current_student_id | tojson }},
+            enrolledCourseIds: window.enrolledCourseIds,
+            guestStudents: window.guestStudents
         });
+        
+        console.log('StudentCalendar initialized on dashboard');
     });
 </script>
 
