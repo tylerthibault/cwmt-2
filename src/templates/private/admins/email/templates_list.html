@@ -21,7 +21,14 @@
             <h1>Email Templates</h1>
             <p>Manage all email templates for your system</p>
         </div>
-        <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">+ Create Template</a>
+        <div class="header-actions">
+            <form action="{{ url_for('mail.seed_defaults') }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" onclick="return confirm('This will add default templates for all purposes that don\'t have templates yet. Continue?')">
+                    + Add Default Templates
+                </button>
+            </form>
+            <a href="{{ url_for('mail.create_template_form') }}" class="btn btn-primary">+ Create Template</a>
+        </div>
     </div>
 
     <!-- Templates Grid -->

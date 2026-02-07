@@ -103,7 +103,7 @@ def seed_defaults():
     except Exception as e:
         flash(f'Error seeding templates: {str(e)}', 'error')
     
-    return redirect(url_for('mail.management'))
+    return redirect(url_for('mail.templates_list'))
 
 
 @mail_bp.route('/create', methods=['POST'])
