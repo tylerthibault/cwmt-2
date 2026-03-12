@@ -135,6 +135,10 @@ def init_db(app):
     from src.models.logs import Log
     from src.models.app_settings import AppSettings
 
+    # CMS pages models
+    from src.models.pages_folder.pages import Page
+    from src.models.pages_folder.page_sections import PageSection
+
     
     # Create all tables
     with app.app_context():
@@ -203,6 +207,10 @@ def init_blueprints(app):
     # Flask Mail
     from src.controllers.flask_mail.mail_routes import mail_bp
     app.register_blueprint(mail_bp)
+
+    # CMS Pages
+    from src.controllers.pages import pages_bp
+    app.register_blueprint(pages_bp)
     
     # DEV
     from src.controllers.seeding import seed_bp

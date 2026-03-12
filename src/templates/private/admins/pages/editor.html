@@ -1,0 +1,455 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block title %}Edit: {{ page.title }} - Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.editor-layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; align-items: start; }
+@media (max-width: 900px) { .editor-layout { grid-template-columns: 1fr; } }
+
+.section-card {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    cursor: grab;
+}
+.section-card:active { cursor: grabbing; }
+.section-card .drag-handle { color: #adb5bd; flex-shrink: 0; }
+.section-card .section-info { flex: 1; min-width: 0; }
+.section-card .section-type-badge {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: .2em .55em;
+    border-radius: 4px;
+    background: var(--brand-primary, #a93226);
+    color: #fff;
+    display: inline-block;
+    margin-bottom: .25rem;
+}
+.section-card .section-title-preview {
+    font-size: .92rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ql-container { min-height: 180px; font-family: inherit; }
+.ql-toolbar { border-radius: 6px 6px 0 0 !important; }
+.ql-container { border-radius: 0 0 6px 6px !important; }
+
+/* Field visibility per section type */
+.field-group { display: none; }
+.field-group.visible { display: block; }
+</style>
+{% endblock %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<!-- Header -->
+<div class="dashboard-header animate-fade-down">
+    <div class="dashboard-header-content">
+        <div class="dashboard-welcome">
+            <h1 class="dashboard-title">
+                <span class="gradient-text">{{ page.title }}</span>
+            </h1>
+            <p class="dashboard-subtitle">
+                <code>/p/{{ page.slug }}</code> &nbsp;&middot;&nbsp;
+                {% if page.is_published %}
+                <span class="badge bg-success">Published</span>
+                {% else %}
+                <span class="badge bg-secondary">Draft</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="POST" action="{{ url_for('pages.admin_toggle_publish', page_id=page.id) }}">
+                <button type="submit" class="btn {% if page.is_published %}btn-outline-warning{% else %}btn-success{% endif %}">
+                    {% if page.is_published %}Unpublish{% else %}Publish{% endif %}
+                </button>
+            </form>
+            {% if page.is_published %}
+            <a href="{{ url_for('pages.public_page', slug=page.slug) }}" target="_blank"
+               class="btn btn-outline-secondary">View Live &nearr;</a>
+            {% endif %}
+            <a href="{{ url_for('pages.admin_list') }}" class="btn btn-outline-secondary">&larr; All Pages</a>
+        </div>
+    </div>
+</div>
+
+<div class="editor-layout animate-fade-up animate-delay-1">
+
+    <!-- LEFT: Page metadata -->
+    <div>
+        <div class="table-card mb-4">
+            <div class="table-card-header"><h2 style="font-size:1.05rem;margin:0">Page Settings</h2></div>
+            <div style="padding:1.25rem">
+                <form method="POST" action="{{ url_for('pages.admin_update', page_id=page.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Title</label>
+                        <input type="text" name="title" class="form-control" value="{{ page.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">URL Slug</label>
+                        <div class="input-group">
+                            <span class="input-group-text text-muted">/p/</span>
+                            <input type="text" name="slug" class="form-control"
+                                   value="{{ page.slug }}"
+                                   {% if page.is_protected %}readonly{% endif %}>
+                        </div>
+                        {% if page.is_protected %}<small class="text-muted">Slug is locked for system pages.</small>{% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Meta Description</label>
+                        <textarea name="meta_description" class="form-control" rows="2">{{ page.meta_description or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Sections -->
+    <div>
+        <div class="table-card">
+            <div class="table-card-header d-flex justify-content-between align-items-center">
+                <h2 style="font-size:1.05rem;margin:0">Content Sections ({{ sections|length }})</h2>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+                    + Add Section
+                </button>
+            </div>
+
+            <div style="padding:1.25rem">
+                {% if sections %}
+                <div id="sections-list">
+                    {% for section in sections %}
+                    <div class="section-card" data-section-id="{{ section.id }}">
+                        <div class="drag-handle">
+                            <svg width="16" height="16" fill="currentColor">
+                                <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                            </svg>
+                        </div>
+                        <div class="section-info">
+                            <span class="section-type-badge">{{ section.section_type.replace('_', ' ') }}</span>
+                            <div class="section-title-preview">
+                                {{ section.title or '(no title)' }}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="action-btn edit-btn"
+                                    onclick="openEditSection({{ section.id }})" title="Edit">
+                                <svg width="14" height="14" fill="currentColor">
+                                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                                </svg>
+                            </button>
+                            <form method="POST"
+                                  action="{{ url_for('pages.admin_section_delete', page_id=page.id, section_id=section.id) }}"
+                                  onsubmit="return confirm('Remove this section?')"
+                                  style="display:inline">
+                                <button class="action-btn delete-btn" title="Delete">
+                                    <svg width="14" height="14" fill="currentColor">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No sections yet. Add one above.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     ADD SECTION MODAL
+══════════════════════════════════════════ -->
+<div class="modal fade" id="addSectionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="addSectionForm" method="POST"
+                  action="{{ url_for('pages.admin_section_create', page_id=page.id) }}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Content Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Section type selector -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Section Type</label>
+                        <div class="d-flex flex-wrap gap-2" id="typeSelector">
+                            {% for t in section_types %}
+                            <button type="button"
+                                    class="btn btn-outline-secondary type-btn {% if loop.first %}active{% endif %}"
+                                    data-type="{{ t }}"
+                                    onclick="selectType('{{ t }}', this)">
+                                {{ t.replace('_', ' ').title() }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="section_type" id="sectionTypeInput" value="{{ section_types[0] }}">
+                    </div>
+
+                    {% include 'private/admins/pages/_section_fields.html' %}
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Section</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     EDIT SECTION MODAL
+══════════════════════════════════════════ -->
+<div class="modal fade" id="editSectionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editSectionForm" method="POST" action="">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="editSectionBody">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Quill WYSIWYG -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<!-- SortableJS for drag-to-reorder -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<script>
+// ── Section type toggling ──────────────────────────────────────────────────
+const TYPE_FIELDS = {
+    text:       ['field-title','field-content'],
+    image_text: ['field-title','field-content','field-image','field-image-position'],
+    image:      ['field-title','field-image'],
+    cta:        ['field-title','field-content','field-cta'],
+    video:      ['field-title','field-video'],
+};
+
+function selectType(type, btn) {
+    document.querySelectorAll('#typeSelector .type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sectionTypeInput').value = type;
+    applyTypeFields(type, 'addSectionModal');
+}
+
+function applyTypeFields(type, modalId) {
+    const modal = document.getElementById(modalId);
+    const show = TYPE_FIELDS[type] || [];
+    modal.querySelectorAll('.field-group').forEach(el => {
+        el.classList.toggle('visible', show.includes(el.dataset.field));
+    });
+}
+
+// Initialise add-modal on open
+document.getElementById('addSectionModal').addEventListener('show.bs.modal', () => {
+    const activeType = document.getElementById('sectionTypeInput').value || 'text';
+    applyTypeFields(activeType, 'addSectionModal');
+    initQuill('add');
+});
+
+// ── Quill initialisation ───────────────────────────────────────────────────
+let quillInstances = {};
+
+function initQuill(prefix) {
+    const el = document.getElementById(`quill-editor-${prefix}`);
+    if (!el) return;
+    if (quillInstances[prefix]) {
+        quillInstances[prefix] = null;
+        el.innerHTML = '';
+    }
+    const hidden = document.getElementById(`content-hidden-${prefix}`);
+    const quill = new Quill(el, {
+        theme: 'snow',
+        placeholder: 'Write your content here…',
+        modules: {
+            toolbar: [
+                [{ header: [2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link'],
+                ['clean'],
+            ]
+        }
+    });
+    if (hidden && hidden.value) {
+        quill.root.innerHTML = hidden.value;
+    }
+    quill.on('text-change', () => {
+        if (hidden) hidden.value = quill.root.innerHTML;
+    });
+    quillInstances[prefix] = quill;
+}
+
+// ── Edit section modal ─────────────────────────────────────────────────────
+function openEditSection(sectionId) {
+    const modal = new bootstrap.Modal(document.getElementById('editSectionModal'));
+    const body  = document.getElementById('editSectionBody');
+    const form  = document.getElementById('editSectionForm');
+
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    form.action = '';
+    modal.show();
+
+    fetch(`{{ url_for('pages.admin_section_get', page_id=page.id, section_id=0) }}`.replace('/0', `/${sectionId}`))
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) { body.innerHTML = '<p class="text-danger">Could not load section.</p>'; return; }
+            const s = data.section;
+            form.action = `{{ url_for('pages.admin_section_update', page_id=page.id, section_id=0) }}`.replace('/0', `/${sectionId}`);
+            body.innerHTML = buildEditFields(s);
+            applyTypeFields(s.section_type, 'editSectionModal');
+            initQuill('edit');
+            // pre-fill content for quill
+            const hidden = document.getElementById('content-hidden-edit');
+            if (hidden && quillInstances['edit']) {
+                quillInstances['edit'].root.innerHTML = s.content || '';
+            }
+        })
+        .catch(() => { body.innerHTML = '<p class="text-danger">Network error.</p>'; });
+}
+
+function buildEditFields(s) {
+    return `
+    <input type="hidden" name="section_type" value="${s.section_type}">
+    <div class="mb-2 text-muted small fw-semibold text-uppercase">Type: ${s.section_type.replace('_',' ')}</div>
+
+    <div class="field-group" data-field="field-title">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Title</label>
+            <input type="text" name="title" class="form-control" value="${escHtml(s.title)}">
+        </div>
+    </div>
+
+    <div class="field-group" data-field="field-content">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Content</label>
+            <div id="quill-editor-edit" style="min-height:160px"></div>
+            <input type="hidden" name="content" id="content-hidden-edit" value="${escHtml(s.content)}">
+        </div>
+    </div>
+
+    <div class="field-group" data-field="field-image">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Image URL</label>
+            <input type="url" name="image_url" class="form-control" value="${escHtml(s.image_url)}" placeholder="https://…">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Image Alt Text</label>
+            <input type="text" name="image_alt" class="form-control" value="${escHtml(s.image_alt)}">
+        </div>
+    </div>
+
+    <div class="field-group" data-field="field-image-position">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Image Position</label>
+            <select name="image_position" class="form-select">
+                <option value="left" ${s.image_position==='left'?'selected':''}>Image Left</option>
+                <option value="right" ${s.image_position==='right'?'selected':''}>Image Right</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="field-group" data-field="field-cta">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Button Text</label>
+            <input type="text" name="button_text" class="form-control" value="${escHtml(s.button_text)}" placeholder="e.g. Register Now">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Button URL</label>
+            <input type="url" name="button_url" class="form-control" value="${escHtml(s.button_url)}" placeholder="https://…">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Button Style</label>
+            <select name="button_style" class="form-select">
+                <option value="primary" ${s.button_style==='primary'?'selected':''}>Primary</option>
+                <option value="secondary" ${s.button_style==='secondary'?'selected':''}>Secondary</option>
+                <option value="outline-primary" ${s.button_style==='outline-primary'?'selected':''}>Outline Primary</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="field-group" data-field="field-video">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Video Embed URL</label>
+            <input type="url" name="video_url" class="form-control" value="${escHtml(s.video_url)}"
+                   placeholder="https://www.youtube.com/embed/…">
+            <small class="text-muted">Use the embed URL (youtube.com/embed/VIDEO_ID)</small>
+        </div>
+    </div>`;
+}
+
+function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Drag-to-reorder ────────────────────────────────────────────────────────
+const listEl = document.getElementById('sections-list');
+if (listEl) {
+    Sortable.create(listEl, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function() {
+            const order = [...listEl.querySelectorAll('[data-section-id]')]
+                            .map(el => parseInt(el.dataset.sectionId));
+            fetch('{{ url_for("pages.admin_section_reorder", page_id=page.id) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order }),
+            });
+        }
+    });
+}
+
+// Sync Quill hidden field on form submit (add modal)
+document.getElementById('addSectionForm').addEventListener('submit', () => {
+    const h = document.getElementById('content-hidden-add');
+    if (h && quillInstances['add']) h.value = quillInstances['add'].root.innerHTML;
+});
+document.getElementById('editSectionForm').addEventListener('submit', () => {
+    const h = document.getElementById('content-hidden-edit');
+    if (h && quillInstances['edit']) h.value = quillInstances['edit'].root.innerHTML;
+});
+</script>
+{% endblock %}

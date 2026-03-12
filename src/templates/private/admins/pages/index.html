@@ -1,0 +1,106 @@
+{% extends 'bases/nonstudents.html' %}
+
+{% block title %}Pages - Admin{% endblock %}
+
+{% block sidenav %}
+{% include 'private/admins/components/navbar.html' %}
+{% endblock sidenav %}
+
+{% block inner_content %}
+<div class="dashboard-header animate-fade-down">
+    <div class="dashboard-header-content">
+        <div class="dashboard-welcome">
+            <h1 class="dashboard-title"><span class="gradient-text">Page Builder</span></h1>
+            <p class="dashboard-subtitle">Create and manage content pages for the public site</p>
+        </div>
+        <a href="{{ url_for('pages.admin_create') }}" class="btn-gradient-primary">
+            <svg width="16" height="16" fill="currentColor" style="margin-right:.5rem">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            New Page
+        </a>
+    </div>
+</div>
+
+<div class="table-card animate-fade-up animate-delay-1">
+    <div class="table-card-header">
+        <h2 style="font-size:1.25rem;margin:0;">All Pages ({{ pages|length }})</h2>
+    </div>
+
+    {% if pages %}
+    <div class="data-list">
+        {% for page in pages %}
+        <div class="data-row">
+            <div class="data-cell data-cell-main">
+                <div class="data-label">Title</div>
+                <div class="data-value"><strong>{{ page.title }}</strong></div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Slug / URL</div>
+                <div class="data-value">
+                    <code>/p/{{ page.slug }}</code>
+                </div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Status</div>
+                <div class="data-value">
+                    {% if page.is_published %}
+                    <span class="badge bg-success">Published</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Draft</span>
+                    {% endif %}
+                    {% if page.is_protected %}
+                    <span class="badge bg-info ms-1">Protected</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="data-cell">
+                <div class="data-label">Updated</div>
+                <div class="data-value">{{ page.updated_at.strftime('%b %d, %Y') }}</div>
+            </div>
+            <div class="data-cell data-cell-actions">
+                <div class="data-label">Actions</div>
+                <div class="action-buttons">
+                    <a href="{{ url_for('pages.admin_editor', page_id=page.id) }}"
+                       class="action-btn edit-btn" title="Edit">
+                        <svg width="16" height="16" fill="currentColor">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/>
+                        </svg>
+                    </a>
+                    {% if not page.is_protected %}
+                    <form method="POST"
+                          action="{{ url_for('pages.admin_delete', page_id=page.id) }}"
+                          onsubmit="return confirm('Delete this page?')"
+                          style="display:inline">
+                        <button class="action-btn delete-btn" title="Delete">
+                            <svg width="16" height="16" fill="currentColor">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if page.is_published %}
+                    <a href="{{ url_for('pages.public_page', slug=page.slug) }}"
+                       target="_blank" class="action-btn" title="View live" style="color:var(--brand-accent-blue)">
+                        <svg width="16" height="16" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:3rem;text-align:center;color:var(--text-muted)">
+        <svg width="48" height="48" fill="currentColor" style="opacity:.3;margin-bottom:1rem">
+            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+        </svg>
+        <p>No pages yet. <a href="{{ url_for('pages.admin_create') }}">Create your first page</a>.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

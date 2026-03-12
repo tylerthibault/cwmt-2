@@ -1,0 +1,105 @@
+{% extends 'bases/public.html' %}
+
+{% block styles %}
+<style>
+/* ── CMS Page Layout ─────────────────────────────── */
+.cms-page { max-width: 960px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+.cms-page-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; }
+
+/* Text section */
+.cms-section-text { margin-bottom: 3rem; }
+.cms-section-text h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+
+/* Image + text section */
+.cms-section-image-text { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem; align-items: center; }
+.cms-section-image-text.img-right { direction: rtl; }
+.cms-section-image-text.img-right > * { direction: ltr; }
+@media (max-width: 680px) { .cms-section-image-text { grid-template-columns: 1fr; } .cms-section-image-text.img-right { direction: ltr; } }
+.cms-section-image-text img { width: 100%; border-radius: 10px; object-fit: cover; }
+
+/* Image-only section */
+.cms-section-image { margin-bottom: 3rem; text-align: center; }
+.cms-section-image img { max-width: 100%; border-radius: 10px; }
+.cms-section-image figcaption { font-size: .85rem; color: #666; margin-top: .5rem; }
+
+/* CTA section */
+.cms-section-cta { text-align: center; padding: 3rem 1rem; margin-bottom: 3rem; background: var(--brand-gradient-bg, #f8f9fa); border-radius: 14px; }
+.cms-section-cta h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+
+/* Video section */
+.cms-section-video { margin-bottom: 3rem; }
+.cms-section-video h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+.cms-video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; }
+.cms-video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cms-page">
+    <h1 class="cms-page-title">{{ page.title }}</h1>
+
+    {% for section in sections %}
+
+        {# ── TEXT ── #}
+        {% if section.section_type == 'text' %}
+        <div class="cms-section-text">
+            {% if section.title %}<h2>{{ section.title }}</h2>{% endif %}
+            <div class="cms-rich-content">{{ section.content | safe }}</div>
+        </div>
+
+        {# ── IMAGE + TEXT ── #}
+        {% elif section.section_type == 'image_text' %}
+        <div class="cms-section-image-text {% if section.image_position == 'right' %}img-right{% endif %}">
+            <div>
+                <img src="{{ section.image_url }}" alt="{{ section.image_alt or section.title or '' }}">
+            </div>
+            <div>
+                {% if section.title %}<h2>{{ section.title }}</h2>{% endif %}
+                <div class="cms-rich-content">{{ section.content | safe }}</div>
+            </div>
+        </div>
+
+        {# ── IMAGE ONLY ── #}
+        {% elif section.section_type == 'image' %}
+        <div class="cms-section-image">
+            {% if section.title %}<h2>{{ section.title }}</h2>{% endif %}
+            <figure>
+                <img src="{{ section.image_url }}" alt="{{ section.image_alt or '' }}">
+                {% if section.image_alt %}
+                <figcaption>{{ section.image_alt }}</figcaption>
+                {% endif %}
+            </figure>
+        </div>
+
+        {# ── CALL TO ACTION ── #}
+        {% elif section.section_type == 'cta' %}
+        <div class="cms-section-cta">
+            {% if section.title %}<h2>{{ section.title }}</h2>{% endif %}
+            {% if section.content %}
+            <div class="cms-rich-content mb-3">{{ section.content | safe }}</div>
+            {% endif %}
+            {% if section.button_text and section.button_url %}
+            <a href="{{ section.button_url }}" class="btn btn-{{ section.button_style or 'primary' }} btn-lg">
+                {{ section.button_text }}
+            </a>
+            {% endif %}
+        </div>
+
+        {# ── VIDEO ── #}
+        {% elif section.section_type == 'video' %}
+        <div class="cms-section-video">
+            {% if section.title %}<h2>{{ section.title }}</h2>{% endif %}
+            {% if section.video_url %}
+            <div class="cms-video-wrapper">
+                <iframe src="{{ section.video_url }}"
+                        allowfullscreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+            </div>
+            {% endif %}
+        </div>
+
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

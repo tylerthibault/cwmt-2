@@ -70,6 +70,7 @@
                 </button>
                 <ul class="sidenav-submenu">
                     <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('admin.faq') }}">FAQ</a></li>
+                    <li><a class="sidenav-btn-3ddf343b sub" href="{{ url_for('pages.admin_list') }}">Pages</a></li>
                     <li><a class="sidenav-btn-3ddf343b sub" href="#">About Us</a></li>
                 </ul>
             </li>
@@ -108,11 +109,22 @@ document.querySelectorAll('.sidenav-section-btn').forEach(button => {
 
 // Auto-open section with active link
 document.querySelectorAll('.sidenav-btn-3ddf343b.sub').forEach(link => {
-    if (link.classList.contains('active') || window.location.pathname === new URL(link.href).pathname) {
+    const rawHref = link.getAttribute('href');
+    // Skip placeholder links (#) — they would falsely match every page
+    if (!rawHref || rawHref === '#' || rawHref.startsWith('#')) return;
+
+    const linkPath = new URL(link.href).pathname;
+    const currentPath = window.location.pathname;
+    // Match exact path OR any sub-path (e.g. /admin/pages matches /admin/pages/1/edit)
+    const isActive = link.classList.contains('active')
+                  || currentPath === linkPath
+                  || currentPath.startsWith(linkPath + '/');
+
+    if (isActive) {
+        link.classList.add('active');
         const section = link.closest('.sidenav-section');
         const submenu = section.querySelector('.sidenav-submenu');
         const arrow = section.querySelector('.section-arrow');
-        
         section.classList.add('open');
         submenu.style.maxHeight = submenu.scrollHeight + 'px';
         arrow.style.transform = 'rotate(180deg)';

@@ -1,0 +1,67 @@
+{# Shared form fields for add-section modal.
+   Each group is hidden/shown by JS based on section_type.
+   The "add" prefix is used for Quill and hidden inputs. #}
+
+<div class="field-group" data-field="field-title">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Title</label>
+        <input type="text" name="title" class="form-control" placeholder="Section heading (optional)">
+    </div>
+</div>
+
+<div class="field-group" data-field="field-content">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Content</label>
+        <div id="quill-editor-add" style="min-height:160px"></div>
+        <input type="hidden" name="content" id="content-hidden-add" value="">
+    </div>
+</div>
+
+<div class="field-group" data-field="field-image">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Image URL</label>
+        <input type="url" name="image_url" class="form-control" placeholder="https://example.com/image.jpg">
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Image Alt Text</label>
+        <input type="text" name="image_alt" class="form-control" placeholder="Descriptive alt text">
+    </div>
+</div>
+
+<div class="field-group" data-field="field-image-position">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Image Position</label>
+        <select name="image_position" class="form-select">
+            <option value="left">Image Left</option>
+            <option value="right">Image Right</option>
+        </select>
+    </div>
+</div>
+
+<div class="field-group" data-field="field-cta">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Button Text</label>
+        <input type="text" name="button_text" class="form-control" placeholder="e.g. Register Now">
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Button URL</label>
+        <input type="url" name="button_url" class="form-control" placeholder="https://…">
+    </div>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Button Style</label>
+        <select name="button_style" class="form-select">
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+            <option value="outline-primary">Outline Primary</option>
+        </select>
+    </div>
+</div>
+
+<div class="field-group" data-field="field-video">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Video Embed URL</label>
+        <input type="url" name="video_url" class="form-control"
+               placeholder="https://www.youtube.com/embed/VIDEO_ID">
+        <small class="text-muted">Use the embed URL: youtube.com/embed/VIDEO_ID</small>
+    </div>
+</div>
