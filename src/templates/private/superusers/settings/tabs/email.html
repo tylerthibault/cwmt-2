@@ -12,9 +12,9 @@
                    id="mail_server" 
                    name="mail_server" 
                    value="{{ settings.mail_server }}"
-                   placeholder="smtp.gmail.com"
+                   placeholder="smtp-relay.brevo.com"
                    required>
-            <small class="form-text text-muted">e.g., smtp.gmail.com, smtp.office365.com</small>
+            <small class="form-text text-muted">e.g., smtp-relay.brevo.com (Brevo), smtp.office365.com</small>
         </div>
         
         <div class="col-md-6 mb-3">
@@ -68,18 +68,18 @@
                    id="mail_username" 
                    name="mail_username" 
                    value="{{ settings.mail_username or '' }}"
-                   placeholder="your-email@gmail.com">
-            <small class="form-text text-muted">Email address for SMTP authentication</small>
+                   placeholder="your-login@example.com">
+            <small class="form-text text-muted">Your Brevo account login email address</small>
         </div>
         
         <div class="col-md-6 mb-3">
-            <label for="mail_password" class="form-label">Email Password</label>
+            <label for="mail_password" class="form-label">SMTP Key</label>
             <input type="password" 
                    class="form-control" 
                    id="mail_password" 
                    name="mail_password" 
                    placeholder="Leave blank to keep current">
-            <small class="form-text text-muted">Use app-specific password for Gmail</small>
+            <small class="form-text text-muted">Your Brevo SMTP Key (not your account password)</small>
         </div>
     </div>
     
@@ -97,9 +97,9 @@
     </div>
         
     <div class="infobox infobox-info">
-        <strong><i class="bi bi-info-circle"></i> Gmail Users:</strong>
-        <p class="mb-0">You need to create an App Password instead of using your regular Gmail password. 
-        Visit <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a> to generate one.</p>
+        <strong><i class="bi bi-info-circle"></i> Brevo SMTP Setup:</strong>
+        <p class="mb-0">Use your Brevo account login email as the username. For the SMTP Key, go to
+        <strong>Brevo &rarr; Account &rarr; SMTP &amp; API</strong> and generate a key there &mdash; do not use your account password.</p>
     </div>
     
     <div class="d-flex justify-content-end gap-2">

@@ -19,7 +19,7 @@ class AppSettings(db.Model, CRUDMixin):
     id = db.Column(db.Integer, primary_key=True)
     
     # ===== Flask-Mail Configuration =====
-    mail_server = db.Column(db.String(255), default='smtp.gmail.com')
+    mail_server = db.Column(db.String(255), default='smtp-relay.brevo.com')
     mail_port = db.Column(db.Integer, default=587)
     mail_use_tls = db.Column(db.Boolean, default=True)
     mail_use_ssl = db.Column(db.Boolean, default=False)
@@ -120,12 +120,19 @@ class AppSettings(db.Model, CRUDMixin):
         
         if mail_password:
             new_settings.set_mail_password(mail_password)
+        else:
+            # Carry over existing encrypted password when no new one is provided
+            new_settings.mail_password_encrypted = current_settings.mail_password_encrypted
         
         if stripe_secret_key:
             new_settings.set_stripe_secret_key(stripe_secret_key)
+        else:
+            new_settings.stripe_secret_key_encrypted = current_settings.stripe_secret_key_encrypted
         
         if stripe_webhook_secret:
             new_settings.set_stripe_webhook_secret(stripe_webhook_secret)
+        else:
+            new_settings.stripe_webhook_secret_encrypted = current_settings.stripe_webhook_secret_encrypted
         
         new_settings.save()
         
@@ -354,7 +361,7 @@ class AppSettings(db.Model, CRUDMixin):
                 app_name='CWMT',
                 support_email='support@cwmt.com',
                 site_url='https://cwmt.example.com',
-                mail_server='smtp.gmail.com',
+                mail_server='smtp-relay.brevo.com',
                 mail_port=587,
                 mail_use_tls=True,
                 mail_use_ssl=False,
