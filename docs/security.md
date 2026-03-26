@@ -160,7 +160,37 @@ Passwords are **never stored in plaintext**.  They are hashed with
 
 ---
 
-## Incident Response
+## Running the Test Suite
+
+The test suite validates all security properties described above.  Run it with:
+
+```bash
+export FIELD_ENCRYPTION_KEY=<your-dev-key>
+export SEARCH_HASH_KEY=<your-dev-hash-key>
+export SECRET_KEY=<your-dev-session-key>
+
+pytest
+```
+
+Or inline:
+
+```bash
+FIELD_ENCRYPTION_KEY=dev-key SEARCH_HASH_KEY=dev-hash-key pytest
+```
+
+Tests are organised in:
+
+```
+tests/
+├── conftest.py                    # shared fixtures and env-var bootstrap
+├── unit/
+│   ├── test_encryption.py         # Fernet encrypt/decrypt, blind-index hashing
+│   ├── test_user_model.py         # PII stored encrypted, blind-index lookups
+│   └── test_auth_logic.py         # login / register with encrypted fields
+└── smoke/
+    ├── test_security_headers.py   # HTTP response headers (CSP, HSTS, etc.)
+    └── test_app_startup.py        # startup validation, rate-limiter init
+```
 
 If `FIELD_ENCRYPTION_KEY` or `SEARCH_HASH_KEY` is compromised:
 
