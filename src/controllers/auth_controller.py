@@ -1,7 +1,8 @@
-from flask import Blueprint, request, render_template, session, redirect, url_for, flash
+from flask import Blueprint, request, render_template, session, redirect, url_for, flash, current_app
 from src.logic.auth_logic import AuthLogic
 from functools import wraps
 from src.models.logbook import Logbook
+from src.utils.rate_limiter import limiter
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -35,6 +36,7 @@ def login_required(f):
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit('10 per hour')
 def register():
     if request.method == 'POST':
         data = request.form
@@ -54,6 +56,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit('20 per hour')
 def login():
     if request.method == 'POST':
         data = request.form

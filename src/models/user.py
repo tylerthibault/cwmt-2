@@ -2,31 +2,44 @@
 User model - THIN model following constitutional principles
 Contains ONLY database schema and simple serialization
 """
+from sqlalchemy import event
 from src.models import db
 from src.models.base_model import BaseModel
+from src.utils.encryption import EncryptedType, compute_search_hash
 
 
 class User(BaseModel):
     """
     User database model - THIN model pattern.
-    
+
+    PII fields (email, username, first_name, last_name) are stored encrypted
+    at rest using Fernet symmetric encryption.  Searchable fields (email,
+    username) additionally maintain an HMAC-SHA256 blind-index column so that
+    exact-match lookups continue to work without exposing plaintext in the DB.
+
     Contains ONLY:
     - Database schema (columns, relationships, constraints)
     - Simple serialization methods (to_dict, from_dict)
-    
+
     Does NOT contain:
     - Business logic (belongs in src/logic/user_logic.py)
     - Validation (belongs in logic layer)
     - Complex calculations (belongs in logic layer)
     """
     __tablename__ = 'users'
-    
-    # User fields
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+
+    # PII fields stored encrypted at rest
+    email = db.Column(EncryptedType(), unique=False, nullable=False)
+    username = db.Column(EncryptedType(), unique=False, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    first_name = db.Column(db.String(50), nullable=True)
-    last_name = db.Column(db.String(50), nullable=True)
+    first_name = db.Column(EncryptedType(), nullable=True)
+    last_name = db.Column(EncryptedType(), nullable=True)
+
+    # Blind-index columns used for exact-match lookups on encrypted fields.
+    # Indexed for query performance; unique constraint enforced here instead of
+    # on the encrypted column itself.
+    email_search_hash = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    username_search_hash = db.Column(db.String(64), unique=True, nullable=True, index=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     email_confirmed = db.Column(db.Boolean, default=False, nullable=False)
@@ -103,15 +116,28 @@ class User(BaseModel):
     @classmethod
     def get_by_email(cls, email):
         """
-        Get user by email.
-        
+        Get user by email using the blind-index search hash.
+
         Args:
             email (str): Email of the user
-            
+
         Returns:
             User: The user instance or None if not found
         """
-        return cls.query.filter_by(email=email).first()
+        return cls.query.filter_by(email_search_hash=compute_search_hash(email)).first()
+
+    @classmethod
+    def get_by_username(cls, username):
+        """
+        Get user by username using the blind-index search hash.
+
+        Args:
+            username (str): Username of the user
+
+        Returns:
+            User: The user instance or None if not found
+        """
+        return cls.query.filter_by(username_search_hash=compute_search_hash(username)).first()
     
     @classmethod
     def get_all(cls):
@@ -179,3 +205,18 @@ class User(BaseModel):
             db.session.commit()
             return True
         return False
+
+
+# ---------------------------------------------------------------------------
+# SQLAlchemy event listeners — automatically keep blind-index hash columns in
+# sync with their plaintext counterparts before any INSERT or UPDATE.
+# ---------------------------------------------------------------------------
+
+@event.listens_for(User, 'before_insert')
+@event.listens_for(User, 'before_update')
+def _sync_search_hashes(mapper, connection, target):  # noqa: N802
+    """Recompute HMAC blind-index hashes whenever a User is saved."""
+    if target.email is not None:
+        target.email_search_hash = compute_search_hash(target.email)
+    if target.username is not None:
+        target.username_search_hash = compute_search_hash(target.username)

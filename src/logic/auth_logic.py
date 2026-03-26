@@ -1,6 +1,7 @@
 from flask import flash, current_app as app
 from src.models.user import User
 from src.models.roles import Role, UserHasRoles
+from src.utils.encryption import compute_search_hash
 
 
 class AuthLogic:
@@ -25,10 +26,10 @@ class AuthLogic:
 
         if is_valid:
             # check to see if email or username already exists in the database
-            if User.query.filter_by(email=data.get('email')).first():
+            if User.query.filter_by(email_search_hash=compute_search_hash(data.get('email'))).first():
                 flash('Email already registered', 'user_register_email_error')
                 is_valid = False
-            if User.query.filter_by(username=data.get('username')).first():
+            if User.query.filter_by(username_search_hash=compute_search_hash(data.get('username'))).first():
                 flash('Username already registered', 'user_register_username_error')
                 is_valid = False
             
@@ -57,7 +58,7 @@ class AuthLogic:
             flash('Email and password are required', 'user_login_error')
             return None
         
-        user = User.query.filter_by(email=data.get('email')).first()
+        user = User.query.filter_by(email_search_hash=compute_search_hash(data.get('email'))).first()
         if not user or not AuthLogic.check_password_hash(user.password_hash, data.get('password')):
             flash('Invalid email or password', 'user_login_error')
             return None
