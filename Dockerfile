@@ -10,6 +10,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     FLASK_APP=run.py \
     FLASK_ENV=production
 
+# Required security secrets — must be provided at runtime via environment.
+# Do NOT bake these into the image.  Provide them through your container
+# orchestration secrets manager (e.g. CapRover app env, Docker secrets):
+#   FIELD_ENCRYPTION_KEY  — Fernet key for PII field encryption at rest
+#   SEARCH_HASH_KEY       — HMAC key for blind-index search hashes
+#   SECRET_KEY            — Flask session signing key
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \

@@ -6,6 +6,7 @@ from src.models import db
 from src.models.user import User
 from src.models.roles import Role, UserHasRoles
 from src.logic.auth_logic import AuthLogic
+from src.utils.encryption import compute_search_hash
 
 
 def seed_default_users(app):
@@ -79,10 +80,10 @@ def seed_default_users(app):
         # Extract role name for separate handling
         role_name = user_data.pop('role_name')
         
-        # Check if user already exists by email or username
+        # Check if user already exists using blind-index hash lookups
         existing_user = User.query.filter(
-            (User.email == user_data['email']) | 
-            (User.username == user_data['username'])
+            (User.email_search_hash == compute_search_hash(user_data['email'])) |
+            (User.username_search_hash == compute_search_hash(user_data['username']))
         ).first()
         
         if not existing_user:

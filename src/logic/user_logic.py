@@ -2,6 +2,7 @@ from src.models.user import User
 from src.models.logbook import Logbook
 from flask import session, flash
 from flask import current_app as app
+from src.utils.encryption import compute_search_hash
 
 class UserLogic:
 
@@ -33,10 +34,10 @@ class UserLogic:
             raise ValueError('Passwords do not match')
         
         # Business rules - check uniqueness
-        if User.query.filter_by(email=data.get('email')).first():
+        if User.query.filter_by(email_search_hash=compute_search_hash(data.get('email'))).first():
             raise ValueError('Email already registered')
-        
-        if User.query.filter_by(username=data.get('username')).first():
+
+        if User.query.filter_by(username_search_hash=compute_search_hash(data.get('username'))).first():
             raise ValueError('Username already registered')
         
         # Import auth logic for password hashing
@@ -239,12 +240,12 @@ class UserLogic:
             raise ValueError('Email is required')
         
         # Check if username is already taken by another user
-        existing_user = User.query.filter_by(username=data.get('username')).first()
+        existing_user = User.query.filter_by(username_search_hash=compute_search_hash(data.get('username'))).first()
         if existing_user and existing_user.id != user_id:
             raise ValueError('Username already taken')
-        
+
         # Check if email is already taken by another user
-        existing_user = User.query.filter_by(email=data.get('email')).first()
+        existing_user = User.query.filter_by(email_search_hash=compute_search_hash(data.get('email'))).first()
         if existing_user and existing_user.id != user_id:
             raise ValueError('Email already registered')
         
